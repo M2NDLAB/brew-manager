@@ -1,0 +1,494 @@
+<div align="center">
+
+# 🍺 brew-manager
+
+**A modular, interactive TUI tool for macOS that gives you complete visibility and control over your Homebrew installation.**
+
+[![macOS](https://img.shields.io/badge/macOS-12%2B-blue?logo=apple)](https://www.apple.com/macos/)
+[![zsh](https://img.shields.io/badge/shell-zsh-green)](https://www.zsh.org/)
+[![Homebrew](https://img.shields.io/badge/Homebrew-4.x%2B-orange?logo=homebrew)](https://brew.sh/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+*Developed by [M2NDLAB](https://github.com/M2NDLAB/brew-manager)*
+
+</div>
+
+---
+
+## Why this exists
+
+If you use Homebrew regularly, you know the feeling: your Mac accumulates apps installed manually that could be managed by brew, packages that haven't been updated in months because they self-update and `brew upgrade` silently skips them, orphan libraries taking up gigabytes of disk space, binaries in `/usr/local/bin` placed there by some installer you don't remember, and no clean way to reproduce your exact setup if you get a new machine.
+
+The standard Homebrew CLI is excellent for installing and updating software — but it doesn't give you a clear picture of the state of your system. You have to run a dozen commands and mentally connect the output.
+
+**brew-manager** was built to fill that gap.
+
+It is a single shell script that runs entirely in your terminal, requires nothing beyond what macOS already has installed, captures every session to a log file, and can run fully automatically via macOS LaunchAgents. Every module starts with a plain-language explanation of what it does and why — so you always know what you are running before it runs.
+
+It is **not** a replacement for Homebrew. It is a maintenance and audit layer on top of it.
+
+---
+
+## Requirements
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| macOS | 12 Monterey or later | Apple Silicon (M-series) and Intel both supported |
+| zsh | 5.8 or later | Default shell on macOS since Catalina (2019) |
+| Homebrew | 4.x or later | Uses JSON API — no local core/cask clone needed |
+| Python 3 | any | Pre-installed on macOS — used for fast JSON parsing in module 3 |
+
+**Optional:**
+- `mas` — required for module `mas` (Mac App Store integration). If not installed, the module will offer to install it for you. Install manually with `brew install mas`.
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/M2NDLAB/brew-manager.git
+cd brew-manager
+chmod +x brew_manager.sh
+```
+
+> **Note:** only `brew_manager.sh` needs to be executable. All files in `lib/` and `modules/` are sourced by the main script at runtime — they do not need `chmod`.
+
+The script resolves its own location automatically, so you can run it from any working directory:
+
+```bash
+# From inside the project folder
+./brew_manager.sh
+
+# From anywhere on your system
+~/Dev/brew-manager/brew_manager.sh
+
+# Or add it to your PATH in ~/.zshrc
+export PATH="$PATH:$HOME/Dev/brew-manager"
+```
+
+---
+
+## Usage
+
+### Interactive TUI
+
+```bash
+./brew_manager.sh
+```
+
+Launches a full-screen terminal interface showing all available modules. Type `go` to run the complete audit sequence, or enter specific module numbers or names to run only what you need.
+
+At the top of each module you will see an **About this module** section explaining in plain language what the module does, what it checks, and what actions it can take — before anything runs.
+
+### Running from the command line
+
+brew-manager is designed to work both interactively and non-interactively. Every option you can select in the TUI can also be passed as a command-line argument:
+
+```bash
+# Run the full audit — all standard modules in sequence (0 to 13)
+./brew_manager.sh go
+
+# Run only specific modules, in any order you choose
+./brew_manager.sh 1,4,5
+
+# Run everything without any prompts — uses built-in safe defaults
+./brew_manager.sh go --yes
+
+# Read-only inspection — no changes made to the system whatsoever
+./brew_manager.sh go --dry-run
+
+# Audit apps + adopt all unmanaged ones + upgrade packages without asking
+./brew_manager.sh 0,4 --adopt=all --upgrade=y
+
+# Open the log manager, Brewfile backup, scheduler, or MAS integration
+./brew_manager.sh log
+./brew_manager.sh bk
+./brew_manager.sh las
+./brew_manager.sh mas
+```
+
+### Available flags
+
+| Flag | What it does |
+|------|--------------|
+| `--yes` / `-y` | Skips all interactive prompts and uses built-in defaults. Also activates automatically when stdin is not a TTY — for example when the script is run by a LaunchAgent or piped. |
+| `--dry-run` | Puts the script in read-only mode. Disables `brew upgrade`, `--adopt`, all file writes, and LaunchAgent installs. Safe to use for inspection on any system. |
+| `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. Useful in automated runs to control whether and which apps get adopted. |
+| `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
+
+> **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
+
+---
+
+## Modules
+
+brew-manager has two categories of modules:
+
+### Standard modules — run with `go`
+
+These run in sequence (0 → 13) when you type `go`. They are pure audit and maintenance operations with no persistent side effects beyond what you explicitly confirm.
+
+---
+
+#### `0` — Audit: unmanaged apps
+
+Scans `/Applications` and `~/Applications` and compares every `.app` bundle against your installed Homebrew casks. Each app is classified into one of three categories:
+
+- **Managed by brew** — already installed and tracked via `brew cask`, nothing to do
+- **Adoptable** — the app exists on disk but brew doesn't track it; a matching cask exists and you can run `brew install --adopt` to bring it under brew's management
+- **No cask found** — installed outside brew with no known cask; brew cannot manage it
+
+Apple system apps (Safari, Mail, iMovie, Keynote, etc.) are detected dynamically by reading their bundle identifier via `mdfind`. There is no hardcoded list that would go stale with macOS updates.
+
+---
+
+#### `1` — Health: system diagnostic
+
+Runs a full diagnostic of your Homebrew installation and the underlying system:
+
+- Homebrew version, prefix path, and last database update time
+- Xcode Command Line Tools status (required for building formulae from source)
+- Prefix write permissions (checks that brew can install to its directory)
+- Free disk space on the volume containing the brew prefix
+- Active tap repositories (official JSON API + any extra taps you have added)
+- `brew doctor` — Homebrew's own diagnostic that checks PATH, symlinks, permissions, and known problem patterns. Warnings from `brew doctor` are informational and rarely block normal usage.
+
+---
+
+#### `2` — Update: formula database
+
+Runs `brew update` to fetch the latest package definitions from Homebrew's JSON API. This is **not** the same as upgrading packages — it only refreshes the list of what is available and what versions exist. Actual package upgrades happen in module `4`.
+
+Since Homebrew 4.x, `brew update` fetches lightweight JSON files rather than cloning Git repositories, so this step completes in seconds.
+
+---
+
+#### `3` — Packages: installed packages report
+
+Lists every package currently installed by Homebrew, split into two sections:
+
+**Applications (Casks)** — GUI apps installed via `brew install --cask`. Each cask is tagged:
+- `[A]` — the app has its own auto-updater (e.g. Docker, Firefox, VS Code). `brew upgrade` skips it by default to avoid conflicts with the app's built-in update mechanism. Module `10` handles these.
+- `[M]` — the app is fully managed by `brew upgrade`. No built-in updater.
+
+**Formulae and libraries** — CLI tools and libraries. Descriptions are fetched live from `brew info --json=v2 --installed` in a single fast call — no per-package queries.
+
+---
+
+#### `4` — Updates: available updates
+
+Shows every installed cask and formula that has a newer version available, with a version diff table. Before asking whether to upgrade, displays a `brew upgrade --dry-run` preview so you can see exactly what will change.
+
+Casks tagged `[A]` (auto_updates) are listed but not upgraded here — use module `10` for those.
+
+---
+
+#### `5` — Cleanup: free disk space
+
+Removes two categories of files that Homebrew accumulates over time:
+
+- **Orphan dependencies** — formulae that were installed as dependencies of something you removed, but are no longer needed by any installed package. Removed via `brew autoremove`.
+- **Old versions and download cache** — previous versions of upgraded packages and the downloaded archives used to install them. Removed via `brew cleanup -s`.
+
+Cache size is measured before and after so you can see exactly how much space was freed.
+
+---
+
+#### `6` — Dependencies: shared dependency analysis
+
+Analyzes the dependency graph of all installed formulae and shows the 10 packages that are depended upon by the most other installed packages. Useful before removing or changing a shared library — it tells you immediately how many things rely on it.
+
+Bar lengths are normalized to the actual maximum count — the longest bar always represents the most-shared package, others are proportional.
+
+---
+
+#### `7` — Services: Homebrew background services
+
+Lists all background services installed by Homebrew formulae (e.g. PostgreSQL, Redis, Nginx, MySQL) and their current status:
+
+- `started` — service is running and will restart automatically at login
+- `stopped` — service is installed but not currently running
+- other — error state, check `brew services` for details
+
+---
+
+#### `8` — Untracked: binaries outside brew
+
+Scans `/usr/local/bin` for executables that are **not** managed by Homebrew. These are binaries placed there by manual installations, SDK installers, or other package managers — they will not be updated by `brew upgrade`. Each untracked binary shows its symlink target so you can identify its origin.
+
+---
+
+#### `9` — Tracked: brew-managed binaries
+
+Companion to module `8` — lists binaries in `/usr/local/bin` that **are** managed by Homebrew, either as formula symlinks pointing into the Cellar, or as binaries exposed by cask apps (e.g. `docker`, `kubectl`, `code`). Shows the symlink target and whether the source is a formula or a specific app.
+
+---
+
+#### `10` — Greedy: auto-update cask check
+
+Homebrew marks certain casks as `auto_updates: true` because they have a built-in update mechanism. `brew upgrade` intentionally skips these to avoid version conflicts. This module finds them, checks which are actually outdated using `brew upgrade --greedy`, and offers to force an update.
+
+Common examples: Docker, Firefox, Discord, VS Code, Telegram, Chrome.
+
+---
+
+#### `11` — Conflicts: duplicates and deprecated packages
+
+Detects three categories of potential problems:
+
+- **Version duplicates** — multiple versions of the same formula installed (e.g. `openjdk` and `openjdk@21`)
+- **Keg-only formulae** — installed but intentionally not linked to avoid conflicts with macOS-bundled versions (e.g. `sqlite`, `readline`, `openssl`)
+- **Deprecated or disabled casks** — casks flagged by Homebrew maintainers as unsafe or unmaintained; these should be replaced
+
+---
+
+#### `12` — Security: security audit
+
+Runs security-focused checks that are fast and directly actionable:
+
+- **`brew missing`** — finds broken dependencies: packages that reference other formulae that are no longer installed. Reports exactly which formula to reinstall to fix each issue.
+- **Non-HTTPS homepages** — formulae whose upstream project URL uses plain HTTP instead of HTTPS
+- **Pinned formulae** — packages frozen at a specific version via `brew pin`; they will not receive security updates until unpinned
+- **Deprecated/disabled casks** — casks flagged as unsafe or abandoned by Homebrew
+
+---
+
+#### `13` — Disk: disk usage breakdown
+
+Measures how much disk space each installed formula and cask occupies, sorted from largest to smallest. Useful when deciding what to uninstall or before running module `5` to understand where the space is going.
+
+Shows three totals: Cellar (formulae), Caskroom (cask metadata), and download cache.
+
+---
+
+### Special modules — call by name
+
+These are excluded from `go` because they are interactive configuration and management tools, not audits. Call them directly by name.
+
+---
+
+#### `log` — Session log manager
+
+```bash
+./brew_manager.sh log
+```
+
+Manages all log files in the `logs/` directory. Logs are color-coded by type in the file list:
+
+| Type | Color | Description |
+|------|-------|-------------|
+| `brew_report_*` | Cyan | Full session logs — one per run of brew_manager.sh |
+| `agent_stdout_*` | Green | Output from scheduled LaunchAgent runs |
+| `agent_stderr_*` | Yellow | Errors from scheduled LaunchAgent runs |
+
+Options: **View** (print log contents), **Delete** (by number, list, or `all`), **Purge old** (delete logs older than N days).
+
+---
+
+#### `bk` — Brewfile and agents backup/restore
+
+```bash
+./brew_manager.sh bk
+```
+
+Creates and manages portable snapshots of your entire setup — both Homebrew packages and LaunchAgent schedules. Each operation can be run independently or on the full set:
+
+| Option | What it does |
+|--------|--------------|
+| `1` — Backup all | Generates Brewfile + agents bundle in `backups/` |
+| `1b` — Backup Brewfile | Homebrew packages only |
+| `1a` — Backup agents | LaunchAgent schedules only |
+| `2` — Preview all | Shows what would be saved without writing anything |
+| `2b` — Preview brew | Lists packages that would go into the Brewfile |
+| `2a` — Preview agents | Lists configured LaunchAgent schedules |
+| `3` — Restore all | Installs all Brewfile packages + reloads all agents |
+| `3b` — Restore brew | Restores Homebrew packages only |
+| `3a` — Restore agents | Recreates and reloads LaunchAgents from bundle |
+| `4` — Check | Verifies all Brewfile dependencies are currently satisfied |
+| `5` — View | Shows saved Brewfile contents with color-coded categories + agents bundle |
+| `6` — Delete | Removes Brewfile, lock file, and/or agents bundle (selectable) |
+
+**To move your setup to a new Mac:**
+
+```bash
+# On the old Mac — backup everything
+./brew_manager.sh bk   # option 1
+
+# Copy the backups/ folder to your new Mac
+cp -r backups/ /path/to/new/mac/brew-manager/backups/
+
+# On the new Mac — restore everything
+./brew_manager.sh bk   # option 3
+```
+
+---
+
+#### `las` — LaunchAgent scheduler
+
+```bash
+./brew_manager.sh las
+```
+
+Installs, modifies, and removes macOS LaunchAgents that run brew-manager automatically on a schedule. Uses macOS `launchd` natively — no cron, no sudo, no third-party tools. Runs as your user account and starts automatically at login.
+
+All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`.
+
+| Option | What it does |
+|--------|--------------|
+| `1` | Install weekly agent — every Sunday at 09:00, runs all modules |
+| `2` | Install daily agent — every day at 09:00, runs all modules |
+| `3` | Custom agent — choose name, day(s), hour, minute, and modules |
+| `4` | Modify agent — change schedule or modules without reinstalling |
+| `5` | Remove agent — unloads from macOS and deletes plist + conf |
+| `6` | **Integrity check** — see below |
+| `v` | View activity log — color-coded history of installs/modifications/removals |
+| `c` | Clear logs — only available when no agents are installed |
+
+**Option 6 — Integrity check:**
+
+If you delete a `.plist` or `.conf` file manually instead of using option `5`, the system can get out of sync. The integrity check finds two types of problems:
+
+- **Orphan plists** — agents active in `~/Library/LaunchAgents/` with the brew-manager label prefix but no corresponding `.conf` in `agents/`. brew-manager has no record of them but they are still running.
+- **Dangling confs** — `.conf` files in `agents/` that reference plists that no longer exist in `~/Library/LaunchAgents/`. brew-manager thinks they exist but macOS does not.
+
+For each problem, you can choose to **re-register** (create the missing file and bring everything back in sync) or **remove** (clean up the orphan completely).
+
+> Always use option `[5]` to remove agents. If you delete files manually, run the integrity check with option `[6]` to restore consistency.
+
+---
+
+#### `mas` — Mac App Store integration
+
+```bash
+./brew_manager.sh mas
+```
+
+Manages apps installed from the Mac App Store using [`mas`](https://github.com/mas-cli/mas), an open-source CLI tool. If `mas` is not installed, this module will offer to install it via `brew install mas`.
+
+Shows all installed App Store apps with their App ID, name, and version. Checks for available updates and offers to run `mas upgrade` to update them all. Requires that you are signed into the App Store with your Apple ID.
+
+Note: `mas` is completely separate from Homebrew — it only communicates with the Mac App Store and does not interact with brew at all.
+
+---
+
+## Project structure
+
+```
+brew-manager/
+│
+├── brew_manager.sh           ← entry point: menu, flags, dispatch, summary
+│
+├── lib/
+│   ├── common.sh             ← colors, symbols, TUI utilities, _ask, _read_choice
+│   └── log.sh                ← session log menu and support footer
+│
+├── modules/
+│   ├── mod_00_audit.sh       ← [0]   unmanaged app audit
+│   ├── mod_01_health.sh      ← [1]   system health + brew doctor
+│   ├── mod_02_update.sh      ← [2]   formula database update
+│   ├── mod_03_packages.sh    ← [3]   installed packages report
+│   ├── mod_04_updates.sh     ← [4]   available updates + upgrade
+│   ├── mod_05_cleanup.sh     ← [5]   cache and orphan cleanup
+│   ├── mod_06_deps.sh        ← [6]   shared dependency analysis
+│   ├── mod_07_services.sh    ← [7]   homebrew services
+│   ├── mod_08_untracked.sh   ← [8]   untracked binaries in /usr/local/bin
+│   ├── mod_09_tracked.sh     ← [9]   brew-tracked binaries in /usr/local/bin
+│   ├── mod_10_greedy.sh      ← [10]  auto-update casks (greedy check)
+│   ├── mod_11_conflicts.sh   ← [11]  duplicates and conflicts
+│   ├── mod_12_security.sh    ← [12]  security audit
+│   ├── mod_13_disk.sh        ← [13]  disk usage breakdown
+│   ├── mod_bk_brewfile.sh    ← [bk]  Brewfile + agents backup/restore
+│   ├── mod_las_scheduler.sh  ← [las] LaunchAgent scheduler
+│   ├── mod_mas_mas.sh        ← [mas] Mac App Store integration
+│   └── mod_log_manager.sh    ← [log] session log manager
+│
+├── logs/                     ← auto-created at first run, git-ignored
+│   ├── brew_report_*.log     ← one per interactive session
+│   ├── agent_stdout_*.log    ← stdout from each scheduled LaunchAgent run
+│   └── agent_stderr_*.log    ← stderr from each scheduled LaunchAgent run
+│
+├── backups/                  ← auto-created by module bk, git-ignored
+│   ├── Brewfile              ← declarative snapshot of all installed packages
+│   ├── Brewfile.lock.json    ← Homebrew lock file for reproducible restores
+│   └── agents_bundle.conf    ← snapshot of all LaunchAgent configurations
+│
+├── agents/                   ← auto-created by module las, git-ignored
+│   ├── agent_*.conf          ← one configuration file per installed agent
+│   └── agents_activity.log   ← timestamped install/modify/remove history
+│
+├── .gitignore                ← excludes logs/, backups/, agents/
+├── LICENSE                   ← MIT
+└── README.md
+```
+
+> `logs/`, `backups/`, and `agents/` are created automatically and are excluded from git. They contain session data and local paths that should not be committed.
+
+---
+
+## Session logging
+
+Every run of `brew_manager.sh` is fully captured to a timestamped log file in `logs/` using macOS `script(1)`. The log captures the complete terminal output of the session. ANSI escape codes and carriage returns are stripped automatically after the session ends, leaving clean plain text ready for archiving or sharing.
+
+The log file is always saved — even if you interrupt the session with **Ctrl+C**. The ANSI stripping step runs in the parent process, independently of how the child session ended.
+
+At the end of each interactive session you are presented with three choices:
+
+- **Keep** — the log stays in `logs/` exactly as captured
+- **Open** — the log is opened in your default editor for review (file is saved regardless)
+- **Delete** — the log file is removed
+
+To manage all session logs at once:
+```bash
+./brew_manager.sh log
+```
+
+---
+
+## Adding a new module
+
+brew-manager's dispatch system is designed to make adding modules trivial.
+
+**Numbered module (included in `go`):**
+
+1. Create `modules/mod_NN_name.sh` containing a function named `_module_NN()`
+2. Add an entry to `MODULE_DESC` in `brew_manager.sh`: `[NN]="Description of module"`
+3. Add `NN` to the `MODULE_IDS` array
+4. Done — the source glob, dispatch loop, and summary pick it up automatically
+
+**Named module (excluded from `go`, called by name):**
+
+1. Create `modules/mod_KEYNAME_*.sh` with a function (any number is fine internally)
+2. Add the key to `MODULE_DESC`: `[keyname]="Description"`
+3. Add a `case` entry in the parse block: `keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`
+4. Add a `case` entry in the dispatch loop: `keyname) _module_function ;;`
+5. Add a display line in the menu below the `·` separator
+
+---
+
+## Contributing
+
+This project is open to contributions of any kind. If you find a bug, want to propose a new module, improve the documentation, or refactor something:
+
+1. **Fork** the repository on GitHub
+2. **Create a branch** for your change: `git checkout -b fix/something` or `git checkout -b feat/new-module`
+3. **Make your changes** — keep one module per file, comment non-obvious decisions
+4. **Open a pull request** with a clear description of what changed and why
+
+There is no minimum size for contributions. A one-line fix, a documentation improvement, or a module idea filed as an issue are all equally welcome.
+
+---
+
+## License
+
+This project is released under the MIT License — see [LICENSE](LICENSE) for the full text.
+
+In plain language: use it freely, modify it, include it in your own projects. The only requirement is that the license text stays attached. No fees, no attribution required (though appreciated).
+
+---
+
+<div align="center">
+
+*brew-manager is a macOS-only tool.*
+*It relies on macOS-specific features — Caskroom, LaunchAgents, bundle identifiers, mdfind, script(1) — that do not exist on Linux.*
+
+</div>
