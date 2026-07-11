@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git tag)",
+      "Bash(git describe:*)",
+      "Bash(tree:*)",
+      "Bash(zsh -n:*)",
+      "Bash(shellcheck:*)",
+      "Bash(brew list:*)",
+      "Bash(brew info:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git branch -D:*)",
+      "Bash(rm -rf:*)",
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/*credentials*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '=== MEMORIA PROGETTO (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memoria non inizializzata: vedi .claude/memory/'"
+          }
+        ]
+      }
+    ]
+  }
+}
