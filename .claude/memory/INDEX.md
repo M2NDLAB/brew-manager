@@ -37,4 +37,7 @@ tags: [moc]
   elenco dei sei componenti nel gate
 
 ## Piani
-- _(nessun piano attivo)_
+- [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
+  sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
+  in attesa — parte DOPO l'integrazione del branch di innesto (precondizione 1
+  del piano stesso); un task per volta, ok utente tra un task e il successivo.

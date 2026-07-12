@@ -14,8 +14,11 @@ tags: [state]
 - [x] Innesto del claude-code-framework v0.2.0 — branch `chore/innesto-framework`
   (questo checkpoint). Memoria inizializzata dall'assessment, non da template vuoto.
 - [ ] Integrazione del branch di innesto in `main` (blocco /integrate: esegue l'utente) ← PROSSIMO
-- [ ] Bonifica dei difetti noti emersi dall'assessment (vedi "Attenzione") — da
-  pianificare come deliverable separati, ciascuno col suo branch.
+- [ ] Roadmap v2 ([[plans/roadmap-v2]], aggiunta dall'utente sul branch di
+  innesto): BM-01…BM-20 in ordine di dipendenza — M1 copre la bonifica dei
+  difetti in "Attenzione". Precondizioni: innesto integrato + tag baseline
+  annotato `v1.1.2-baseline` (lo crea l'utente). Un task per volta, ok utente
+  tra un task e il successivo.
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].

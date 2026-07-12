@@ -78,7 +78,10 @@ tags: [session, innesto, brownfield]
 
 ## Follow-up
 - Merge del branch via blocco /integrate (utente).
-- Primo deliverable candidato: fix Attenzione #1 (CLI posizionali + plist
-  scheduler) — passa dal security gate (tocca core + las + bk).
+- L'utente ha aggiunto sul branch [[plans/roadmap-v2]] (commit 833703a): il
+  lavoro post-innesto segue quel backlog (M1 assorbe i fix di Attenzione #1-#4;
+  BM-20 il drift di versione; BM-19 le divergenze README). Parte solo DOPO
+  l'integrazione, un task per volta con ok utente.
 - `gitleaks detect` one-off sulla storia (frizione 5).
-- Valutare nota "gestito con Claude Code" nel README (opzione aperta).
+- Valutare nota "gestito con Claude Code" nel README (opzione aperta; la
+  roadmap la può assorbire in BM-19).
