@@ -26,6 +26,17 @@ No data is sent to M2NDLAB or any third party.
 
 ---
 
+## Preventive measures in development
+
+- **Secret scanning on every commit** — a `gitleaks` pre-commit hook blocks
+  commits containing credentials (`make hooks-install` after cloning).
+- **Security gate on sensitive modules** — changes to the modules that mutate
+  the user's system (app adoption, cleanup, backup/restore, LaunchAgent
+  scheduler, plus the shared dispatch/guard-rail code) undergo a dedicated
+  security review before being merged (see `.claude/docs/03-security-gate.md`).
+
+---
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability in brew-manager — for example a case where the script could be used to execute unintended commands, escalate privileges, or expose sensitive data — please report it responsibly.
