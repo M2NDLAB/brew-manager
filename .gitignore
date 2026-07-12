@@ -69,6 +69,26 @@ Icon?
 .zsh_history
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Claude Code framework (merged from claude-code-framework v0.2.0)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Personal Claude Code permissions — never committed (see .claude/docs/04)
+.claude/settings.local.json
+
+# Obsidian vault metadata (the .claude/ folder can be opened as a vault)
+.obsidian/
+
+# Secrets baseline — this project has none by design, but keep the net anyway
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+**/secrets/
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Do NOT ignore — these must be committed
 # ─────────────────────────────────────────────────────────────────────────────
 
