@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-12 | Ultimo: **BM-01 roadmap-v2 (make lint advisory)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-12 | Ultimo: **BM-01 integrato in main (3d3af76); BM-02 in corso** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -18,11 +18,10 @@ tags: [state]
 - [ ] Roadmap v2 ([[plans/roadmap-v2]]): BM-01…BM-20 in ordine di dipendenza —
   M1 copre la bonifica dei difetti in "Attenzione". Un task per volta, ok utente
   tra un task e il successivo.
-  - [x] BM-01 `make check`/`make lint` — branch `chore/dev-checks`, commit
-    f1a5063, in attesa di integrazione (blocco /integrate stampato). Nota:
-    `check` esisteva già dall'innesto; lint è ADVISORY
-    ([[2026-07-12-shellcheck-advisory]]).
-  - [ ] BM-02 fix --dry-run in mod_05_cleanup ← PROSSIMO (dopo ok utente su BM-01)
+  - [x] BM-01 `make check`/`make lint` — INTEGRATO in main (merge 3d3af76,
+    pushato; branch eliminato). Nota: `check` esisteva già dall'innesto; lint è
+    ADVISORY ([[2026-07-12-shellcheck-advisory]]).
+  - [ ] BM-02 fix --dry-run in mod_05_cleanup ← IN CORSO (branch fix/dryrun-cleanup)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -51,6 +50,10 @@ tags: [state]
   italiano.
 - README non modificato all'innesto: la nota "gestito con Claude Code" resta
   un'opzione aperta (proposta in Contributing o footer).
+- SLA di risposta (72h/7gg) RIMOSSI da SECURITY.md dall'utente a mano (commit
+  9b7e874): la policy ora promette solo "as soon as reasonably possible". Il
+  subject di quel commit è rimasto un placeholder, per scelta dell'utente:
+  storia pushata, NON riscrivere.
 
 ## Debito documentazione
 - README "Running from the command line": documenta argomenti CLI posizionali NON
@@ -93,9 +96,8 @@ tags: [state]
   vuoto alla nascita, le IMP del progetto partono da 001.
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); include l'innesto (7893f87),
-  taggato `v1.1.2-baseline`.
-- **chore/dev-checks** = BM-01 — COMPLETO (f1a5063), in attesa del merge via
-  blocco /integrate (esegue l'utente).
+- **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
+  BM-01 (3d3af76); tag `v1.1.2-baseline`.
+- **fix/dryrun-cleanup** = BM-02 in corso (sensibile ALTO: security gate docs/03).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

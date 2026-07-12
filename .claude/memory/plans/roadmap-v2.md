@@ -77,7 +77,8 @@ Legenda campi di ogni task:
   altrimenti, nessun errore se manca); target documentati nel Makefile.
 - Non-regressione: `make check` verde sullo stato attuale; `make lint` non rompe se shellcheck assente.
 - Commit: `chore(build): add zsh -n and optional shellcheck targets`
-- **Status: COMPLETATO 2026-07-12** — branch `chore/dev-checks`, commit f1a5063.
+- **Status: COMPLETATO 2026-07-12, INTEGRATO in main (merge 3d3af76)** — branch
+  `chore/dev-checks` (eliminato), commit f1a5063.
   Nota: `make check` esisteva già dall'innesto; `make lint` è ADVISORY (shellcheck
   non ha dialetto zsh — vedi decisions/2026-07-12-shellcheck-advisory).
 
