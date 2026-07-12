@@ -59,8 +59,6 @@ Instead, report privately via one of these methods:
 
 ### What to expect
 
-- Acknowledgement within **72 hours**
-- An assessment of severity and scope within **7 days**
 - A fix or mitigation published as soon as reasonably possible, with credit to the reporter if desired
 
 If the vulnerability is confirmed, a patched release will be pushed to `main` and a security advisory will be published on GitHub. If the report is not accepted (e.g. the behavior is intentional or out of scope), you will receive a clear explanation.

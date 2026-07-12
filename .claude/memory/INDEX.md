@@ -30,11 +30,15 @@ tags: [moc]
 ## Per fase (sessioni — append-only)
 - [[sessions/2026-07-11-innesto-note]] — innesto del framework v0.2.0: assessment
   brownfield, frizioni per la futura IMP-027 del framework
+- [[sessions/2026-07-12-bm01-dev-checks]] — BM-01: make lint advisory (check
+  esisteva già); test RED/GREEN su check e stub shellcheck
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
 - [[2026-07-12-componenti-sensibili]] — criterio "raggio di impatto sul Mac" e
   elenco dei sei componenti nel gate
+- [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
+  dialetto zsh, il gate di sintassi resta zsh -n
 
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix

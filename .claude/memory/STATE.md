@@ -6,19 +6,23 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-12 | Ultimo: **innesto del claude-code-framework v0.2.0 (brownfield)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-12 | Ultimo: **BM-01 roadmap-v2 (make lint advisory)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
   Homebrew, 14 moduli standard + 4 speciali, LaunchAgent scheduler, backup Brewfile).
 - [x] Innesto del claude-code-framework v0.2.0 — branch `chore/innesto-framework`
   (questo checkpoint). Memoria inizializzata dall'assessment, non da template vuoto.
-- [ ] Integrazione del branch di innesto in `main` (blocco /integrate: esegue l'utente) ← PROSSIMO
-- [ ] Roadmap v2 ([[plans/roadmap-v2]], aggiunta dall'utente sul branch di
-  innesto): BM-01…BM-20 in ordine di dipendenza — M1 copre la bonifica dei
-  difetti in "Attenzione". Precondizioni: innesto integrato + tag baseline
-  annotato `v1.1.2-baseline` (lo crea l'utente). Un task per volta, ok utente
+- [x] Integrazione del branch di innesto in `main` — merge 7893f87 eseguito
+  dall'utente; tag baseline `v1.1.2-baseline` creato.
+- [ ] Roadmap v2 ([[plans/roadmap-v2]]): BM-01…BM-20 in ordine di dipendenza —
+  M1 copre la bonifica dei difetti in "Attenzione". Un task per volta, ok utente
   tra un task e il successivo.
+  - [x] BM-01 `make check`/`make lint` — branch `chore/dev-checks`, commit
+    f1a5063, in attesa di integrazione (blocco /integrate stampato). Nota:
+    `check` esisteva già dall'innesto; lint è ADVISORY
+    ([[2026-07-12-shellcheck-advisory]]).
+  - [ ] BM-02 fix --dry-run in mod_05_cleanup ← PROSSIMO (dopo ok utente su BM-01)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -89,8 +93,9 @@ tags: [state]
   vuoto alla nascita, le IMP del progetto partono da 001.
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based).
-- **chore/innesto-framework** = innesto del framework v0.2.0 — COMPLETO, in attesa
-  del merge via blocco /integrate (esegue l'utente).
+- **main** = integrazione + stabile (trunk-based); include l'innesto (7893f87),
+  taggato `v1.1.2-baseline`.
+- **chore/dev-checks** = BM-01 — COMPLETO (f1a5063), in attesa del merge via
+  blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
