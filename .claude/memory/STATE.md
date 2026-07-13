@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-13 | Ultimo: **BM-02 completo su fix/dryrun-cleanup (gate passato)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-13 | Ultimo: **micro-task parser flag ignoti (Attenzione #9 risolta)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -21,10 +21,11 @@ tags: [state]
   - [x] BM-01 `make check`/`make lint` — INTEGRATO in main (merge 3d3af76,
     pushato; branch eliminato). Nota: `check` esisteva già dall'innesto; lint è
     ADVISORY ([[2026-07-12-shellcheck-advisory]]).
-  - [x] BM-02 fix --dry-run in mod_05_cleanup — branch `fix/dryrun-cleanup`,
-    commit 2fcb1f8, security gate PASSATO (2 LOW risolti; 2 MEDIUM core accettati
-    come debito: Attenzione #8/#9), in attesa di integrazione.
-  - [ ] BM-03 fix --dry-run nel restore di mod_bk ← PROSSIMO (dopo ok utente su BM-02)
+  - [x] BM-02 fix --dry-run in mod_05_cleanup — INTEGRATO in main (merge 3ae5d41).
+  - [x] Micro-task (fuori roadmap, richiesto dall'utente): parser rifiuta i flag
+    ignoti, inclusi lookalike Unicode — branch `fix/parser-unknown-flags`,
+    commit 0e48373, gate passato, in attesa di integrazione. Chiude Attenzione #9.
+  - [ ] BM-03 fix --dry-run nel restore di mod_bk ← PROSSIMO (dopo ok utente sul micro-task)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -103,10 +104,13 @@ tags: [state]
    I LaunchAgent passano --yes espliciti: NON impattati. Fix candidato (1 riga in
    brew_manager.sh): `[[ ! -t 0 || "${BREW_MANAGER_YES:-0}" == 1 ]] && YES_MODE=1`.
    → TRIGGER: micro-task dedicato o dentro BM-08c (decisione utente).
-9. **Flag CLI ignoti ignorati in silenzio** (MEDIUM, pre-esistente, security
-   review BM-02): un typo come `--dryrun` non genera errore → con --yes il
-   cleanup REALE gira credendosi in dry-run. → TRIGGER: hardening del parser in
-   BM-08b (rifiutare argomenti sconosciuti).
+9. ~~Flag CLI ignoti ignorati in silenzio~~ **RISOLTO** (micro-task 0e48373,
+   2026-07-13): flag ignoti e lookalike Unicode → errore + exit 2. RESIDUI
+   registrati dal gate (LOW, fail-safe): typo nei VALORI (`--upgrade=yes`
+   degrada in silenzio a `n`) → validazione valori in BM-08b; plist legacy con
+   `modules` corrotto (es. `--ye` dal mangling tr dell'integrity re-register,
+   che storpia anche go→o) ora fallirebbe con exit 2 a ogni run schedulato →
+   sanificare l'estrazione in mod_las (ambito BM-05a/integrity).
 10. `_ask` mostra sempre "(y/N)" anche con default y, e "Runs only after
    confirmation" vale solo interattivamente (LOW, lib condivisa). → TRIGGER:
    UX conferme in BM-10/BM-16.
@@ -116,7 +120,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/dryrun-cleanup** = BM-02 COMPLETO (2fcb1f8), gate passato, in attesa del
-  merge via blocco /integrate (esegue l'utente).
+- **fix/parser-unknown-flags** = micro-task COMPLETO (0e48373), gate passato,
+  in attesa del merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

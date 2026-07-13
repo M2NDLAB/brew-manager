@@ -19,7 +19,21 @@ tags: [improvement]
 > [[sessions/2026-07-11-innesto-note]].
 
 ## Proposte APERTE (in attesa di decisione utente)
-_(nessuna proposta aperta)_
+
+### IMP-001 — Review-agent in background: solo comandi in allow-list (o allow read-only estesa)
+- Data: 2026-07-13 | Origine: security gate del micro-task parser (workflow di
+  review in stallo: 6 retry × 180s per agente, poi abortito)
+- Problema osservato: gli agenti di review lanciati in background invocano
+  comandi git legittimi ma fuori allow-list (`git show`, `git -C <path> diff`):
+  il prompt permessi non è approvabile in background → stallo silenzioso che
+  brucia tempo e quota (già accaduto anche nel gate di BM-02, 19/31 agenti persi).
+- Proposta: (a) aggiungere all'allow di `.claude/settings.json` i comandi git
+  read-only mancanti: `Bash(git show:*)`; (b) prassi nei prompt dei
+  review-agent: diff INLINE nel prompt + soli strumenti Read/Grep/Glob, niente
+  Bash (verificata efficace: seconda run 2/2 senza stalli).
+- Beneficio atteso / rischio: gate di sicurezza affidabili e più economici /
+  rischio nullo (git show è sola lettura; la deny resta prevalente).
+- Trigger di ripresa: subito applicabile, decide l'utente.
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>

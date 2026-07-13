@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `--dry-run`/`-n` flags, with space estimate) and asks for confirmation before
   `brew autoremove` + `brew cleanup -s`; `--yes`/LaunchAgent runs keep the
   previous automatic behavior. Dry-run always wins over `--yes`.
+- Unknown flags (e.g. the typo `--dryrun`, including Unicode dash lookalikes
+  from smart-dash copy-paste) now fail fast with an error on stderr and exit 2
+  instead of being silently ignored and running with default settings.
 
 ## [1.1.2] — 2026-03-15
 > Retro-populated at framework adoption; tag `v1.1.2` on commit `c0f456f`.
