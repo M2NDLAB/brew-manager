@@ -116,6 +116,11 @@ Legenda campi di ogni task:
 - Non-regressione: `./brew_manager.sh bk` opzione 3 con `--dry-run` → nessun `brew install`,
   nessun plist caricato (verifica `launchctl list | grep brew-manager`); restore reale ancora ok.
 - Commit: `fix(backup): honor --dry-run in restore paths (packages + agents)`
+- **Status: COMPLETATO 2026-07-13** — branch `fix/dryrun-bk-restore`, commit
+  084bdb2, gate passato. Note: preview pacchetti STATICA (brew bundle valuta il
+  Brewfile come Ruby → mai invocato in preview); [3a] ha ora _ask default n come
+  [3]/[3b] (in --yes salta: documentato nel CHANGELOG); test con stub
+  brew+launchctl, HOME e SCRIPT_DIR finti (nessuna mutazione reale).
 
 #### BM-04 · fix: off-by-one nella selezione di adozione (mod_00)
 - Tipo · branch: fix · `fix/adopt-off-by-one`
@@ -130,6 +135,13 @@ Legenda campi di ogni task:
 - Commit: `fix(audit): correct 1-based index in adoption selection + confirm target`
 
 #### BM-05a · fix: weekday shiftato in las/bk
+> **Nota aggiunta 2026-07-13 (direttiva utente + gate del micro-task parser):**
+> BM-05a deve prevedere anche la RIGENERAZIONE/MIGRAZIONE dei plist e conf
+> esistenti, non solo il fix del mapping: i conf legacy con stringhe storpiate
+> dal `tr` dell'integrity re-register (es. `modules=--ye`, `go`→`o`) ora
+> falliscono con exit 2 a ogni run col parser severo. Censimento 2026-07-13 su
+> QUESTO Mac: zero agenti installati — la migrazione serve per le installazioni
+> degli utenti.
 - Tipo · branch: fix · `fix/weekday-shift`
 - Sensibile: **sì (alto — schedula l'agente nel giorno sbagliato)**
 - Dipende da: BM-01

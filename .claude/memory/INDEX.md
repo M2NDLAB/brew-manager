@@ -36,6 +36,9 @@ tags: [moc]
   mod_05; security gate passato; scoperta script(1)/stdin; debiti core #8/#9
 - [[sessions/2026-07-13-microtask-parser-flags]] — micro-task: parser rifiuta
   flag ignoti + lookalike Unicode; chiusa Attenzione #9; IMP-001 registrata
+- [[sessions/2026-07-13-bm03-dryrun-bk-restore]] — BM-03: dry-run nel restore
+  bk (preview statica, [3a] con conferma); IMP-001 applicata; disclosure falso
+  PASS S7 di BM-02 → debito 3b
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

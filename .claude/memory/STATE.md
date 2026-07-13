@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-13 | Ultimo: **micro-task parser flag ignoti (Attenzione #9 risolta)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-13 | Ultimo: **BM-03 completo su fix/dryrun-bk-restore (gate passato); IMP-001 applicata** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -25,7 +25,12 @@ tags: [state]
   - [x] Micro-task (fuori roadmap, richiesto dall'utente): parser rifiuta i flag
     ignoti, inclusi lookalike Unicode — branch `fix/parser-unknown-flags`,
     commit 0e48373, gate passato, in attesa di integrazione. Chiude Attenzione #9.
-  - [ ] BM-03 fix --dry-run nel restore di mod_bk ← PROSSIMO (dopo ok utente sul micro-task)
+  - [x] Micro-task parser: INTEGRATO in main (merge fafa9da). IMP-001 applicata
+    (commit ae6cfb6 su questo branch).
+  - [x] BM-03 fix --dry-run nel restore di mod_bk — branch `fix/dryrun-bk-restore`,
+    commit 084bdb2, gate PASSATO (preview statica senza brew; [3a] con conferma),
+    in attesa di integrazione.
+  - [ ] BM-04 fix off-by-one adozione mod_00 ← PROSSIMO (dopo ok utente su BM-03)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -81,9 +86,16 @@ tags: [state]
    vuoto, "2" → prima app), weekday in las/bk (giorno shiftato di +1 al restore,
    sabato degrada a daily), contatore mod_09. → TRIGGER: primo intervento su uno
    di questi moduli; regola by-convention in CLAUDE.md per il codice nuovo.
-3. **DRY_RUN non uniforme**: mod_05 lo ignora del tutto; restore bk [3]/[3b] e
-   `brew install mas` non sono gated. → TRIGGER: qualunque modifica a un modulo
-   mutante deve prima chiudere il gap del modulo toccato.
+3. **DRY_RUN non uniforme**: ~~mod_05~~ (risolto in BM-02), ~~restore bk
+   [3]/[3b]~~ (risolto in BM-03); resta `brew install mas` non gated in
+   mod_mas. → TRIGGER: qualunque modifica a mod_mas deve prima chiudere il gap.
+3b. **Echo intermedio sui dati espande gli escape** (LOW, gate BM-03 +
+   verifica empirica: l'echo builtin zsh converte `\e` in ESC): in mod_05
+   (dry-run BM-02) e in `_restore_agents` i dati passano per echo prima del
+   printf %s → garanzia di inertezza parziale. Il test S7 di BM-02 era un
+   falso PASS (grep fragile su od). Fix da poche righe: `printf '%s\n'` al
+   posto degli echo intermedi. → TRIGGER: primo intervento su mod_05 o mod_bk
+   (o micro-fix dedicato se l'utente lo chiede).
 4. **mod_10 greedy**: conferma "N cask(s)" ma esegue `brew upgrade --greedy`
    globale; exit code non verificato (successo stampato comunque; stesso pattern in
    mod_02 e mas). → TRIGGER: primo intervento su mod_10.
@@ -120,7 +132,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/parser-unknown-flags** = micro-task COMPLETO (0e48373), gate passato,
-  in attesa del merge via blocco /integrate (esegue l'utente).
+- **fix/dryrun-bk-restore** = BM-03 COMPLETO (084bdb2) + IMP-001 (ae6cfb6),
+  gate passato, in attesa del merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
