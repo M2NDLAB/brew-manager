@@ -32,6 +32,8 @@ tags: [moc]
   brownfield, frizioni per la futura IMP-027 del framework
 - [[sessions/2026-07-12-bm01-dev-checks]] — BM-01: make lint advisory (check
   esisteva già); test RED/GREEN su check e stub shellcheck
+- [[sessions/2026-07-13-bm02-dryrun-cleanup]] — BM-02: gate dry-run+conferma in
+  mod_05; security gate passato; scoperta script(1)/stdin; debiti core #8/#9
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `scripts/reset-task.sh`.
 - SECURITY.md: "Preventive measures in development" section.
 
+### Fixed
+- Cleanup module (5) now honors `--dry-run` (read-only preview via brew's own
+  `--dry-run`/`-n` flags, with space estimate) and asks for confirmation before
+  `brew autoremove` + `brew cleanup -s`; `--yes`/LaunchAgent runs keep the
+  previous automatic behavior. Dry-run always wins over `--yes`.
+
 ## [1.1.2] — 2026-03-15
 > Retro-populated at framework adoption; tag `v1.1.2` on commit `c0f456f`.
 

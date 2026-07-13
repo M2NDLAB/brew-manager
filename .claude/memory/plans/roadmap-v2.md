@@ -77,7 +77,8 @@ Legenda campi di ogni task:
   altrimenti, nessun errore se manca); target documentati nel Makefile.
 - Non-regressione: `make check` verde sullo stato attuale; `make lint` non rompe se shellcheck assente.
 - Commit: `chore(build): add zsh -n and optional shellcheck targets`
-- **Status: COMPLETATO 2026-07-12** — branch `chore/dev-checks`, commit f1a5063.
+- **Status: COMPLETATO 2026-07-12, INTEGRATO in main (merge 3d3af76)** — branch
+  `chore/dev-checks` (eliminato), commit f1a5063.
   Nota: `make check` esisteva già dall'innesto; `make lint` è ADVISORY (shellcheck
   non ha dialetto zsh — vedi decisions/2026-07-12-shellcheck-advisory).
 
@@ -97,6 +98,12 @@ Legenda campi di ogni task:
 - Non-regressione: (a) `./brew_manager.sh 5 --dry-run` → cache invariata (misura `brew cleanup -s -n`
   prima/dopo); (b) `./brew_manager.sh 5` interattivo → cleanup ok con conferma; (c) run non-TTY.
 - Commit: `fix(cleanup): honor --dry-run, skip autoremove/cleanup in read-only mode`
+- **Status: COMPLETATO 2026-07-13** — branch `fix/dryrun-cleanup`, commit 2fcb1f8,
+  security gate passato (vedi sessions/2026-07-13-bm02-dryrun-cleanup). Nota: il
+  test (a) come scritto non può selezionare il modulo 5 (script(1) non inoltra lo
+  stdin in pipe — STATE Attenzione #1): eseguito l'equivalente a livello funzione
+  con brew reale, cache invariata. Conferma con _ask default "y": --yes identico a
+  oggi, interattivo richiede y esplicita.
 
 #### BM-03 · fix: onora --dry-run nel restore di mod_bk
 - Tipo · branch: fix · `fix/dryrun-bk-restore`

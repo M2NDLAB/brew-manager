@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-12 | Ultimo: **BM-01 roadmap-v2 (make lint advisory)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-13 | Ultimo: **BM-02 completo su fix/dryrun-cleanup (gate passato)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -18,11 +18,13 @@ tags: [state]
 - [ ] Roadmap v2 ([[plans/roadmap-v2]]): BM-01…BM-20 in ordine di dipendenza —
   M1 copre la bonifica dei difetti in "Attenzione". Un task per volta, ok utente
   tra un task e il successivo.
-  - [x] BM-01 `make check`/`make lint` — branch `chore/dev-checks`, commit
-    f1a5063, in attesa di integrazione (blocco /integrate stampato). Nota:
-    `check` esisteva già dall'innesto; lint è ADVISORY
-    ([[2026-07-12-shellcheck-advisory]]).
-  - [ ] BM-02 fix --dry-run in mod_05_cleanup ← PROSSIMO (dopo ok utente su BM-01)
+  - [x] BM-01 `make check`/`make lint` — INTEGRATO in main (merge 3d3af76,
+    pushato; branch eliminato). Nota: `check` esisteva già dall'innesto; lint è
+    ADVISORY ([[2026-07-12-shellcheck-advisory]]).
+  - [x] BM-02 fix --dry-run in mod_05_cleanup — branch `fix/dryrun-cleanup`,
+    commit 2fcb1f8, security gate PASSATO (2 LOW risolti; 2 MEDIUM core accettati
+    come debito: Attenzione #8/#9), in attesa di integrazione.
+  - [ ] BM-03 fix --dry-run nel restore di mod_bk ← PROSSIMO (dopo ok utente su BM-02)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -51,6 +53,10 @@ tags: [state]
   italiano.
 - README non modificato all'innesto: la nota "gestito con Claude Code" resta
   un'opzione aperta (proposta in Contributing o footer).
+- SLA di risposta (72h/7gg) RIMOSSI da SECURITY.md dall'utente a mano (commit
+  9b7e874): la policy ora promette solo "as soon as reasonably possible". Il
+  subject di quel commit è rimasto un placeholder, per scelta dell'utente:
+  storia pushata, NON riscrivere.
 
 ## Debito documentazione
 - README "Running from the command line": documenta argomenti CLI posizionali NON
@@ -89,13 +95,28 @@ tags: [state]
 7. Secret scanning attivo solo sui commit nuovi (`gitleaks protect --staged`):
    la storia git preesistente non è mai stata scansionata. → TRIGGER: one-off
    `gitleaks detect` alla prima occasione utile (repo pubblico: basso rischio).
+8. **YES_MODE auto-detect perso nel re-exec script(1)** (MEDIUM, security review
+   BM-02, debito accettato): il processo esterno rileva stdin non-TTY e setta
+   YES_MODE=1, ma il figlio sotto script(1) ri-parsa i flag con stdin=pty (→ TTY)
+   e lo azzera. Run non-TTY SENZA --yes: le _ask leggono un pty a EOF → hang o
+   skip silenzioso (fail-closed; con la conferma di BM-02 ora tocca anche mod_05).
+   I LaunchAgent passano --yes espliciti: NON impattati. Fix candidato (1 riga in
+   brew_manager.sh): `[[ ! -t 0 || "${BREW_MANAGER_YES:-0}" == 1 ]] && YES_MODE=1`.
+   → TRIGGER: micro-task dedicato o dentro BM-08c (decisione utente).
+9. **Flag CLI ignoti ignorati in silenzio** (MEDIUM, pre-esistente, security
+   review BM-02): un typo come `--dryrun` non genera errore → con --yes il
+   cleanup REALE gira credendosi in dry-run. → TRIGGER: hardening del parser in
+   BM-08b (rifiutare argomenti sconosciuti).
+10. `_ask` mostra sempre "(y/N)" anche con default y, e "Runs only after
+   confirmation" vale solo interattivamente (LOW, lib condivisa). → TRIGGER:
+   UX conferme in BM-10/BM-16.
 - [[LEARNINGS]]: stato delle proposte IMP (aperte / applicate / rimandate) —
   vuoto alla nascita, le IMP del progetto partono da 001.
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); include l'innesto (7893f87),
-  taggato `v1.1.2-baseline`.
-- **chore/dev-checks** = BM-01 — COMPLETO (f1a5063), in attesa del merge via
-  blocco /integrate (esegue l'utente).
+- **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
+  BM-01 (3d3af76); tag `v1.1.2-baseline`.
+- **fix/dryrun-cleanup** = BM-02 COMPLETO (2fcb1f8), gate passato, in attesa del
+  merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
