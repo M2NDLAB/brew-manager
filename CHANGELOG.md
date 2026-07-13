@@ -31,6 +31,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`3a`) now asks for confirmation like the other restore options; in
   `--yes`/non-interactive runs it therefore no longer restores silently
   (behavior change, consistent with `3`/`3b`).
+- Scheduler (`las`) and backup restore (`bk`): the weekday mapping was off by one
+  — the weekly agent recorded an empty day name, restoring a Sunday agent turned
+  it into Monday, and Saturday agents degraded to daily. The integrity check (6)
+  now also finds tracked agents with legacy or corrupt data (a mangled `modules`
+  value would make the agent exit 2 on every scheduled run) and offers to
+  regenerate their conf and plist from the schedule launchd actually uses.
+  Agents firing on multiple weekdays are never rewritten by the single-day
+  tooling: they are skipped with a warning instead of silently losing days.
+  Values coming from an agents bundle or a plist (label, modules, hour, minute,
+  weekday) are validated before they reach a plist, and a rejected "Modify" now
+  leaves the previous agent untouched.
 - Audit module (0): app adoption selection actually works now — on every
   released version the selection channel was dead end to end (`_read_choice`
   polluted the captured value with its own prompt text, and the launcher always
