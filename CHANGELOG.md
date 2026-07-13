@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`3a`) now asks for confirmation like the other restore options; in
   `--yes`/non-interactive runs it therefore no longer restores silently
   (behavior change, consistent with `3`/`3b`).
+- Audit module (0): app adoption selection actually works now — on every
+  released version the selection channel was dead end to end (`_read_choice`
+  polluted the captured value with its own prompt text, and the launcher always
+  exported a default that suppressed the interactive prompt), so `--adopt=all`,
+  `--adopt=1,2` and interactive selection silently did nothing. On top of that
+  the 1-based index is fixed (selecting [2] used to target the app shown as
+  [1]), every adoption echoes its target and asks for confirmation first
+  (auto-confirmed with `--yes`), `--dry-run` previews without installing,
+  whitespace works as a separator, duplicates are deduplicated, invalid tokens
+  warn, and flag-shaped `.app` names can no longer reach brew as arguments.
 
 ## [1.1.2] — 2026-03-15
 > Retro-populated at framework adoption; tag `v1.1.2` on commit `c0f456f`.

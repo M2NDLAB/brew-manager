@@ -133,6 +133,14 @@ Legenda campi di ogni task:
 - Non-regressione: lista di ≥3 app adottabili, selezionare 1/2/3 e verificare che l'eco corrisponda;
   con `--dry-run` nessuna adozione; con `--adopt=1,3` selezione multipla corretta.
 - Commit: `fix(audit): correct 1-based index in adoption selection + confirm target`
+- **Status: COMPLETATO 2026-07-13** — branch `fix/adopt-off-by-one`, commit
+  430f322, gate passato con 2 HIGH risolti. Scoperta: il canale di selezione era
+  morto end-to-end su tutte le release (_read_choice inquinava il $() catturato;
+  il launcher esportava sempre l'override) → --adopt e selezione interattiva non
+  hanno mai funzionato: l'off-by-one era latente. Fix estesi (imposti dal gate):
+  export raw nel launcher, whitespace=separatore ('1 2'≠indice 12), dedup,
+  warning su token invalidi, shape-check anti flag-injection dei nomi .app.
+  RED→GREEN dimostrato contro la versione main.
 
 #### BM-05a · fix: weekday shiftato in las/bk
 > **Nota aggiunta 2026-07-13 (direttiva utente + gate del micro-task parser):**
