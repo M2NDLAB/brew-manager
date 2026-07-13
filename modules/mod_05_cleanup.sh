@@ -16,9 +16,57 @@ _module_5() {
     echo -e "  ${C_GRAY}brew autoremove removes orphans. brew cleanup -s removes old versions${NC}"
     echo -e "  ${C_GRAY}and the download cache. Both operations are safe — current versions${NC}"
     echo -e "  ${C_GRAY}are never touched. Cache size is measured before and after.${NC}"
+    echo -e "  ${C_GRAY}Runs only after confirmation (auto-confirmed in --yes runs).${NC}"
+    echo -e "  ${C_GRAY}With --dry-run you get a preview only.${NC}"
     _hline "·" "$C_GRAY"
     du_before=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
     _stat_row "Cache before cleanup" "$du_before" "$C_YELLOW"
+
+    # --dry-run: preview via brew's own --dry-run flags — the real autoremove
+    # and cleanup must never run on this path
+    if (( BREW_MANAGER_DRY_RUN )); then
+        _info "Dry-run mode — preview only, nothing will be removed"
+        # brew output is DATA: print it with %s (never echo -e) so stray escape
+        # sequences in cache filenames can't reach the terminal or the log
+        autoremove_out=$(brew autoremove --dry-run 2>&1)
+        autoremove_rc=$?
+        if (( autoremove_rc != 0 )); then
+            _warn "Orphan-dependency preview failed (brew exit ${autoremove_rc})"
+            echo "$autoremove_out" | grep -v "^$" | while IFS= read -r line; do
+                printf "  ${C_GRAY}  %s${NC}\n" "$line"
+            done
+        # brew autoremove --dry-run prints nothing when there are no orphans
+        elif [[ -z "$autoremove_out" ]] || echo "$autoremove_out" | grep -q "Nothing to uninstall"; then
+            _ok "No orphan dependencies to remove"
+        else
+            echo "$autoremove_out" | grep -v "^$" | while IFS= read -r line; do
+                printf "  ${C_GRAY}${SYM_DOT}${NC}  %s\n" "$line"
+            done
+        fi
+        cleanup_out=$(brew cleanup -s -n 2>&1)
+        cleanup_rc=$?
+        (( cleanup_rc != 0 )) && _warn "Cache-cleanup preview failed (brew exit ${cleanup_rc})"
+        echo "$cleanup_out" | while IFS= read -r line; do
+            [[ -n "$line" ]] && printf "  ${C_GRAY}  %s${NC}\n" "$line"
+        done
+        if (( autoremove_rc == 0 && cleanup_rc == 0 )); then
+            _ok "Dry-run complete — nothing was removed"
+        else
+            _warn "Dry-run finished with preview errors — nothing was removed"
+        fi
+        DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+        _stat_row "Cache after (unchanged)" "$DU_AFTER" "$C_GREEN_B"
+        return 0
+    fi
+
+    # Default "y" keeps automated runs (--yes / LaunchAgents) behaving as before;
+    # interactively _ask still requires an explicit y — Enter aborts
+    if ! _ask "Proceed with autoremove and cleanup now?" "y"; then
+        _warn "Cleanup skipped — nothing was removed"
+        DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+        _stat_row "Cache after (unchanged)" "$DU_AFTER" "$C_GREEN_B"
+        return 0
+    fi
 
     _info "Removing orphan dependencies"
     autoremove_out=$(brew autoremove 2>&1)
