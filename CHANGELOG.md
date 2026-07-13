@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unknown flags (e.g. the typo `--dryrun`, including Unicode dash lookalikes
   from smart-dash copy-paste) now fail fast with an error on stderr and exit 2
   instead of being silently ignored and running with default settings.
+- Backup module (`bk`): all three restore paths honor `--dry-run` with a
+  read-only preview (the Brewfile is read statically — brew evaluates Brewfiles
+  as Ruby, so it is deliberately not invoked during previews). Restore agents
+  (`3a`) now asks for confirmation like the other restore options; in
+  `--yes`/non-interactive runs it therefore no longer restores silently
+  (behavior change, consistent with `3`/`3b`).
 
 ## [1.1.2] — 2026-03-15
 > Retro-populated at framework adoption; tag `v1.1.2` on commit `c0f456f`.
