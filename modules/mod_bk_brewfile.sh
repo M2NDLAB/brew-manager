@@ -91,6 +91,53 @@ _module_14() {
         _ok "Agents bundle saved: ${#_cfg_files[@]} agent(s) → $agents_bundle"
     }
 
+    # ── Helper: dry-run preview of a packages restore (read-only) ──
+    # Static read of the Brewfile: brew is deliberately NOT invoked here —
+    # brew bundle evaluates the Brewfile as a Ruby DSL, so even a "check"
+    # would execute code from a hostile Brewfile during a preview that
+    # promises to execute nothing. File data is printed via %s (inert).
+    _preview_restore_brew() {
+        if [[ ! -f "$brewfile_path" ]]; then
+            _warn "No Brewfile found — nothing to restore"
+            return
+        fi
+        _info "Brewfile entries a restore would install (already-installed ones are skipped):"
+        while IFS= read -r line; do
+            if [[ "$line" == tap* ]]; then
+                printf "  ${C_BLUE}${SYM_DOT}${NC}  ${C_WHITE}%s${NC}\n" "$line"
+            elif [[ "$line" == brew* ]]; then
+                printf "  ${C_YELLOW}${SYM_PKG}${NC}  ${C_WHITE}%s${NC}\n" "$line"
+            elif [[ "$line" == cask* ]]; then
+                printf "  ${C_GREEN}${SYM_APP}${NC}  ${C_WHITE}%s${NC}\n" "$line"
+            elif [[ "$line" == mas* ]]; then
+                printf "  ${C_PURPLE_B}${SYM_APP}${NC}  ${C_WHITE}%s${NC}\n" "$line"
+            else
+                printf "  ${C_GRAY}%s${NC}\n" "$line"
+            fi
+        done < "$brewfile_path"
+        _info "Use option [4] Check to see which entries are currently missing"
+    }
+
+    # ── Helper: dry-run preview of an agents restore (read-only) ──
+    _preview_restore_agents() {
+        if [[ ! -f "$agents_bundle" ]]; then
+            _warn "No agents bundle found — no agents to restore"
+            return
+        fi
+        _info "Agents a restore would write to ~/Library/LaunchAgents and load:"
+        printf "  ${C_GRAY}%-36s  %-16s  %s${NC}\n" "Label" "Schedule" "Modules"
+        printf "  ${C_GRAY}%-36s  %-16s  %s${NC}\n" "────────────────────────────────────" "────────────────" "────────"
+        while IFS= read -r line; do
+            [[ "$line" != agent=* ]] && continue
+            local _pd="${line#agent=}"
+            # printf %s (not echo) keeps backslash escapes in the data inert
+            local _pl="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^label=" | cut -d= -f2-)"
+            local _ps="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^schedule=" | cut -d= -f2-)"
+            local _pm="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^modules=" | cut -d= -f2-)"
+            printf "  ${C_CYAN}${SYM_ARR}${NC}  ${C_WHITE}%-36s${NC}  ${C_GRAY}%-16s${NC}  ${C_CYAN_B}%s${NC}\n" "$_pl" "$_ps" "$_pm"
+        done < "$agents_bundle"
+    }
+
     # ── Helper: restore agents from bundle ──
     _restore_agents() {
         if [[ ! -f "$agents_bundle" ]]; then
@@ -341,6 +388,14 @@ EOF
 
             3)  # RESTORE ALL
                 echo ""
+                if (( BREW_MANAGER_DRY_RUN )); then
+                    _info "Dry-run — preview of a full restore, nothing will be executed"
+                    echo ""
+                    _preview_restore_brew
+                    echo ""
+                    _preview_restore_agents
+                    break
+                fi
                 _warn "This will install all packages from Brewfile AND reload agents"
                 if _ask "Proceed with full restore?" "n"; then
                     echo ""
@@ -364,6 +419,10 @@ EOF
             3b)  # RESTORE HOMEBREW ONLY
                 if [[ ! -f "$brewfile_path" ]]; then
                     _err "No Brewfile found — run backup first"
+                elif (( BREW_MANAGER_DRY_RUN )); then
+                    _info "Dry-run — preview of a packages restore, nothing will be executed"
+                    echo ""
+                    _preview_restore_brew
                 elif _ask "Restore Homebrew packages from Brewfile?" "n"; then
                     echo ""
                     _info "Restoring Homebrew packages"
@@ -377,8 +436,12 @@ EOF
 
             3a)  # RESTORE AGENTS ONLY
                 if (( BREW_MANAGER_DRY_RUN )); then
-                    _info "Dry-run — skipping agents restore"
-                else
+                    _info "Dry-run — preview of an agents restore, nothing will be executed"
+                    echo ""
+                    _preview_restore_agents
+                # Confirmation added for consistency with [3]/[3b]: writing
+                # plists + launchctl load is a side effect like installing
+                elif _ask "Reload agents from bundle into ~/Library/LaunchAgents?" "n"; then
                     _restore_agents
                 fi
                 ;;
