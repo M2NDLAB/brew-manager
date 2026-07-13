@@ -175,6 +175,10 @@ Legenda campi di ogni task:
 - Fatto quando: il conteggio mostrato coincide col numero di righe effettive.
 - Non-regressione: confronto conteggio vs `wc -l` sull'elenco reale.
 - Commit: `fix(tracked): correct off-by-one in binary counter`
+- **Status: COMPLETATO 2026-07-13** — branch `fix/mod09-counter`, commit 6162d62.
+  Verificato sul sistema reale: main dichiarava 12 su 11 binari elencati, il fix
+  dichiara 11 (controprova con wc -l). Rimosso anche l'header "No." che prometteva
+  una colonna indice mai stampata.
 
 #### BM-06 · fix: mod_10 greedy — gate sul conteggio e check exit code
 - Tipo · branch: fix · `fix/greedy-scope`

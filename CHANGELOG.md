@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`3a`) now asks for confirmation like the other restore options; in
   `--yes`/non-interactive runs it therefore no longer restores silently
   (behavior change, consistent with `3`/`3b`).
+- Tracked-binaries module (9): "Total tracked binaries" was always one higher
+  than the number of binaries actually listed.
 - Scheduler (`las`) and backup restore (`bk`): the weekday mapping was off by one
   — the weekly agent recorded an empty day name, restoring a Sunday agent turned
   it into Monday, and Saturday agents degraded to daily. The integrity check (6)
