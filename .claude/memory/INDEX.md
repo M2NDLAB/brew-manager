@@ -14,8 +14,8 @@ tags: [moc]
 ## Stato
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): vuoto alla nascita
-  (le IMP del framework non si ereditano; qui si parte da 001)
+- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): 1 proposta APERTA
+  (IMP-001, review-agent in background e allow-list)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -34,6 +34,8 @@ tags: [moc]
   esisteva già); test RED/GREEN su check e stub shellcheck
 - [[sessions/2026-07-13-bm02-dryrun-cleanup]] — BM-02: gate dry-run+conferma in
   mod_05; security gate passato; scoperta script(1)/stdin; debiti core #8/#9
+- [[sessions/2026-07-13-microtask-parser-flags]] — micro-task: parser rifiuta
+  flag ignoti + lookalike Unicode; chiusa Attenzione #9; IMP-001 registrata
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

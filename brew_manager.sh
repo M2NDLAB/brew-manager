@@ -62,6 +62,17 @@ for _arg in "$@"; do
         --yes|-y)               YES_MODE=1 ;;
         --adopt=*)              ADOPT_ANSWER="${_arg#--adopt=}" ;;
         --upgrade=*)            UPGRADE_ANSWER="${_arg#--upgrade=}" ;;
+        -*|–*|—*|−*)
+            # A mistyped flag must never run with defaults silently:
+            # --dryrun would execute the REAL cleanup believing it is a dry-run.
+            # Unicode dash lookalikes (en/em dash, minus) come from smart-dash
+            # copy-paste and would otherwise slip through as positionals
+            echo "ERROR: unknown flag: ${_arg}" >&2
+            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n" >&2
+            exit 2
+            ;;
+        # Non-flag args (e.g. module lists from LaunchAgent plists) are still
+        # ignored here: positional selection is a separate, planned feature
     esac
 done
 
