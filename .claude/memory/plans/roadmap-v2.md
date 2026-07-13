@@ -159,6 +159,13 @@ Legenda campi di ogni task:
 - Non-regressione: creare agente custom con giorno noto, ispezionare il `.plist` generato, confrontare
   col mapping launchd; backup e restore mantengono il giorno.
 - Commit: `fix(scheduler): correct weekday mapping in plist generation`
+- **Status: COMPLETATO 2026-07-13** — branch `fix/weekday-shift`, commit c5c4539,
+  gate passato in 2 ROUND (4 HIGH risolti: XML injection nei plist da bundle non
+  fidato; collasso dei plist multi-intervallo; Modify che perdeva il conf;
+  heredoc duplicato non validato in bk). Migrazione legacy inclusa nell'integrity
+  check [6] (rileva conf+plist tracciati con dati corrotti e li rigenera dal
+  plist come source of truth). Testato con plist legacy SIMULATI (zero agenti
+  reali su questo Mac).
 
 #### BM-05b · fix: contatore off-by-one in mod_09
 - Tipo · branch: fix · `fix/mod09-counter`

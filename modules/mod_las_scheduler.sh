@@ -115,10 +115,71 @@ EOF
             "$ts" "$event" "$label" "$note" >> "$agents_dir/agents_activity.log"
     }
 
+    # ── Modules sanitizer: only the real selection grammar may reach a plist
+    # ('go' or comma-separated lowercase tokens). Anything else falls back to
+    # 'go': flag-shaped legacy values ('--ye') make agents exit 2 forever with
+    # the strict CLI parser, and XML metacharacters from an untrusted bundle
+    # would be interpolated RAW into the plist heredoc (structural injection) ──
+    # Grammar = what the dispatcher really accepts: 'go', the named modules
+    # (log/bk/las/mas, any case) and comma-separated numeric lists. Nothing
+    # else — a dash, a space or an XML character never reaches a plist.
+    _sanitize_agent_modules() {
+        local m="$1"
+        if [[ "$m" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
+            printf '%s\n' "$m"
+        else
+            printf '%s\n' "go"
+        fi
+    }
+
+    # ── Weekday (0=Sun … 6=Sat, launchd convention) → day name.
+    # zsh arrays are 1-based: index with weekday+1, NEVER with the raw value ──
+    _weekday_name() {
+        local _wd_names=(Sun Mon Tue Wed Thu Fri Sat)
+        printf '%s\n' "${_wd_names[$(( $1 + 1 ))]}"
+    }
+
+    # ── First <integer> value for a plist key: handles both same-line
+    # (<key>Weekday</key><integer>N</integer>) and key-then-value-line layouts.
+    # Anchored on <key>…</key> so decoy <string> content can't match. A bare
+    # 'grep -Ax | tr -cd 0-9' concatenates neighbouring integers ('2'+'9'→'29')
+    # — that was the root of the mangled re-register data ──
+    _plist_int() {
+        grep -A1 "<key>$1</key>" "$2" 2>/dev/null | grep -oE '<integer>[0-9]+</integer>' \
+            | head -1 | tr -cd '0-9'
+    }
+
+    # ── Number of Weekday entries in a plist: >1 means a multi-interval agent
+    # that single-day tooling (re-register, migration) must NOT rewrite —
+    # collapsing it would silently drop firing days ──
+    _plist_weekday_count() {
+        grep -c "<key>Weekday</key>" "$1" 2>/dev/null
+    }
+
     # ── Install helper ──
     _install_agent() {
         local label="$1" plist_path="$2"
         local weekday="$3" hour="$4" minute="$5" modules="$6"
+
+        # Weekday must be 0-6 or empty (daily), hour 0-23, minute 0-59:
+        # garbage here becomes a plist that launchd rejects or never fires
+        if [[ -n "$weekday" && ! "$weekday" =~ ^[0-6]$ ]]; then
+            _err "Invalid weekday '$weekday' (0=Sun … 6=Sat, empty=daily) — agent not installed"
+            return 1
+        fi
+        if [[ ! "$hour" =~ ^([0-9]|1[0-9]|2[0-3])$ ]]; then
+            _err "Invalid hour '$hour' (0-23) — agent not installed"
+            return 1
+        fi
+        if [[ ! "$minute" =~ ^([0-9]|[1-5][0-9])$ ]]; then
+            _err "Invalid minute '$minute' (0-59) — agent not installed"
+            return 1
+        fi
+        local _mods_clean="$(_sanitize_agent_modules "$modules")"
+        if [[ "$_mods_clean" != "$modules" ]]; then
+            _warn "Modules value '$modules' is invalid — using 'go' instead"
+            modules="$_mods_clean"
+        fi
 
         if (( BREW_MANAGER_DRY_RUN )); then
             _info "Dry-run — would install LaunchAgent: $label"
@@ -171,10 +232,9 @@ PLIST_EOF
 
         launchctl unload "$plist_path" 2>/dev/null
         if launchctl load "$plist_path" 2>/dev/null; then
-            local _days=("Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat")
             local _schedule
             if [[ -n "$weekday" ]]; then
-                _schedule="${_days[$weekday]} ${hour}:$(printf '%02d' $minute)"
+                _schedule="$(_weekday_name "$weekday") ${hour}:$(printf '%02d' $minute)"
             else
                 _schedule="daily ${hour}:$(printf '%02d' $minute)"
             fi
@@ -193,6 +253,7 @@ PLIST_EOF
         else
             _err "Failed to load LaunchAgent — check plist syntax"
             _log_agent_event "FAILED" "$label"
+            return 1
         fi
     }
 
@@ -203,6 +264,15 @@ PLIST_EOF
     _install_agent_multi() {
         local label="$1" plist_path="$2"
         local weekdays_raw="$3" hour="$4" minute="$5" modules="$6"
+
+        # Same safeguards as _install_agent (this helper is not wired to the
+        # menu yet, but must not reintroduce the bugs if it ever is)
+        local _mm_clean="$(_sanitize_agent_modules "$modules")"
+        [[ "$_mm_clean" != "$modules" ]] && { _warn "Modules value '$modules' is invalid — using 'go' instead"; modules="$_mm_clean"; }
+        if [[ ! "$hour" =~ ^([0-9]|1[0-9]|2[0-3])$ || ! "$minute" =~ ^([0-9]|[1-5][0-9])$ ]]; then
+            _err "Invalid hour/minute — agent not installed"
+            return 1
+        fi
 
         if (( BREW_MANAGER_DRY_RUN )); then
             _info "Dry-run — would install: $label"
@@ -222,6 +292,10 @@ PLIST_EOF
             IFS=',' read -rA _days_arr <<< "$weekdays_raw"
             for _d in "${_days_arr[@]}"; do
                 _d=$(echo "$_d" | tr -d ' ')
+                if [[ ! "$_d" =~ ^[0-6]$ ]]; then
+                    _err "Invalid weekday '$_d' in list — agent not installed"
+                    return 1
+                fi
                 cal_entries+="        <dict>
             <key>Weekday</key><integer>${_d}</integer>
             <key>Hour</key><integer>${hour}</integer>
@@ -264,7 +338,6 @@ PLIST_EOF
 
         launchctl unload "$plist_path" 2>/dev/null
         if launchctl load "$plist_path" 2>/dev/null; then
-            local _days_names=("Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat")
             local _schedule_str
             if [[ -z "$weekdays_raw" ]]; then
                 _schedule_str="daily ${hour}:$(printf '%02d' $minute)"
@@ -273,7 +346,7 @@ PLIST_EOF
                 IFS=',' read -rA _wd_arr <<< "$weekdays_raw"
                 for _d in "${_wd_arr[@]}"; do
                     _d=$(echo "$_d" | tr -d ' ')
-                    _parts+=("${_days_names[$_d]}")
+                    _parts+=("$(_weekday_name "$_d")")
                 done
                 _schedule_str="${(j:+:)_parts} ${hour}:$(printf '%02d' $minute)"
             fi
@@ -359,6 +432,12 @@ PLIST_EOF
                     printf "  ${C_CYAN}${SYM_ARR}${NC}  Name suffix ${C_GRAY}(e.g. 'weekly', 'nightly', 'work')${NC}: "
                     read -r _suffix
                     _suffix="${_suffix:-custom}"
+                    # The suffix lands inside the plist XML and in filenames:
+                    # restrict it to a safe shape
+                    if [[ ! "$_suffix" =~ ^[A-Za-z0-9._-]+$ ]]; then
+                        _warn "Suffix may only contain letters, digits, dot, dash, underscore"
+                        continue
+                    fi
                     local _label="${label_base}.${_suffix}"
                     local _plist="$plist_dir/${_label}.plist"
                     local _cfg_check="$agents_dir/agent_${_label}.conf"
@@ -392,7 +471,10 @@ PLIST_EOF
                 echo ""
                 printf "  ${C_CYAN}${SYM_ARR}${NC}  Agent number to modify: "
                 read -r _midx
-                local _cfg="${_cfg_files[$(( _midx - 1 ))]}"
+                # zsh arrays are 1-based: the [N] listed IS the index — the old
+                # N-1 made [1] invalid and [2] modify the WRONG agent
+                [[ "$_midx" =~ ^[0-9]+$ ]] || { _warn "Invalid selection"; continue; }
+                local _cfg="${_cfg_files[$_midx]}"
                 if [[ ! -f "$_cfg" ]]; then _warn "Invalid selection"; continue; fi
                 local _label="$(grep "^label=" "$_cfg" | cut -d= -f2-)"
                 local _cur_modules="$(grep "^modules=" "$_cfg" | cut -d= -f2-)"
@@ -410,8 +492,12 @@ PLIST_EOF
                 printf "  ${C_CYAN}${SYM_ARR}${NC}  New modules ${C_GRAY}[Enter to keep: ${_cur_modules}]${NC}: "
                 read -r _mods
                 [[ -z "$_mods" ]] && _mods="$_cur_modules"
-                _log_agent_event "MODIFIED" "$_label" "prev_schedule=${_cur_schedule} prev_modules=${_cur_modules}"
-                rm -f "$agents_dir/agent_${_label}.conf"
+                # No rm of the old conf here: _save_agent_config overwrites the
+                # same path on success, and if the install is rejected (invalid
+                # input) or the load fails, the previous conf must survive.
+                # The MODIFIED log line is also a write: skip it in dry-run
+                (( ! BREW_MANAGER_DRY_RUN )) && \
+                    _log_agent_event "MODIFIED" "$_label" "prev_schedule=${_cur_schedule} prev_modules=${_cur_modules}"
                 _install_agent "$_label" "$_plist" \
                     "${_wd:-}" "${_hr:-9}" "${_mn:-0}" "$_mods"
                 ;;
@@ -447,7 +533,9 @@ PLIST_EOF
                 fi
                 local _removed_count=0
                 for _ri in "${_to_remove[@]}"; do
-                    local _cfg="${_cfg_files[$(( _ri - 1 ))]}"
+                    # 1-based index: the old N-1 REMOVED THE WRONG AGENT for
+                    # any N >= 2 and rejected [1]
+                    local _cfg="${_cfg_files[$_ri]}"
                     [[ ! -f "$_cfg" ]] && _warn "Agent [$_ri] not found — skipped" && continue
                     local _label="$(grep "^label=" "$_cfg" | cut -d= -f2-)"
                     local _plist="$plist_dir/${_label}.plist"
@@ -500,8 +588,54 @@ PLIST_EOF
                     fi
                 done
 
-                if (( ${#_orphan_plists[@]} == 0 && ${#_dangling_confs[@]} == 0 )); then
-                    _ok "All agents are consistent — no orphans or missing plists found"
+                # 3. Find TRACKED pairs (conf + plist both present) with legacy or
+                # corrupt data: modules mangled by the old tag-stripping ('--ye',
+                # 'o' — flag-shaped values now make the agent exit 2 on every
+                # run), or a conf day name that disagrees with the plist Weekday
+                # (written shifted by the old 0-based day mapping)
+                declare -a _legacy_pairs=()   # label|conf|plist|reason
+                for _ac in "${_all_confs[@]}"; do
+                    local _lp_label="$(grep "^label=" "$_ac" | cut -d= -f2-)"
+                    local _lp_plist="$_plist_dir/${_lp_label}.plist"
+                    [[ -f "$_lp_plist" ]] || continue
+                    # Multi-day agents ('Mon+Wed+Fri' confs / multi-interval
+                    # plists) are out of scope for single-day migration:
+                    # flagging them would lead [r] to collapse real schedules
+                    local _lp_cday_probe="$(grep "^schedule=" "$_ac" | cut -d= -f2- | awk '{print $1}')"
+                    if [[ "$_lp_cday_probe" == *+* ]] || (( $(_plist_weekday_count "$_lp_plist") > 1 )); then
+                        continue
+                    fi
+                    local _lp_reasons=""
+                    # (i) conf modules corrupt / flag-shaped / empty
+                    local _lp_cmods="$(grep "^modules=" "$_ac" | cut -d= -f2-)"
+                    if [[ -z "$_lp_cmods" || "$_lp_cmods" == -* ]]; then
+                        _lp_reasons+="conf modules '$_lp_cmods' invalid; "
+                    fi
+                    # (ii) plist argv modules flag-shaped (legacy re-register wrote
+                    # the mangled value into ProgramArguments)
+                    local _lp_pmods="$(grep -A1 "brew_manager.sh" "$_lp_plist" 2>/dev/null | tail -1 | sed -E 's/<[^>]*>//g' | tr -d ' \t')"
+                    if [[ -z "$_lp_pmods" || "$_lp_pmods" == -* ]]; then
+                        _lp_reasons+="plist modules '$_lp_pmods' invalid (agent exits 2 every run); "
+                    fi
+                    # (iii) conf day name vs plist Weekday integer
+                    local _lp_pwd="$(_plist_int "Weekday" "$_lp_plist")"
+                    [[ "$_lp_pwd" =~ ^[0-6]$ ]] || _lp_pwd=""
+                    local _lp_cday="$(grep "^schedule=" "$_ac" | cut -d= -f2- | awk '{print $1}')"
+                    if [[ -n "$_lp_pwd" && "$_lp_cday" != "daily" ]]; then
+                        local _lp_expected="$(_weekday_name "$_lp_pwd")"
+                        if [[ "$_lp_cday" != "$_lp_expected" ]]; then
+                            _lp_reasons+="conf says '$_lp_cday' but plist fires on ${_lp_expected}; "
+                        fi
+                    elif [[ -z "$_lp_pwd" && "$_lp_cday" != "daily" ]]; then
+                        _lp_reasons+="conf says '$_lp_cday' but plist is daily; "
+                    fi
+                    if [[ -n "$_lp_reasons" ]]; then
+                        _legacy_pairs+=("$_lp_label|$_ac|$_lp_plist|$_lp_reasons")
+                    fi
+                done
+
+                if (( ${#_orphan_plists[@]} == 0 && ${#_dangling_confs[@]} == 0 && ${#_legacy_pairs[@]} == 0 )); then
+                    _ok "All agents are consistent — no orphans, missing plists or legacy data found"
                     continue
                 fi
 
@@ -537,17 +671,32 @@ PLIST_EOF
                                 for _op in "${_orphan_plists[@]}"; do
                                     local _op_label="${_op%%|*}"
                                     local _op_plist="${_op##*|}"
-                                    # Try to extract schedule from plist
-                                    local _op_hour="$(grep -A1 "Hour" "$_op_plist" 2>/dev/null | grep "integer" | tr -cd '0-9')"
-                                    local _op_min="$(grep -A1 "Minute" "$_op_plist" 2>/dev/null | grep "integer" | tr -cd '0-9')"
-                                    local _op_wd="$(grep -A1 "Weekday" "$_op_plist" 2>/dev/null | grep "integer" | tr -cd '0-9')"
-                                    local _op_mods="$(grep -A1 "brew_manager.sh" "$_op_plist" 2>/dev/null | tail -1 | tr -d '<string>/ 	')"
-                                    [[ -z "$_op_mods" ]] && _op_mods="go"
+                                    # Multi-interval plists can't be represented by a
+                                    # single-day conf: writing one would lie about the
+                                    # real schedule — leave them to manual handling
+                                    if (( $(_plist_weekday_count "$_op_plist") > 1 )); then
+                                        _warn "$_op_label fires on multiple weekdays — re-register it manually, skipped"
+                                        continue
+                                    fi
+                                    # Extract schedule from plist (validated against
+                                    # launchd ranges: out-of-range leftovers degrade
+                                    # to defaults, not garbage)
+                                    local _op_hour="$(_plist_int "Hour" "$_op_plist")"
+                                    local _op_min="$(_plist_int "Minute" "$_op_plist")"
+                                    local _op_wd="$(_plist_int "Weekday" "$_op_plist")"
+                                    [[ "$_op_wd" =~ ^[0-6]$ ]] || _op_wd=""
+                                    [[ "$_op_hour" =~ ^([0-9]|1[0-9]|2[0-3])$ ]] || _op_hour=""
+                                    [[ "$_op_min" =~ ^([0-9]|[1-5][0-9])$ ]] || _op_min=""
+                                    # Modules = the argv entry after brew_manager.sh.
+                                    # Strip the XML tags with sed: the old tr -d set
+                                    # deleted single characters and mangled the value
+                                    # ('go'→'o', '--yes'→'--ye')
+                                    local _op_mods="$(grep -A1 "brew_manager.sh" "$_op_plist" 2>/dev/null | tail -1 | sed -E 's/<[^>]*>//g' | tr -d ' \t')"
+                                    _op_mods="$(_sanitize_agent_modules "$_op_mods")"
 
-                                    local _days_names=(Sun Mon Tue Wed Thu Fri Sat)
                                     local _op_schedule
                                     if [[ -n "$_op_wd" ]]; then
-                                        _op_schedule="${_days_names[$_op_wd]} ${_op_hour:-9}:$(printf '%02d' ${_op_min:-0})"
+                                        _op_schedule="$(_weekday_name "$_op_wd") ${_op_hour:-9}:$(printf '%02d' ${_op_min:-0})"
                                     else
                                         _op_schedule="daily ${_op_hour:-9}:$(printf '%02d' ${_op_min:-0})"
                                     fi
@@ -621,11 +770,21 @@ EOF
                                         _dc_min="$(echo "$_dc_schedule" | awk '{print $2}' | cut -d: -f2)"
                                     else
                                         local _dc_dayname="$(echo "$_dc_schedule" | awk '{print $1}')"
+                                        # Multi-day conf: recreating it single-day
+                                        # would silently turn it into a DAILY agent
+                                        # (fires 7x instead of 2x) — leave it alone
+                                        if [[ "$_dc_dayname" == *+* ]]; then
+                                            _warn "$_dc_label has a multi-day schedule ($_dc_schedule) — recreate it manually, skipped"
+                                            continue
+                                        fi
                                         _dc_hour="$(echo "$_dc_schedule" | awk '{print $2}' | cut -d: -f1)"
                                         _dc_min="$(echo "$_dc_schedule" | awk '{print $2}' | cut -d: -f2)"
+                                        # zsh arrays are 1-based: _dmap[i] is day i-1
+                                        # in launchd terms (old {0..6} loop shifted
+                                        # every day by one and lost Saturday)
                                         local _dmap=(Sun Mon Tue Wed Thu Fri Sat)
-                                        for _dmi in {0..6}; do
-                                            [[ "${_dmap[$_dmi]}" == "$_dc_dayname" ]] && _dc_wd="$_dmi" && break
+                                        for _dmi in {1..7}; do
+                                            [[ "${_dmap[$_dmi]}" == "$_dc_dayname" ]] && _dc_wd="$(( _dmi - 1 ))" && break
                                         done
                                     fi
                                     _install_agent "$_dc_label" "$_plist_dir/${_dc_label}.plist"                                         "$_dc_wd" "$_dc_hour" "$_dc_min" "$_dc_modules"
@@ -641,6 +800,71 @@ EOF
                                 done
                                 ;;
                             *) _info "Dangling confs left unchanged" ;;
+                        esac
+                    fi
+                fi
+
+                # ── Legacy tracked agents: conf+plist present but data corrupt/shifted ──
+                if (( ${#_legacy_pairs[@]} > 0 )); then
+                    echo ""
+                    echo -e "  ${C_YELLOW}${SYM_WARN}${NC}  ${C_WHITE}Tracked agents with legacy or corrupt data (migration available):${NC}"
+                    echo ""
+                    local _li=1
+                    for _lp in "${_legacy_pairs[@]}"; do
+                        local _lp_label="${_lp%%|*}"
+                        local _lp_reason="${_lp##*|}"
+                        printf "  ${C_YELLOW}[%s]${NC}  ${C_WHITE}%-38s${NC}\n" "$_li" "$_lp_label"
+                        printf "        ${C_GRAY}%s${NC}\n" "$_lp_reason"
+                        (( _li++ ))
+                    done
+                    echo ""
+                    echo -e "  ${C_GRAY}Written by older versions: the day mapping was shifted and the modules${NC}"
+                    echo -e "  ${C_GRAY}value could be mangled ('--ye'), which now makes the agent exit 2 on${NC}"
+                    echo -e "  ${C_GRAY}every scheduled run. Migration regenerates conf+plist from the plist's${NC}"
+                    echo -e "  ${C_GRAY}own schedule (source of truth) with a sanitized modules value.${NC}"
+                    echo ""
+
+                    if (( ! BREW_MANAGER_DRY_RUN )); then
+                        echo -e "  ${C_WHITE}Migrate these agents now?${NC}"
+                        echo ""
+                        printf "  ${C_GREEN_B}%-4s${NC}  ${C_WHITE}%s${NC}\n" "[r]" "Repair — regenerate conf and plist, reload in launchd"
+                        printf "  ${C_GRAY}%-4s${NC}  ${C_WHITE}%s${NC}\n"   "[s]" "Skip — leave them as is"
+                        echo ""
+                        printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[r/s, default: s]${NC}: "
+                        read -r _legacy_choice
+
+                        case "${_legacy_choice:-s}" in
+                            r|R)
+                                for _lp in "${_legacy_pairs[@]}"; do
+                                    local _lp_label="${_lp%%|*}"
+                                    local _lp_rest="${_lp#*|}"
+                                    local _lp_conf="${_lp_rest%%|*}"
+                                    local _lp_plist="$_plist_dir/${_lp_label}.plist"
+                                    # Source of truth: the plist launchd actually fires
+                                    local _mg_hour="$(_plist_int "Hour" "$_lp_plist")"
+                                    local _mg_min="$(_plist_int "Minute" "$_lp_plist")"
+                                    local _mg_wd="$(_plist_int "Weekday" "$_lp_plist")"
+                                    [[ "$_mg_wd" =~ ^[0-6]$ ]] || _mg_wd=""
+                                    [[ "$_mg_hour" =~ ^([0-9]|1[0-9]|2[0-3])$ ]] || _mg_hour="9"
+                                    [[ "$_mg_min" =~ ^([0-9]|[1-5][0-9])$ ]] || _mg_min="0"
+                                    # Modules: prefer a valid plist argv value, then a
+                                    # valid conf value, else fall back to 'go'
+                                    local _mg_mods="$(grep -A1 "brew_manager.sh" "$_lp_plist" 2>/dev/null | tail -1 | sed -E 's/<[^>]*>//g' | tr -d ' \t')"
+                                    if [[ -z "$_mg_mods" || "$_mg_mods" == -* ]]; then
+                                        _mg_mods="$(grep "^modules=" "$_lp_conf" | cut -d= -f2-)"
+                                    fi
+                                    _mg_mods="$(_sanitize_agent_modules "$_mg_mods")"
+                                    # Log MIGRATED only on success: a failed reload
+                                    # must not be recorded as a repaired agent
+                                    if _install_agent "$_lp_label" "$_lp_plist" \
+                                        "$_mg_wd" "$_mg_hour" "$_mg_min" "$_mg_mods"; then
+                                        _log_agent_event "MIGRATED" "$_lp_label" "legacy data repaired by integrity check"
+                                    else
+                                        _warn "Migration failed for $_lp_label — see messages above"
+                                    fi
+                                done
+                                ;;
+                            *) _info "Legacy agents left unchanged" ;;
                         esac
                     fi
                 fi

@@ -134,6 +134,10 @@ _module_14() {
             local _pl="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^label=" | cut -d= -f2-)"
             local _ps="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^schedule=" | cut -d= -f2-)"
             local _pm="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^modules=" | cut -d= -f2-)"
+            # Mirror what the real restore would do, so the preview never lies
+            if [[ ! "$_pm" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
+                _pm="go (bundle value '$_pm' invalid)"
+            fi
             printf "  ${C_CYAN}${SYM_ARR}${NC}  ${C_WHITE}%-36s${NC}  ${C_GRAY}%-16s${NC}  ${C_CYAN_B}%s${NC}\n" "$_pl" "$_ps" "$_pm"
         done < "$agents_bundle"
     }
@@ -156,7 +160,30 @@ _module_14() {
             local _schedule="$(echo "$_data" | tr '|' '\n' | grep "^schedule=" | cut -d= -f2-)"
             local _modules="$(echo "$_data" | tr '|' '\n' | grep "^modules=" | cut -d= -f2-)"
 
-            if [[ -z "$_label" || -z "$_modules" ]]; then continue; fi
+            if [[ -z "$_label" ]]; then continue; fi
+
+            # The label lands in the plist XML, in launchctl calls and in
+            # filenames: an untrusted bundle must not smuggle metacharacters
+            if [[ ! "$_label" =~ ^[A-Za-z0-9._-]+$ ]]; then
+                _warn "Bundle label '$_label' has an invalid shape — agent skipped"
+                continue
+            fi
+
+            # Only the real selection grammar may reach the plist: legacy
+            # mangled values ('--ye') would make the agent exit 2 on every run,
+            # and XML metacharacters would inject into the plist heredoc
+            if [[ ! "$_modules" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
+                _warn "Bundle modules '$_modules' for $_label is invalid — restoring with 'go'"
+                _modules="go"
+            fi
+
+            # Multi-day schedules ('Mon+Wed+Fri') can't round-trip through the
+            # single-day restore: recreating them as daily would fire MORE
+            # often than intended — safer to skip with an explicit warning
+            if [[ "$(echo "$_schedule" | awk '{print $1}')" == *+* ]]; then
+                _warn "Multi-day schedule '$_schedule' for $_label is not supported by restore — skipped"
+                continue
+            fi
 
             # Parse schedule back to hour/minute/weekday
             local _hour=9 _minute=0 _weekday=""
@@ -167,11 +194,20 @@ _module_14() {
                 local _day_name="$(echo "$_schedule" | awk '{print $1}')"
                 _hour="$(echo "$_schedule" | awk '{print $2}' | cut -d: -f1)"
                 _minute="$(echo "$_schedule" | awk '{print $2}' | cut -d: -f2)"
+                # zsh arrays are 1-based: _days_map[i] is launchd day i-1 (the
+                # old {0..6} loop shifted Sun→Mon and degraded Sat to daily)
                 local _days_map=(Sun Mon Tue Wed Thu Fri Sat)
-                for i in {0..6}; do
-                    [[ "${_days_map[$i]}" == "$_day_name" ]] && _weekday="$i" && break
+                for i in {1..7}; do
+                    [[ "${_days_map[$i]}" == "$_day_name" ]] && _weekday="$(( i - 1 ))" && break
                 done
             fi
+            # hour/minute go straight into the plist heredoc below: a bundle
+            # schedule field can carry anything except '|' and newline, so an
+            # unvalidated value would inject XML into the plist (structural
+            # injection, launchctl then loads it). Clamp to defaults on any
+            # value outside the launchd range
+            [[ "$_hour" =~ ^([0-9]|1[0-9]|2[0-3])$ ]] || _hour=9
+            [[ "$_minute" =~ ^([0-9]|[1-5][0-9])$ ]] || _minute=0
 
             local _plist="$_plist_dir/${_label}.plist"
             local _log_out="$BREW_MANAGER_SCRIPT_DIR/logs/agent_stdout_${_label}.log"

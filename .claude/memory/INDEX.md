@@ -42,6 +42,9 @@ tags: [moc]
 - [[sessions/2026-07-13-bm04-adopt-off-by-one]] — BM-04: off-by-one + canale di
   selezione morto su tutte le release (2 HIGH del gate risolti); RED→GREEN
   contro main; lezione harness-come-launcher
+- [[sessions/2026-07-13-bm05a-weekday-migration]] — BM-05a: weekday mapping +
+  migrazione plist legacy; gate in 2 round (4 HIGH: XML injection, collasso
+  multi-intervallo, Modify che perdeva il conf, heredoc bk non validato)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

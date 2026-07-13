@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-13 | Ultimo: **BM-04 completo su fix/adopt-off-by-one (2 HIGH del gate risolti)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-13 | Ultimo: **BM-05a completo su fix/weekday-shift (gate in 2 round, 4 HIGH risolti)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -28,11 +28,12 @@ tags: [state]
   - [x] Micro-task parser: INTEGRATO in main (merge fafa9da). IMP-001 applicata
     (commit ae6cfb6 su questo branch).
   - [x] BM-03: INTEGRATO in main (merge 12dada6).
-  - [x] BM-04 fix off-by-one adozione mod_00 — branch `fix/adopt-off-by-one`,
-    commit 430f322, gate PASSATO con 2 HIGH RISOLTI (canale di selezione morto
-    end-to-end su tutte le release: _read_choice su stdout + override launcher
-    sempre attivo; '1 2'→indice 12). In attesa di integrazione.
-  - [ ] BM-05a fix weekday + migrazione plist legacy ← PROSSIMO (dopo ok utente su BM-04)
+  - [x] BM-04: INTEGRATO in main (merge 22e0c52).
+  - [x] BM-05a fix weekday + migrazione plist legacy — branch `fix/weekday-shift`,
+    commit c5c4539, gate PASSATO in 2 ROUND con 4 HIGH risolti (XML injection nei
+    plist da bundle non fidato; collasso dei plist multi-intervallo; Modify che
+    perdeva il conf; heredoc duplicato non validato in bk). In attesa di integrazione.
+  - [ ] BM-05b fix contatore mod_09 ← PROSSIMO (dopo ok utente su BM-05a)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -84,12 +85,10 @@ tags: [state]
    ignorano e in non-TTY degradano a `go --yes`, che include mod_05
    (autoremove+cleanup SENZA conferma). → TRIGGER: bloccante per qualunque lavoro
    su scheduler/CLI; da risolvere PRIMA di pubblicizzare gli agenti schedulati.
-2. **Off-by-one zsh (array 1-based)** in: ~~adozione mod_00~~ (RISOLTO in BM-04,
-   insieme al canale di selezione morto: _read_choice inquinava il valore
-   catturato e il launcher forzava sempre l'override → --adopt e selezione
-   interattiva mai funzionanti su nessuna release), weekday in las/bk (giorno
-   shiftato di +1 al restore, sabato degrada a daily → BM-05a), contatore mod_09
-   (→ BM-05b). → TRIGGER: BM-05a/BM-05b; regola by-convention in CLAUDE.md.
+2. **Off-by-one zsh (array 1-based)**: ~~adozione mod_00~~ (BM-04, insieme al
+   canale di selezione morto su tutte le release), ~~weekday in las/bk~~ +
+   ~~selezione Modify/Remove nello scheduler~~ (BM-05a). Resta il contatore
+   mod_09 (→ BM-05b). → TRIGGER: BM-05b; regola by-convention in CLAUDE.md.
 3. **DRY_RUN non uniforme**: ~~mod_05~~ (risolto in BM-02), ~~restore bk
    [3]/[3b]~~ (risolto in BM-03); resta `brew install mas` non gated in
    mod_mas. → TRIGGER: qualunque modifica a mod_mas deve prima chiudere il gap.
@@ -106,9 +105,16 @@ tags: [state]
 5. **Tag esistenti lightweight** (v1.1.1, v1.1.2), il framework prevede tag
    annotati per /integrate e git describe. → TRIGGER: dal prossimo tag si usa
    `git tag -a` (i vecchi restano com'erano).
-6. `_install_agent_multi` in mod_las è codice morto (mai richiamata dal menu);
-   gli schedule multi-giorno non fanno round-trip nel restore bk. → TRIGGER:
-   se si decide di cablare la feature multi-giorno.
+6. `_install_agent_multi` in mod_las resta codice morto (mai richiamata dal menu),
+   ma dopo BM-05a è allineata ai guard-rail. Gli schedule multi-giorno NON fanno
+   round-trip: ora vengono SALTATI con warning (restore bk, re-register,
+   migrazione, recreate) invece di degradare a daily/singolo giorno. → TRIGGER:
+   se si decide di cablare davvero la feature multi-giorno (serve un writer
+   multi-intervallo anche nel restore).
+6b. La preview del restore agenti (bk) rispecchia lo skip dei modules invalidi ma
+   NON quelli di label malformata e schedule multi-day (INFO, gate BM-05a): la
+   preview elenca agenti che il restore reale salterebbe. → TRIGGER: prossimo
+   intervento su mod_bk o BM-14 (viste report).
 7. Secret scanning attivo solo sui commit nuovi (`gitleaks protect --staged`):
    la storia git preesistente non è mai stata scansionata. → TRIGGER: one-off
    `gitleaks detect` alla prima occasione utile (repo pubblico: basso rischio).
@@ -143,7 +149,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/adopt-off-by-one** = BM-04 COMPLETO (430f322), gate passato (2 HIGH
-  risolti), in attesa del merge via blocco /integrate (esegue l'utente).
+- **fix/weekday-shift** = BM-05a COMPLETO (c5c4539), gate passato in 2 round
+  (4 HIGH risolti), in attesa del merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
