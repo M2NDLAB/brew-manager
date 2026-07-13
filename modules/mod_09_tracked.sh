@@ -48,11 +48,12 @@ _module_9() {
     if (( ${#tracked_bins[@]} == 0 )); then
         _info "No tracked binaries found in /usr/local/bin"
     else
+        # First column holds the status symbol, not a number — the old "No."
+        # header advertised an index the rows never printed
         printf "  ${C_GRAY}%-4s  %-22s  %-14s  %-36s${NC}\n" \
-            "No." "Binary" "Managed by" "Target"
+            "" "Binary" "Managed by" "Target"
         printf "  ${C_GRAY}%-4s  %-22s  %-14s  %-36s${NC}\n" \
             "────" "──────────────────────" "──────────────" "────────────────────────────────────"
-        local _idx=1
         for entry in "${tracked_bins[@]}"; do
             local bin_name="${entry%%|*}"
             local rest="${entry#*|}"
@@ -62,9 +63,10 @@ _module_9() {
             [[ "$_source" == app:* ]] && _color="$C_CYAN"
             printf "  ${_color}${SYM_OK}${NC}   ${C_WHITE}%-22s${NC}  ${C_GRAY}%-14s${NC}  ${C_GRAY}%s${NC}\n" \
                 "$bin_name" "$_source" "$_tgt"
-            (( _idx++ ))
         done
         echo ""
-        _stat_row "Total tracked binaries" "$_idx" "$C_GREEN_B"
+        # Count the array, never a loop counter: the old _idx started at 1 and
+        # was incremented per row, so the total was always off by one
+        _stat_row "Total tracked binaries" "${#tracked_bins[@]}" "$C_GREEN_B"
     fi
 }
