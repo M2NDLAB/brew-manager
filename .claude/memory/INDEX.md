@@ -39,6 +39,9 @@ tags: [moc]
 - [[sessions/2026-07-13-bm03-dryrun-bk-restore]] — BM-03: dry-run nel restore
   bk (preview statica, [3a] con conferma); IMP-001 applicata; disclosure falso
   PASS S7 di BM-02 → debito 3b
+- [[sessions/2026-07-13-bm04-adopt-off-by-one]] — BM-04: off-by-one + canale di
+  selezione morto su tutte le release (2 HIGH del gate risolti); RED→GREEN
+  contro main; lezione harness-come-launcher
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

@@ -50,6 +50,13 @@ _module_0() {
     _check_brew_available() {
         local app_name="$1"
         local normalized="$(echo "$app_name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/\.app$//')"
+        # Only valid cask-token shapes may reach brew (and later the adopt
+        # prompt/install): a flag-shaped or control-char .app name must not
+        # become a brew argument ('--version.app' → flag injection)
+        if [[ ! "$normalized" =~ ^[a-z0-9][a-z0-9@+._-]*$ ]]; then
+            echo ""
+            return
+        fi
         brew info --cask "$normalized" &>/dev/null && echo "$normalized" || echo ""
     }
 
@@ -154,18 +161,32 @@ _module_0() {
             n|N|"") _info "No adoption performed" ;;
             all|ALL) TO_ADOPT=("${UNMANAGED_WITH_CASK[@]}") ;;
             *)
-                IFS=',' read -rA selected_nums <<< "$adopt_choice"
+                # Whitespace counts as a separator like the comma: deleting
+                # inner spaces would merge '1 2' into index 12 — the wrong app
+                local _sel_normalized="${adopt_choice//[[:space:]]/,}"
+                typeset -A _seen_idx
+                IFS=',' read -rA selected_nums <<< "$_sel_normalized"
                 for num in "${selected_nums[@]}"; do
-                    num=$(echo "$num" | tr -d ' ')
+                    [[ -z "$num" ]] && continue
                     if [[ "$num" =~ ^[0-9]+$ ]]; then
-                        local real_idx=$(( num - 1 ))
-                        if (( real_idx >= 0 && real_idx < ${#UNMANAGED_WITH_CASK[@]} )); then
-                            TO_ADOPT+=("${UNMANAGED_WITH_CASK[$real_idx]}")
+                        # zsh arrays are 1-based: the [N] shown in the table IS
+                        # the array index — no offset (an off-by-one here adopts
+                        # the WRONG app onto the user's system)
+                        if (( num >= 1 && num <= ${#UNMANAGED_WITH_CASK[@]} )); then
+                            if [[ -z "${_seen_idx[$num]}" ]]; then
+                                _seen_idx[$num]=1
+                                TO_ADOPT+=("${UNMANAGED_WITH_CASK[$num]}")
+                            fi
                         else
                             _warn "Number $num is invalid — skipped"
                         fi
+                    else
+                        _warn "'$num' is not a number — skipped"
                     fi
                 done
+                if (( ${#TO_ADOPT[@]} == 0 )); then
+                    _warn "No valid selection — nothing will be adopted"
+                fi
                 ;;
         esac
 
@@ -175,6 +196,18 @@ _module_0() {
                 local cask_name="${entry#*|}"
                 cask_name="${cask_name%%|*}"
                 local app_name="${entry%%|*}"
+                # --dry-run always wins, even over --yes: preview only
+                if (( BREW_MANAGER_DRY_RUN )); then
+                    _info "Dry-run — would adopt: ${app_name}.app → ${cask_name} (nothing executed)"
+                    continue
+                fi
+                # Echo the exact target and confirm BEFORE touching the system:
+                # adopting the wrong app is real damage. Default "y" keeps the
+                # documented automated flows (--adopt=all --yes) working as before
+                if ! _ask "Adopt ${app_name}.app → ${cask_name} now?" "y"; then
+                    _warn "Skipped: $app_name"
+                    continue
+                fi
                 echo -e "  ${C_CYAN}${SYM_ARR}${NC}  Adopting ${C_WHITE}${app_name}${NC} ${C_GRAY}(${cask_name})${NC}..."
                 if brew install --cask "$cask_name" --adopt 2>/tmp/brew_adopt_err.log; then
                     _ok "Adopted: $app_name"

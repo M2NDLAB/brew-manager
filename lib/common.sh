@@ -112,7 +112,10 @@ _ask() {
     [[ "$response" =~ ^[Yy]$ ]]
 }
 
-# _read_choice: reads user input or returns default in non-interactive mode
+# _read_choice: reads user input or returns default in non-interactive mode.
+# Callers capture the VALUE with $(...): everything informational (auto-answer
+# notice, interactive prompt) must go to stderr, or it pollutes the captured
+# value and the selection silently never matches (bug fixed in BM-04).
 _read_choice() {
     local prompt="$1"
     local default="$2"
@@ -121,20 +124,22 @@ _read_choice() {
     if [[ -n "$varname" ]]; then
         local override="${(P)varname}"
         if [[ -n "$override" ]]; then
-            echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[auto: ${override}]${NC}"
-            echo "$override"
+            echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[auto: ${override}]${NC}" >&2
+            printf '%s\n' "$override"
             return
         fi
     fi
     # Non-interactive: use default
     if (( BREW_MANAGER_YES )); then
-        echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[auto: ${default}]${NC}"
-        echo "$default"
+        echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[auto: ${default}]${NC}" >&2
+        printf '%s\n' "$default"
         return
     fi
-    printf "  ${C_CYAN}${SYM_ARR}${NC}  %s: " "$prompt"
+    printf "  ${C_CYAN}${SYM_ARR}${NC}  %s: " "$prompt" >&2
+    local _rc_response
     read -r _rc_response
-    echo "${_rc_response:-$default}"
+    # printf %s: the value is DATA — zsh echo would expand backslash escapes
+    printf '%s\n' "${_rc_response:-$default}"
 }
 
 _stat_row() {

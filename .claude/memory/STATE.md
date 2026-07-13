@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-13 | Ultimo: **BM-03 completo su fix/dryrun-bk-restore (gate passato); IMP-001 applicata** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-13 | Ultimo: **BM-04 completo su fix/adopt-off-by-one (2 HIGH del gate risolti)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -27,10 +27,12 @@ tags: [state]
     commit 0e48373, gate passato, in attesa di integrazione. Chiude Attenzione #9.
   - [x] Micro-task parser: INTEGRATO in main (merge fafa9da). IMP-001 applicata
     (commit ae6cfb6 su questo branch).
-  - [x] BM-03 fix --dry-run nel restore di mod_bk — branch `fix/dryrun-bk-restore`,
-    commit 084bdb2, gate PASSATO (preview statica senza brew; [3a] con conferma),
-    in attesa di integrazione.
-  - [ ] BM-04 fix off-by-one adozione mod_00 ← PROSSIMO (dopo ok utente su BM-03)
+  - [x] BM-03: INTEGRATO in main (merge 12dada6).
+  - [x] BM-04 fix off-by-one adozione mod_00 — branch `fix/adopt-off-by-one`,
+    commit 430f322, gate PASSATO con 2 HIGH RISOLTI (canale di selezione morto
+    end-to-end su tutte le release: _read_choice su stdout + override launcher
+    sempre attivo; '1 2'→indice 12). In attesa di integrazione.
+  - [ ] BM-05a fix weekday + migrazione plist legacy ← PROSSIMO (dopo ok utente su BM-04)
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -82,10 +84,12 @@ tags: [state]
    ignorano e in non-TTY degradano a `go --yes`, che include mod_05
    (autoremove+cleanup SENZA conferma). → TRIGGER: bloccante per qualunque lavoro
    su scheduler/CLI; da risolvere PRIMA di pubblicizzare gli agenti schedulati.
-2. **Off-by-one zsh (array 1-based)** in: adozione mod_00 (selezione "1" → elemento
-   vuoto, "2" → prima app), weekday in las/bk (giorno shiftato di +1 al restore,
-   sabato degrada a daily), contatore mod_09. → TRIGGER: primo intervento su uno
-   di questi moduli; regola by-convention in CLAUDE.md per il codice nuovo.
+2. **Off-by-one zsh (array 1-based)** in: ~~adozione mod_00~~ (RISOLTO in BM-04,
+   insieme al canale di selezione morto: _read_choice inquinava il valore
+   catturato e il launcher forzava sempre l'override → --adopt e selezione
+   interattiva mai funzionanti su nessuna release), weekday in las/bk (giorno
+   shiftato di +1 al restore, sabato degrada a daily → BM-05a), contatore mod_09
+   (→ BM-05b). → TRIGGER: BM-05a/BM-05b; regola by-convention in CLAUDE.md.
 3. **DRY_RUN non uniforme**: ~~mod_05~~ (risolto in BM-02), ~~restore bk
    [3]/[3b]~~ (risolto in BM-03); resta `brew install mas` non gated in
    mod_mas. → TRIGGER: qualunque modifica a mod_mas deve prima chiudere il gap.
@@ -115,7 +119,10 @@ tags: [state]
    skip silenzioso (fail-closed; con la conferma di BM-02 ora tocca anche mod_05).
    I LaunchAgent passano --yes espliciti: NON impattati. Fix candidato (1 riga in
    brew_manager.sh): `[[ ! -t 0 || "${BREW_MANAGER_YES:-0}" == 1 ]] && YES_MODE=1`.
-   → TRIGGER: micro-task dedicato o dentro BM-08c (decisione utente).
+   INTERAZIONE NUOVA (gate BM-04): con l'_ask per-app dell'adozione,
+   `--adopt=all` SENZA --yes esplicito in non-TTY salta ogni adozione
+   (fail-closed); il README (~riga 101, "without asking") va riallineato in
+   BM-19. → TRIGGER: BM-08c (decisione utente confermata 2026-07-13).
 9. ~~Flag CLI ignoti ignorati in silenzio~~ **RISOLTO** (micro-task 0e48373,
    2026-07-13): flag ignoti e lookalike Unicode → errore + exit 2. RESIDUI
    registrati dal gate (LOW, fail-safe): typo nei VALORI (`--upgrade=yes`
@@ -126,13 +133,17 @@ tags: [state]
 10. `_ask` mostra sempre "(y/N)" anche con default y, e "Runs only after
    confirmation" vale solo interattivamente (LOW, lib condivisa). → TRIGGER:
    UX conferme in BM-10/BM-16.
+11. **Path /tmp fissi e prevedibili** (`/tmp/brew_*.log`, INFO gate BM-04):
+   O_TRUNC segue i symlink — su Mac multi-utente un altro utente locale può
+   pre-piazzare un symlink. Pre-esistente in più moduli. → TRIGGER: BM-07
+   (refactor) o un pass di hardening dedicato: mktemp per-run.
 - [[LEARNINGS]]: stato delle proposte IMP (aperte / applicate / rimandate) —
   vuoto alla nascita, le IMP del progetto partono da 001.
 
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/dryrun-bk-restore** = BM-03 COMPLETO (084bdb2) + IMP-001 (ae6cfb6),
-  gate passato, in attesa del merge via blocco /integrate (esegue l'utente).
+- **fix/adopt-off-by-one** = BM-04 COMPLETO (430f322), gate passato (2 HIGH
+  risolti), in attesa del merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

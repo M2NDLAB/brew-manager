@@ -78,8 +78,11 @@ done
 
 export BREW_MANAGER_DRY_RUN=$DRY_RUN
 export BREW_MANAGER_YES=$YES_MODE
-export BREW_MANAGER_ADOPT="${ADOPT_ANSWER:-n}"
-export BREW_MANAGER_UPGRADE="${UPGRADE_ANSWER:-n}"
+# Export RAW values (empty when the flag was not passed): a non-empty default
+# here would make _read_choice's override branch always fire, killing the
+# interactive prompt. Consumers apply their own 'n' default (${VAR:-n}).
+export BREW_MANAGER_ADOPT="$ADOPT_ANSWER"
+export BREW_MANAGER_UPGRADE="$UPGRADE_ANSWER"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SOURCE LIBRARY
