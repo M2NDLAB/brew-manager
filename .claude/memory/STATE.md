@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-14 | Ultimo: **BM-19 ristretto completo — sequenza di release v1.2.0 in corso** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-14 | Ultimo: **release v1.2.0 pronta — attende merge+tag+push dell'utente** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -36,10 +36,10 @@ tags: [state]
     `refactor/version-deadcode`, commit 3a35309. In attesa di integrazione.
   - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
   - [x] Decisione utente 2026-07-14: **si rilascia v1.2.0 ORA** (strada A), M2 dopo.
-  - [x] BM-19 RISTRETTO (README ↔ realtà di v1.2.0) — branch `docs/readme-reality`,
-    commit 7f7f90d. Regola di onestà: nessun over-claim su CLI posizionale e
-    scheduling per-modulo (non esistono ancora).
-  - [ ] Release v1.2.0 (branch `chore/release-v1.2.0`) ← PROSSIMO
+  - [x] BM-19 RISTRETTO: INTEGRATO in main (merge 3e7b462).
+  - [x] Release v1.2.0 PREPARATA — branch `chore/release-v1.2.0`, commit 0dcb072
+    (VERSION → 1.2.0, CHANGELOG [1.2.0]). Attende merge + `git tag -a v1.2.0` +
+    push (li esegue l'utente).
   - [ ] ⛔ **STOP dopo il push di v1.2.0**: M2 (BM-08a) parte SOLO su via libera
     esplicita dell'utente.
   - [ ] M2 — resolver di selezione (BM-08a/b/c): la chiave di volta; chiude
@@ -172,7 +172,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **docs/readme-reality** = BM-19 ristretto COMPLETO (7f7f90d), in attesa del
-  merge via blocco /integrate (esegue l'utente).
+- **chore/release-v1.2.0** = release PRONTA (0dcb072), in attesa di merge + tag
+  annotato `v1.2.0` + push (li esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

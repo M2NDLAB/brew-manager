@@ -54,6 +54,8 @@ tags: [moc]
   (non esisteva) + rimozione codice morto → **M1 CHIUSO**
 - [[sessions/2026-07-14-bm19-readme-reality]] — BM-19 ristretto: README ↔ realtà
   di v1.2.0, over-claim rimossi (CLI posizionale, scheduling per-modulo)
+- [[sessions/2026-07-14-release-v1.2.0]] — release v1.2.0: VERSION+CHANGELOG,
+  version-check simulato col tag in un clone; tag e push all'utente
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
