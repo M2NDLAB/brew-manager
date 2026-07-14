@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`3a`) now asks for confirmation like the other restore options; in
   `--yes`/non-interactive runs it therefore no longer restores silently
   (behavior change, consistent with `3`/`3b`).
+- Auto-update casks module (10): confirming the prompt used to run a global
+  `brew upgrade --greedy`, which also upgraded formulae and casks that were
+  never shown — despite the prompt saying "N cask(s)". Only the casks listed in
+  the confirmation are upgraded now (use module 4 for formulae and regular
+  casks), each one's exit status is checked and reported, a cask that did not
+  actually change version is reported as "no change" instead of "upgraded", and
+  `--dry-run` finally previews this module instead of upgrading for real.
 - Tracked-binaries module (9): "Total tracked binaries" was always one higher
   than the number of binaries actually listed.
 - Scheduler (`las`) and backup restore (`bk`): the weekday mapping was off by one

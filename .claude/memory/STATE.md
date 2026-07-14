@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-13 | Ultimo: **BM-05b completo su fix/mod09-counter (ultimo off-by-one chiuso)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-14 | Ultimo: **BM-06 completo su fix/greedy-scope (gate passato)** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -30,10 +30,12 @@ tags: [state]
   - [x] BM-03: INTEGRATO in main (merge 12dada6).
   - [x] BM-04: INTEGRATO in main (merge 22e0c52).
   - [x] BM-05a: INTEGRATO in main (merge 5d51b14).
-  - [x] BM-05b fix contatore mod_09 — branch `fix/mod09-counter`, commit 6162d62
-    (read-only, nessun gate). In attesa di integrazione.
-  - [ ] BM-06 greedy scope + exit code ← PROSSIMO (dopo ok utente su BM-05b)
-  - [ ] BM-07 versione a fonte unica + rimozione codice morto → CHIUDE M1
+  - [x] BM-05b: INTEGRATO in main (merge d555f54).
+  - [x] BM-06 greedy scope + exit code — branch `fix/greedy-scope`, commit
+    7785825, gate PASSATO (scope per-cask con `--`, `--cask` in outdated,
+    streaming+exit code via pipestatus, dry-run che prima non esisteva).
+    In attesa di integrazione.
+  - [ ] BM-07 versione a fonte unica + rimozione codice morto ← PROSSIMO → CHIUDE M1
   - [ ] **PUNTO CON L'UTENTE dopo M1**: valutare il primo tag di release prima
     di M2 (resolver). Richiesta esplicita dell'utente 2026-07-13.
 
@@ -101,9 +103,14 @@ tags: [state]
    falso PASS (grep fragile su od). Fix da poche righe: `printf '%s\n'` al
    posto degli echo intermedi. → TRIGGER: primo intervento su mod_05 o mod_bk
    (o micro-fix dedicato se l'utente lo chiede).
-4. **mod_10 greedy**: conferma "N cask(s)" ma esegue `brew upgrade --greedy`
-   globale; exit code non verificato (successo stampato comunque; stesso pattern in
-   mod_02 e mas). → TRIGGER: primo intervento su mod_10.
+4. ~~**mod_10 greedy**: scope globale + exit code non verificato~~ **RISOLTO** in
+   BM-06. Resta lo stesso pattern "successo stampato comunque" in **mod_02** e
+   **mod_mas**. → TRIGGER: primo intervento su quei moduli.
+4b. **Il `return` dei moduli è inerte** (LOW, gate BM-06): il dispatcher di
+   `brew_manager.sh` ignora i valori di ritorno e il core termina con `exit 0`
+   incondizionato, quindi una run schedulata che fallisce riporta comunque
+   successo a chi la monitora. Cambiare il contratto di exit tocca TUTTI i
+   moduli. → TRIGGER: decisione utente (candidato a BM-08/BM-18 doctor).
 5. **Tag esistenti lightweight** (v1.1.1, v1.1.2), il framework prevede tag
    annotati per /integrate e git describe. → TRIGGER: dal prossimo tag si usa
    `git tag -a` (i vecchi restano com'erano).
@@ -151,7 +158,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/mod09-counter** = BM-05b COMPLETO (6162d62), in attesa del merge via
-  blocco /integrate (esegue l'utente).
+- **fix/greedy-scope** = BM-06 COMPLETO (7785825), gate passato, in attesa del
+  merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

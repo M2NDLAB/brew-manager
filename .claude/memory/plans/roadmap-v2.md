@@ -191,6 +191,12 @@ Legenda campi di ogni task:
 - Non-regressione: caso con 1 cask greedy outdated → conferma e upgrade coerenti; `--dry-run` → solo
   anteprima; simulare fallimento e verificare che venga segnalato.
 - Commit: `fix(greedy): scope upgrade to confirmed casks, check exit status`
+- **Status: COMPLETATO 2026-07-14** — branch `fix/greedy-scope`, commit 7785825,
+  gate passato. Scelta: upgrade SOLO dei cask confermati (uno per volta, con `--`),
+  non "dichiarare che è globale". Scoperte del gate: `brew outdated --greedy`
+  senza `--cask` includeva le formule (collisione di token con i cask); un token
+  flag-shaped poteva svuotare gli operandi e riaprire l'upgrade globale; il
+  modulo non aveva ALCUN gate dry-run (go --dry-run + y = upgrade reale).
 
 #### BM-07 · refactor: versione a fonte unica + rimozione codice morto
 - Tipo · branch: refactor · `refactor/version-deadcode`

@@ -47,6 +47,9 @@ tags: [moc]
   multi-intervallo, Modify che perdeva il conf, heredoc bk non validato)
 - [[sessions/2026-07-13-bm05b-mod09-counter]] — BM-05b: contatore mod_09 (+1);
   ultimo off-by-one; lezione sul contare l'output di una TUI
+- [[sessions/2026-07-14-bm06-greedy-scope]] — BM-06: scope per-cask del greedy,
+  exit code, dry-run mai esistito; gate: --cask mancante in outdated, token
+  flag-shaped, streaming perso e riguadagnato con pipestatus
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
