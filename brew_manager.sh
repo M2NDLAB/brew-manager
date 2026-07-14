@@ -82,8 +82,11 @@ LOG_FILE="$_LOGS_DIR/brew_report_$(date +%Y%m%d_%H%M%S).log"
 # FLAGS
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Parse flags and module options from CLI args
-# Usage: ./brew_manager.sh [go|modules] [--dry-run] [--yes] [--adopt=n|all|1,2] [--upgrade=y|n] [--version]
+# Parse the CLI flags. The module SELECTION is not read from here: it comes
+# from the interactive Choice prompt (see PARSE SELECTION below). Positional
+# arguments are ignored on purpose — LaunchAgent plists pass a module list that
+# this version cannot honour yet.
+# Usage: ./brew_manager.sh [--dry-run] [--yes|-y] [--adopt=n|all|1,2] [--upgrade=y|n] [--version|-V]
 DRY_RUN=0
 YES_MODE=0       # --yes: skip all prompts using built-in defaults
 ADOPT_ANSWER=""  # --adopt=n|all|1,2,3
@@ -107,7 +110,7 @@ for _arg in "$@"; do
             # Unicode dash lookalikes (en/em dash, minus) come from smart-dash
             # copy-paste and would otherwise slip through as positionals
             echo "ERROR: unknown flag: ${_arg}" >&2
-            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n, --version" >&2
+            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n, --version | -V" >&2
             exit 2
             ;;
         # Non-flag args (e.g. module lists from LaunchAgent plists) are still
