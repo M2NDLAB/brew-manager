@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-14 | Ultimo: **BM-06 completo su fix/greedy-scope (gate passato)** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-14 | Ultimo: **BM-07 completo → M1 CHIUSO. Attesa decisione utente sul primo tag di release** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -31,13 +31,14 @@ tags: [state]
   - [x] BM-04: INTEGRATO in main (merge 22e0c52).
   - [x] BM-05a: INTEGRATO in main (merge 5d51b14).
   - [x] BM-05b: INTEGRATO in main (merge d555f54).
-  - [x] BM-06 greedy scope + exit code — branch `fix/greedy-scope`, commit
-    7785825, gate PASSATO (scope per-cask con `--`, `--cask` in outdated,
-    streaming+exit code via pipestatus, dry-run che prima non esisteva).
-    In attesa di integrazione.
-  - [ ] BM-07 versione a fonte unica + rimozione codice morto ← PROSSIMO → CHIUDE M1
-  - [ ] **PUNTO CON L'UTENTE dopo M1**: valutare il primo tag di release prima
-    di M2 (resolver). Richiesta esplicita dell'utente 2026-07-13.
+  - [x] BM-06: INTEGRATO in main (merge cb234fd).
+  - [x] BM-07 versione a fonte unica + codice morto — branch
+    `refactor/version-deadcode`, commit 3a35309. In attesa di integrazione.
+  - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
+  - [ ] ⛔ **STOP CONCORDATO**: punto con l'utente sul primo tag di release
+    (v1.2.0 dopo M1 vs aspettare il resolver M2). NON iniziare BM-08 prima.
+  - [ ] M2 — resolver di selezione (BM-08a/b/c): la chiave di volta; chiude
+    Attenzione #1 (CLI posizionali + plist scheduler) e #8 (YES_MODE).
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -72,15 +73,21 @@ tags: [state]
   storia pushata, NON riscrivere.
 
 ## Debito documentazione
+> Tutto questo blocco è il perimetro di **BM-19** (docs/readme-reality).
 - README "Running from the command line": documenta argomenti CLI posizionali NON
   implementati (vedi Attenzione #1) — da riallineare quando si decide se
   implementare la feature o correggere la doc.
+- README §10 (greedy): scope ora per-cask e `--dry-run` reale (BM-06).
+- README: `--version`/`-V` esiste ora (BM-07) e non è documentato.
+- README bk §3a: ora chiede conferma; in `--yes` non ripristina (BM-03).
+- README §0 (audit): l'adozione ora conferma per app; `--adopt=all` senza `--yes`
+  in non-TTY salta (BM-04, interazione con Attenzione #8).
 - README "Project structure": non cita `SECURITY.md` né i file del framework
   (CLAUDE.md, Makefile, scripts/, .claude/) — da aggiornare al primo ritocco del README.
 - README "Adding a new module": promette invocabilità da CLI inesistente (stessa
   radice del punto 1).
-- `BREW_MANAGER_VERSION="1.1.0"` nello script vs tag v1.1.2 — allineare la
-  costante al prossimo release.
+- ~~`BREW_MANAGER_VERSION="1.1.0"` vs tag v1.1.2~~ **RISOLTO** in BM-07 (file
+  VERSION + `make version-check`).
 
 ## Attenzione / problemi aperti
 1. **Argomenti CLI posizionali non implementati** — il parser gestisce solo i flag;
@@ -113,13 +120,17 @@ tags: [state]
    moduli. → TRIGGER: decisione utente (candidato a BM-08/BM-18 doctor).
 5. **Tag esistenti lightweight** (v1.1.1, v1.1.2), il framework prevede tag
    annotati per /integrate e git describe. → TRIGGER: dal prossimo tag si usa
-   `git tag -a` (i vecchi restano com'erano).
-6. `_install_agent_multi` in mod_las resta codice morto (mai richiamata dal menu),
-   ma dopo BM-05a è allineata ai guard-rail. Gli schedule multi-giorno NON fanno
-   round-trip: ora vengono SALTATI con warning (restore bk, re-register,
-   migrazione, recreate) invece di degradare a daily/singolo giorno. → TRIGGER:
-   se si decide di cablare davvero la feature multi-giorno (serve un writer
-   multi-intervallo anche nel restore).
+   `git tag -a` (i vecchi restano com'erano). Nota: `v1.1.2-baseline` è annotato
+   ed è un tag HELPER, escluso dal `git describe` del tool (vedi BM-07).
+5b. **VERSION e tag devono restare allineati**: `make version-check` fallisce se
+   divergono. Alla release: aggiornare `VERSION` e taggare nello STESSO commit,
+   e spostare `[Unreleased]` del CHANGELOG sotto la nuova versione.
+   → TRIGGER: ogni release ([[2026-07-14-versione-fonte-unica]]).
+6. ~~`_install_agent_multi` codice morto~~ **RIMOSSA** in BM-07 (108 righe). Gli
+   schedule multi-giorno NON fanno round-trip: vengono SALTATI con warning
+   (restore bk, re-register, migrazione, recreate) invece di degradare a
+   daily/singolo giorno. → TRIGGER: se si vuole davvero la feature multi-giorno,
+   va riscritta da zero (serve un writer multi-intervallo anche nel restore).
 6b. La preview del restore agenti (bk) rispecchia lo skip dei modules invalidi ma
    NON quelli di label malformata e schedule multi-day (INFO, gate BM-05a): la
    preview elenca agenti che il restore reale salterebbe. → TRIGGER: prossimo
@@ -158,7 +169,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **fix/greedy-scope** = BM-06 COMPLETO (7785825), gate passato, in attesa del
-  merge via blocco /integrate (esegue l'utente).
+- **refactor/version-deadcode** = BM-07 COMPLETO (3a35309), CHIUDE M1, in attesa
+  del merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

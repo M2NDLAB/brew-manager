@@ -75,8 +75,11 @@ Stack: zsh (macOS-only, nessuna build) | Repo: github.com/M2NDLAB/brew-manager
   `python3` (parsing JSON in mod_03), `mas` (opzionale, modulo mas), `launchctl`,
   `mdfind`, `tput`, `open(1)`.
 - **Run**: `./brew_manager.sh` (TUI interattiva). Flag: `--dry-run`, `--yes|-y`,
-  `--adopt=n|all|1,2`, `--upgrade=y|n`. Solo `brew_manager.sh` è eseguibile:
-  `lib/` e `modules/` vengono sourcati.
+  `--adopt=n|all|1,2`, `--upgrade=y|n`, `--version|-V`. Solo `brew_manager.sh` è
+  eseguibile: `lib/` e `modules/` vengono sourcati.
+- **Versione**: il file `VERSION` alla root è la fonte autorevole; `git describe`
+  arricchisce solo se c'è un work tree. Alla release, `VERSION` e il tag si
+  aggiornano nello STESSO commit — `make version-check` fallisce se divergono.
 - **Struttura standard di un componente** (= modulo, per /new-component): vedi
   `.claude/commands/new-component.md`. In sintesi: file `modules/mod_NN_slug.sh`
   (caricato automaticamente dal glob `mod_*.sh`), funzione `_module_NN` (numero
