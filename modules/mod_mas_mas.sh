@@ -1,6 +1,6 @@
 #!/bin/zsh
 # =============================================================================
-# modules/mod_16_mas.sh — Mac App Store integration
+# modules/mod_mas_mas.sh — Mac App Store integration
 # Requires: mas (brew install mas)
 # Shows installed MAS apps, available updates, and integrates with Brewfile.
 # =============================================================================

@@ -1,6 +1,6 @@
 #!/bin/zsh
 # =============================================================================
-# modules/mod_15_scheduler.sh — LaunchAgent scheduler
+# modules/mod_las_scheduler.sh — LaunchAgent scheduler
 # Installs/manages macOS LaunchAgents that run brew-manager automatically.
 # LaunchAgents run as the current user — no sudo needed.
 # Configurations saved to agents/ directory for audit and modification.
@@ -254,113 +254,6 @@ PLIST_EOF
             _err "Failed to load LaunchAgent — check plist syntax"
             _log_agent_event "FAILED" "$label"
             return 1
-        fi
-    }
-
-    # ── Multi-weekday install helper ──
-    # Wraps _install_agent: if weekday contains commas, installs one agent
-    # per weekday (e.g. "1,3,5" → three separate StartCalendarInterval entries
-    # in a single plist via array syntax).
-    _install_agent_multi() {
-        local label="$1" plist_path="$2"
-        local weekdays_raw="$3" hour="$4" minute="$5" modules="$6"
-
-        # Same safeguards as _install_agent (this helper is not wired to the
-        # menu yet, but must not reintroduce the bugs if it ever is)
-        local _mm_clean="$(_sanitize_agent_modules "$modules")"
-        [[ "$_mm_clean" != "$modules" ]] && { _warn "Modules value '$modules' is invalid — using 'go' instead"; modules="$_mm_clean"; }
-        if [[ ! "$hour" =~ ^([0-9]|1[0-9]|2[0-3])$ || ! "$minute" =~ ^([0-9]|[1-5][0-9])$ ]]; then
-            _err "Invalid hour/minute — agent not installed"
-            return 1
-        fi
-
-        if (( BREW_MANAGER_DRY_RUN )); then
-            _info "Dry-run — would install: $label"
-            return
-        fi
-
-        # Build StartCalendarInterval array — one dict per weekday
-        local cal_entries=""
-        if [[ -z "$weekdays_raw" ]]; then
-            # No weekday = every day
-            cal_entries="        <dict>
-            <key>Hour</key><integer>${hour}</integer>
-            <key>Minute</key><integer>${minute}</integer>
-        </dict>"
-        else
-            local _days_arr
-            IFS=',' read -rA _days_arr <<< "$weekdays_raw"
-            for _d in "${_days_arr[@]}"; do
-                _d=$(echo "$_d" | tr -d ' ')
-                if [[ ! "$_d" =~ ^[0-6]$ ]]; then
-                    _err "Invalid weekday '$_d' in list — agent not installed"
-                    return 1
-                fi
-                cal_entries+="        <dict>
-            <key>Weekday</key><integer>${_d}</integer>
-            <key>Hour</key><integer>${hour}</integer>
-            <key>Minute</key><integer>${minute}</integer>
-        </dict>
-"
-            done
-        fi
-
-        local log_out="$BREW_MANAGER_SCRIPT_DIR/logs/agent_stdout_${label}.log"
-        local log_err="$BREW_MANAGER_SCRIPT_DIR/logs/agent_stderr_${label}.log"
-
-        cat > "$plist_path" << PLIST_EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>${label}</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/zsh</string>
-        <string>${BREW_MANAGER_SCRIPT_DIR}/brew_manager.sh</string>
-        <string>${modules}</string>
-        <string>--yes</string>
-    </array>
-    <key>StartCalendarInterval</key>
-    <array>
-${cal_entries}    </array>
-    <key>StandardOutPath</key>
-    <string>${log_out}</string>
-    <key>StandardErrorPath</key>
-    <string>${log_err}</string>
-    <key>RunAtLoad</key>
-    <false/>
-</dict>
-</plist>
-PLIST_EOF
-
-        launchctl unload "$plist_path" 2>/dev/null
-        if launchctl load "$plist_path" 2>/dev/null; then
-            local _schedule_str
-            if [[ -z "$weekdays_raw" ]]; then
-                _schedule_str="daily ${hour}:$(printf '%02d' $minute)"
-            else
-                local _parts=()
-                IFS=',' read -rA _wd_arr <<< "$weekdays_raw"
-                for _d in "${_wd_arr[@]}"; do
-                    _d=$(echo "$_d" | tr -d ' ')
-                    _parts+=("$(_weekday_name "$_d")")
-                done
-                _schedule_str="${(j:+:)_parts} ${hour}:$(printf '%02d' $minute)"
-            fi
-            _save_agent_config "$label" "$_schedule_str" "$modules" "$plist_path"
-            echo ""
-            _ok "LaunchAgent installed and active"
-            echo ""
-            _stat_row "Label"      "$label"                           "$C_WHITE"
-            _stat_row "Schedule"   "$_schedule_str"                   "$C_CYAN_B"
-            _stat_row "Modules"    "$modules"                         "$C_WHITE"
-            _stat_row "Config"     "$agents_dir/agent_${label}.conf"  "$C_GRAY"
-        else
-            _err "Failed to load LaunchAgent"
-            _log_agent_event "FAILED" "$label"
         fi
     }
 

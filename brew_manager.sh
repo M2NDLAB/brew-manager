@@ -5,13 +5,13 @@
 # Developed by M2NDLAB — https://github.com/M2NDLAB/brew-manager
 #
 # Structure:
+#   VERSION               ← the version, single source of truth
 #   brew_manager.sh       ← this file (entry point, menu, dispatch, summary)
 #   lib/common.sh         ← colors, symbols, TUI utilities
 #   lib/log.sh            ← session log management
-#   modules/mod_NN_*.sh   ← one file per module
+#   modules/mod_NN_*.sh   ← one file per numbered module
+#   modules/mod_<name>_*.sh ← one file per named module (bk, las, log, mas)
 # =============================================================================
-
-BREW_MANAGER_VERSION="1.1.0"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
@@ -25,6 +25,44 @@ else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     export BREW_MANAGER_SCRIPT_DIR="$SCRIPT_DIR"
 fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VERSION — single source of truth
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The VERSION file is authoritative: it ships with the code and works
+# everywhere (git clone, GitHub tarball, plain copy). 'git describe' only
+# ENRICHES it when a work tree is present, showing how far we are from the
+# tag. 'make version-check' keeps the file aligned with the tags, so the
+# drift this replaces (constant stuck at 1.1.0 while tags were at v1.1.2)
+# cannot silently come back.
+BREW_MANAGER_VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+[[ -z "$BREW_MANAGER_VERSION" ]] && BREW_MANAGER_VERSION="unknown"
+
+_version_string() {
+    local _git_desc=""
+    if [[ -d "$SCRIPT_DIR/.git" ]] && command -v git &>/dev/null; then
+        # Release tags only (vX.Y.Z, no suffix): a helper tag like
+        # v1.1.2-baseline would otherwise be picked as the nearest tag and
+        # make the reported version misleading
+        _git_desc="$(git -C "$SCRIPT_DIR" describe --tags --dirty \
+            --match 'v[0-9]*.[0-9]*.[0-9]*' --exclude '*-*' 2>/dev/null)"
+    fi
+    if [[ -n "$_git_desc" ]]; then
+        printf 'brew-manager %s (%s)\n' "$BREW_MANAGER_VERSION" "$_git_desc"
+    else
+        printf 'brew-manager %s\n' "$BREW_MANAGER_VERSION"
+    fi
+}
+
+# --version must answer before anything else: no logs/ directory, no Homebrew
+# check, no TUI
+for _arg in "$@"; do
+    case "$_arg" in
+        --version|-V) _version_string; exit 0 ;;
+    esac
+done
+
 # Ensure logs/ directory exists and is writable — never fail silently
 _LOGS_DIR="$SCRIPT_DIR/logs"
 if [[ ! -d "$_LOGS_DIR" ]]; then
@@ -45,7 +83,7 @@ LOG_FILE="$_LOGS_DIR/brew_report_$(date +%Y%m%d_%H%M%S).log"
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Parse flags and module options from CLI args
-# Usage: ./brew_manager.sh [go|modules] [--dry-run] [--yes] [--adopt=n|all|1,2] [--upgrade=y|n]
+# Usage: ./brew_manager.sh [go|modules] [--dry-run] [--yes] [--adopt=n|all|1,2] [--upgrade=y|n] [--version]
 DRY_RUN=0
 YES_MODE=0       # --yes: skip all prompts using built-in defaults
 ADOPT_ANSWER=""  # --adopt=n|all|1,2,3
@@ -62,13 +100,14 @@ for _arg in "$@"; do
         --yes|-y)               YES_MODE=1 ;;
         --adopt=*)              ADOPT_ANSWER="${_arg#--adopt=}" ;;
         --upgrade=*)            UPGRADE_ANSWER="${_arg#--upgrade=}" ;;
+        --version|-V)           ;;  # already handled above, before any side effect
         -*|–*|—*|−*)
             # A mistyped flag must never run with defaults silently:
             # --dryrun would execute the REAL cleanup believing it is a dry-run.
             # Unicode dash lookalikes (en/em dash, minus) come from smart-dash
             # copy-paste and would otherwise slip through as positionals
             echo "ERROR: unknown flag: ${_arg}" >&2
-            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n" >&2
+            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n, --version" >&2
             exit 2
             ;;
         # Non-flag args (e.g. module lists from LaunchAgent plists) are still
@@ -174,7 +213,7 @@ fi
 clear
 
 _header_main \
-    "🍺  BREW MANAGER — Audit, Cleanup & Unmanaged App Report" \
+    "🍺  BREW MANAGER v${BREW_MANAGER_VERSION} — Audit, Cleanup & Unmanaged App Report" \
     "macOS · zsh · $(date '+%a %b %d %Y %H:%M') · Log: $LOG_FILE"
 
 # ─────────────────────────────────────────────────────────────────────────────

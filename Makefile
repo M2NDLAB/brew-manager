@@ -26,6 +26,23 @@ check: ## Check di sintassi zsh su tutti gli script (fallisce al primo errore)
 		zsh -n "$$f" && echo "  ok  $$f" || exit 1; \
 	done
 
+# Il file VERSION è la fonte autorevole (funziona anche senza .git: tarball,
+# copia). Questo target è il guard-rail che impedisce il drift che c'era prima
+# (costante ferma a 1.1.0 mentre i tag erano a v1.1.2): al momento di taggare
+# una release, VERSION e tag devono coincidere.
+version-check: ## Verifica che VERSION coincida con l'ultimo tag vX.Y.Z
+	@v="$$(tr -d '[:space:]' < VERSION)"; \
+	t="$$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1)"; \
+	if [ -z "$$t" ]; then \
+		echo "  skip: nessun tag vX.Y.Z ancora presente (VERSION = $$v)"; \
+	elif [ "v$$v" = "$$t" ]; then \
+		echo "  ok  VERSION ($$v) allineato al tag $$t"; \
+	else \
+		echo "  ERRORE: VERSION ($$v) diverge dall'ultimo tag ($$t)." >&2; \
+		echo "          Alla release: aggiorna VERSION e taggala nello stesso commit." >&2; \
+		exit 1; \
+	fi
+
 # shellcheck non ha un dialetto zsh (solo sh/bash/dash/ksh): forzare --shell=bash
 # su script zsh produce falsi positivi sui costrutti zsh-only (${(P)var}, read -rA,
 # typeset -A). Per questo il target è ADVISORY: mostra i finding ma non fallisce —
