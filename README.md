@@ -80,41 +80,47 @@ Launches a full-screen terminal interface showing all available modules. Type `g
 
 At the top of each module you will see an **About this module** section explaining in plain language what the module does, what it checks, and what actions it can take — before anything runs.
 
-### Running from the command line
+### Choosing what to run
 
-brew-manager is designed to work both interactively and non-interactively. Every option you can select in the TUI can also be passed as a command-line argument:
+**Which modules run is decided in the TUI prompt, not on the command line.** Start the script, then type your choice at the `Choice` prompt:
+
+```
+→  Choice [go / comma-separated numbers, default: go]: go       # all standard modules, 0 to 13
+→  Choice [go / comma-separated numbers, default: go]: 1,4,5    # only these, in this order
+→  Choice [go / comma-separated numbers, default: go]: log      # a named module: log, bk, las, mas
+```
+
+Flags, on the other hand, *are* passed on the command line and change **how** the run behaves:
 
 ```bash
-# Run the full audit — all standard modules in sequence (0 to 13)
-./brew_manager.sh go
+# Read-only inspection — nothing on your system is modified
+./brew_manager.sh --dry-run
 
-# Run only specific modules, in any order you choose
-./brew_manager.sh 1,4,5
+# No prompts: every question is auto-answered with its built-in safe default
+./brew_manager.sh --yes
 
-# Run everything without any prompts — uses built-in safe defaults
-./brew_manager.sh go --yes
+# Pre-answer the adoption prompt of module 0 and the upgrade prompt of module 4
+./brew_manager.sh --adopt=all --upgrade=y
 
-# Read-only inspection — no changes made to the system whatsoever
-./brew_manager.sh go --dry-run
-
-# Audit apps + adopt all unmanaged ones + upgrade packages without asking
-./brew_manager.sh 0,4 --adopt=all --upgrade=y
-
-# Open the log manager, Brewfile backup, scheduler, or MAS integration
-./brew_manager.sh log
-./brew_manager.sh bk
-./brew_manager.sh las
-./brew_manager.sh mas
+# Print the version and exit
+./brew_manager.sh --version
 ```
+
+> **Not yet supported:** passing the module selection as an argument (`./brew_manager.sh 1,4,5`) does **not** work — such arguments are ignored and the script falls back to its interactive prompt. Command-line module selection is planned for a future release; until then, choose the modules in the TUI.
 
 ### Available flags
 
 | Flag | What it does |
 |------|--------------|
-| `--yes` / `-y` | Skips all interactive prompts and uses built-in defaults. Also activates automatically when stdin is not a TTY — for example when the script is run by a LaunchAgent or piped. |
-| `--dry-run` | Puts the script in read-only mode. Disables `brew upgrade`, `--adopt`, all file writes, and LaunchAgent installs. Safe to use for inspection on any system. |
-| `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. Useful in automated runs to control whether and which apps get adopted. |
+| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. The defaults are conservative: destructive actions default to *no*, so an unattended run inspects and reports rather than modifying. Pass `--adopt=` / `--upgrade=` to opt into specific actions. |
+| `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. |
+| `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
+| `--version` / `-V` | Prints the version and exits. Inside a git work tree it also shows the distance from the latest release tag. |
+
+An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for.
+
+> **Non-interactive runs:** always pass `--yes` explicitly (this is what the LaunchAgents installed by the `las` module do). Piping input to the script is not a supported way to drive it: the session recorder owns the script's standard input.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
@@ -139,6 +145,8 @@ Scans `/Applications` and `~/Applications` and compares every `.app` bundle agai
 - **No cask found** — installed outside brew with no known cask; brew cannot manage it
 
 Apple system apps (Safari, Mail, iMovie, Keynote, etc.) are detected dynamically by reading their bundle identifier via `mdfind`. There is no hardcoded list that would go stale with macOS updates.
+
+Adoptable apps are listed with a number. Enter the numbers you want (`1,3`), `all`, or `n` for none. Before each adoption the exact target is echoed back (`Adopt Firefox.app → firefox now?`) and confirmed, because adopting the wrong app links a cask to a bundle it does not own. Under `--dry-run` the adoptions are only previewed; with `--yes` they are auto-confirmed, so use `--adopt=` to say exactly what an unattended run may adopt.
 
 ---
 
@@ -190,6 +198,8 @@ Removes two categories of files that Homebrew accumulates over time:
 - **Orphan dependencies** — formulae that were installed as dependencies of something you removed, but are no longer needed by any installed package. Removed via `brew autoremove`.
 - **Old versions and download cache** — previous versions of upgraded packages and the downloaded archives used to install them. Removed via `brew cleanup -s`.
 
+Nothing is removed until you confirm: the module asks first, and `--dry-run` previews what `brew autoremove` and `brew cleanup -s` would delete (including the space that would be freed) without touching anything.
+
 Cache size is measured before and after so you can see exactly how much space was freed.
 
 ---
@@ -226,7 +236,9 @@ Companion to module `8` — lists binaries in `/usr/local/bin` that **are** mana
 
 #### `10` — Greedy: auto-update cask check
 
-Homebrew marks certain casks as `auto_updates: true` because they have a built-in update mechanism. `brew upgrade` intentionally skips these to avoid version conflicts. This module finds them, checks which are actually outdated using `brew upgrade --greedy`, and offers to force an update.
+Homebrew marks certain casks as `auto_updates: true` because they have a built-in update mechanism. `brew upgrade` intentionally skips these to avoid version conflicts. This module finds them, checks which are actually outdated, and offers to force an update.
+
+**Only the casks listed in the confirmation are upgraded** — no formulae and no other casks. Each one is upgraded on its own, its exit status is reported, and a cask that turns out not to have changed version (these apps update themselves, so one may have done so while you were reading the prompt) is reported as *no change* rather than as upgraded. Use module `4` for formulae and regular casks. Under `--dry-run` you get a preview and nothing is upgraded.
 
 Common examples: Docker, Firefox, Discord, VS Code, Telegram, Chrome.
 
@@ -270,7 +282,7 @@ These are excluded from `go` because they are interactive configuration and mana
 #### `log` — Session log manager
 
 ```bash
-./brew_manager.sh log
+./brew_manager.sh          # then type `log` at the Choice prompt
 ```
 
 Manages all log files in the `logs/` directory. Logs are color-coded by type in the file list:
@@ -288,7 +300,7 @@ Options: **View** (print log contents), **Delete** (by number, list, or `all`), 
 #### `bk` — Brewfile and agents backup/restore
 
 ```bash
-./brew_manager.sh bk
+./brew_manager.sh          # then type `bk` at the Choice prompt
 ```
 
 Creates and manages portable snapshots of your entire setup — both Homebrew packages and LaunchAgent schedules. Each operation can be run independently or on the full set:
@@ -301,12 +313,14 @@ Creates and manages portable snapshots of your entire setup — both Homebrew pa
 | `2` — Preview all | Shows what would be saved without writing anything |
 | `2b` — Preview brew | Lists packages that would go into the Brewfile |
 | `2a` — Preview agents | Lists configured LaunchAgent schedules |
-| `3` — Restore all | Installs all Brewfile packages + reloads all agents |
-| `3b` — Restore brew | Restores Homebrew packages only |
-| `3a` — Restore agents | Recreates and reloads LaunchAgents from bundle |
+| `3` — Restore all | Installs all Brewfile packages + reloads all agents (asks first) |
+| `3b` — Restore brew | Restores Homebrew packages only (asks first) |
+| `3a` — Restore agents | Recreates and reloads LaunchAgents from bundle (asks first) |
 | `4` — Check | Verifies all Brewfile dependencies are currently satisfied |
 | `5` — View | Shows saved Brewfile contents with color-coded categories + agents bundle |
 | `6` — Delete | Removes Brewfile, lock file, and/or agents bundle (selectable) |
+
+All three restore options ask for confirmation before writing anything, so in an unattended run (`--yes`) they do nothing: a restore is a deliberate act. Under `--dry-run` they show exactly what would be installed and which agents would be loaded, without executing.
 
 **To move your setup to a new Mac:**
 
@@ -326,19 +340,21 @@ cp -r backups/ /path/to/new/mac/brew-manager/backups/
 #### `las` — LaunchAgent scheduler
 
 ```bash
-./brew_manager.sh las
+./brew_manager.sh          # then type `las` at the Choice prompt
 ```
 
 Installs, modifies, and removes macOS LaunchAgents that run brew-manager automatically on a schedule. Uses macOS `launchd` natively — no cron, no sudo, no third-party tools. Runs as your user account and starts automatically at login.
 
 All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`.
 
+> **What a scheduled agent actually runs:** every agent runs the **full standard sequence** (`go`, modules 0 → 13) with `--yes`. The per-agent module selection is stored in the agent's configuration but is **not yet honoured at run time** — the same limitation as command-line module selection above. Per-agent module selection is planned for a future release. Because the run is unattended, each prompt takes its conservative default, so the agent audits and reports rather than modifying your system.
+
 | Option | What it does |
 |--------|--------------|
-| `1` | Install weekly agent — every Sunday at 09:00, runs all modules |
-| `2` | Install daily agent — every day at 09:00, runs all modules |
-| `3` | Custom agent — choose name, day(s), hour, minute, and modules |
-| `4` | Modify agent — change schedule or modules without reinstalling |
+| `1` | Install weekly agent — every Sunday at 09:00 |
+| `2` | Install daily agent — every day at 09:00 |
+| `3` | Custom agent — choose name, day, hour and minute |
+| `4` | Modify agent — change the schedule without reinstalling |
 | `5` | Remove agent — unloads from macOS and deletes plist + conf |
 | `6` | **Integrity check** — see below |
 | `v` | View activity log — color-coded history of installs/modifications/removals |
@@ -346,12 +362,13 @@ All scheduled runs pass `--yes` automatically so they complete without interacti
 
 **Option 6 — Integrity check:**
 
-If you delete a `.plist` or `.conf` file manually instead of using option `5`, the system can get out of sync. The integrity check finds two types of problems:
+If you delete a `.plist` or `.conf` file manually instead of using option `5`, the system can get out of sync. The integrity check finds three types of problems:
 
 - **Orphan plists** — agents active in `~/Library/LaunchAgents/` with the brew-manager label prefix but no corresponding `.conf` in `agents/`. brew-manager has no record of them but they are still running.
 - **Dangling confs** — `.conf` files in `agents/` that reference plists that no longer exist in `~/Library/LaunchAgents/`. brew-manager thinks they exist but macOS does not.
+- **Legacy or corrupted agents** — a tracked agent whose stored data no longer matches the schedule macOS actually uses, or whose module list was mangled by an older version. Such an agent can fail on every scheduled run.
 
-For each problem, you can choose to **re-register** (create the missing file and bring everything back in sync) or **remove** (clean up the orphan completely).
+For the first two you can **re-register** (create the missing file and bring everything back in sync) or **remove** (clean up completely). For the third, the **repair** option regenerates both files from the schedule launchd really uses. Agents that fire on several weekdays are left untouched by these repairs — rewriting them as a single day would silently change when they run.
 
 > Always use option `[5]` to remove agents. If you delete files manually, run the integrity check with option `[6]` to restore consistency.
 
@@ -360,7 +377,7 @@ For each problem, you can choose to **re-register** (create the missing file and
 #### `mas` — Mac App Store integration
 
 ```bash
-./brew_manager.sh mas
+./brew_manager.sh          # then type `mas` at the Choice prompt
 ```
 
 Manages apps installed from the Mac App Store using [`mas`](https://github.com/mas-cli/mas), an open-source CLI tool. If `mas` is not installed, this module will offer to install it via `brew install mas`.
@@ -377,6 +394,7 @@ Note: `mas` is completely separate from Homebrew — it only communicates with t
 brew-manager/
 │
 ├── brew_manager.sh           ← entry point: menu, flags, dispatch, summary
+├── VERSION                   ← the version — single source of truth
 │
 ├── lib/
 │   ├── common.sh             ← colors, symbols, TUI utilities, _ask, _read_choice
@@ -417,11 +435,16 @@ brew-manager/
 │   └── agents_activity.log   ← timestamped install/modify/remove history
 │
 ├── .gitignore                ← excludes logs/, backups/, agents/
+├── CHANGELOG.md              ← what changed in each release
 ├── LICENSE                   ← MIT
-└── README.md
+├── README.md
+└── SECURITY.md               ← security policy: what the tool does to your
+                                 system, and how to report a vulnerability
 ```
 
 > `logs/`, `backups/`, and `agents/` are created automatically and are excluded from git. They contain session data and local paths that should not be committed.
+
+The repository also carries the development tooling used to maintain the project (`CLAUDE.md`, `.claude/`, `Makefile`, `scripts/`). None of it is needed to *run* brew-manager — the script only requires itself, `VERSION`, `lib/` and `modules/`.
 
 ---
 
@@ -439,7 +462,7 @@ At the end of each interactive session you are presented with three choices:
 
 To manage all session logs at once:
 ```bash
-./brew_manager.sh log
+./brew_manager.sh          # then type `log` at the Choice prompt
 ```
 
 ---
@@ -455,13 +478,17 @@ brew-manager's dispatch system is designed to make adding modules trivial.
 3. Add `NN` to the `MODULE_IDS` array
 4. Done — the source glob, dispatch loop, and summary pick it up automatically
 
-**Named module (excluded from `go`, called by name):**
+**Named module (excluded from `go`, selected by name at the prompt):**
 
 1. Create `modules/mod_KEYNAME_*.sh` with a function (any number is fine internally)
 2. Add the key to `MODULE_DESC`: `[keyname]="Description"`
-3. Add a `case` entry in the parse block: `keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`
+3. Add a `case` entry in the block that parses the TUI choice: `keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`
 4. Add a `case` entry in the dispatch loop: `keyname) _module_function ;;`
 5. Add a display line in the menu below the `·` separator
+
+> Both parse blocks read what the user typed at the `Choice` prompt — not the command line. The script's arguments are only scanned for flags.
+
+**Anything a module does to the system must honour the two safety flags:** `BREW_MANAGER_DRY_RUN` (preview only, never execute) and `BREW_MANAGER_YES` (unattended: take the default answer, and let the default be the safe one). Use `_ask` / `_read_choice` from `lib/common.sh` for every prompt rather than reading input directly — they implement both flags for you.
 
 ---
 

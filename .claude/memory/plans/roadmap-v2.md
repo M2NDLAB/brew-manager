@@ -406,6 +406,13 @@ Design completo nella sezione 4. Qui l'atomizzazione.
   preset/report aggiunta.
 - Non-regressione: nessuna (solo doc); coerenza README ↔ `--help`.
 - Commit: `docs(readme): reconcile with implemented CLI, presets, reports`
+- **Status: PARZIALE — parte "v1.2.0" COMPLETATA 2026-07-14** (branch
+  `docs/readme-reality`, commit 7f7f90d): riconciliati i comportamenti di M1 e
+  RIMOSSI gli over-claim (CLI posizionale, scheduling per-modulo, esempi
+  `./brew_manager.sh bk`), che NON funzionano ancora — dichiarati "Not yet
+  supported" invece di essere documentati come esistenti (regola di onestà).
+  **Resta da fare DOPO M2/M4**: documentare CLI posizionale, preset e report
+  quando esisteranno davvero, rimuovendo quelle avvertenze.
 
 #### BM-20 · chore: CHANGELOG + allineamento versione
 - Tipo · branch: chore · `chore/changelog`
