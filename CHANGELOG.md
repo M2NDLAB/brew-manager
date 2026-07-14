@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `--version` / `-V` (it did not exist before) and the version in the TUI header.
+  A `VERSION` file at the root is now the single source of truth, so the version
+  is correct from a git clone, a GitHub tarball or a plain copy; inside a work
+  tree the output also shows the distance from the latest release tag.
 - Claude Code process framework (claude-code-framework v0.2.0): `.claude/`
   process docs, slash commands and persistent memory (initialized from a full
   brownfield assessment), `CLAUDE.md` project index, `Makefile` (`run`, `check`,
@@ -40,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `--dry-run` finally previews this module instead of upgrading for real.
 - Tracked-binaries module (9): "Total tracked binaries" was always one higher
   than the number of binaries actually listed.
+- The version reported by the tool no longer drifts from the released tags
+  (it was stuck at 1.1.0 while the tags were at v1.1.2).
 - Scheduler (`las`) and backup restore (`bk`): the weekday mapping was off by one
   — the weekly agent recorded an empty day name, restoring a Sunday agent turned
   it into Monday, and Saturday agents degraded to daily. The integrity check (6)

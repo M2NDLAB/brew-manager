@@ -210,6 +210,12 @@ Legenda campi di ogni task:
 - Non-regressione: `./brew_manager.sh --version` coerente col tag; grep conferma zero riferimenti ai
   nomi vecchi; menu invariato.
 - Commit: `refactor(core): single source of truth for version, drop dead code`
+- **Status: COMPLETATO 2026-07-14 → CHIUDE M1** — branch `refactor/version-deadcode`,
+  commit 3a35309. Il `[?]` è stato sciolto con l'utente: file VERSION autorevole +
+  git describe come arricchimento + `make version-check` anti-drift (i tarball
+  GitHub non hanno .git). Scoperto che `--version` NON esisteva affatto:
+  implementato. Rimosse 108 righe di codice morto (_install_agent_multi).
+  ⛔ STOP: punto con l'utente sul primo tag di release prima di M2.
 
 ---
 

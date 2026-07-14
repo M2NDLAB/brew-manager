@@ -50,6 +50,8 @@ tags: [moc]
 - [[sessions/2026-07-14-bm06-greedy-scope]] — BM-06: scope per-cask del greedy,
   exit code, dry-run mai esistito; gate: --cask mancante in outdated, token
   flag-shaped, streaming perso e riguadagnato con pipestatus
+- [[sessions/2026-07-14-bm07-version-deadcode]] — BM-07: VERSION + --version
+  (non esisteva) + rimozione codice morto → **M1 CHIUSO**
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -57,6 +59,8 @@ tags: [moc]
   elenco dei sei componenti nel gate
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n
+- [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
+  come arricchimento + make version-check anti-drift
 
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
