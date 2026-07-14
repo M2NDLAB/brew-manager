@@ -52,6 +52,8 @@ tags: [moc]
   flag-shaped, streaming perso e riguadagnato con pipestatus
 - [[sessions/2026-07-14-bm07-version-deadcode]] — BM-07: VERSION + --version
   (non esisteva) + rimozione codice morto → **M1 CHIUSO**
+- [[sessions/2026-07-14-bm19-readme-reality]] — BM-19 ristretto: README ↔ realtà
+  di v1.2.0, over-claim rimossi (CLI posizionale, scheduling per-modulo)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

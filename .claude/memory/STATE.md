@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-14 | Ultimo: **BM-07 completo → M1 CHIUSO. Attesa decisione utente sul primo tag di release** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-14 | Ultimo: **BM-19 ristretto completo — sequenza di release v1.2.0 in corso** | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -35,8 +35,13 @@ tags: [state]
   - [x] BM-07 versione a fonte unica + codice morto — branch
     `refactor/version-deadcode`, commit 3a35309. In attesa di integrazione.
   - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
-  - [ ] ⛔ **STOP CONCORDATO**: punto con l'utente sul primo tag di release
-    (v1.2.0 dopo M1 vs aspettare il resolver M2). NON iniziare BM-08 prima.
+  - [x] Decisione utente 2026-07-14: **si rilascia v1.2.0 ORA** (strada A), M2 dopo.
+  - [x] BM-19 RISTRETTO (README ↔ realtà di v1.2.0) — branch `docs/readme-reality`,
+    commit 7f7f90d. Regola di onestà: nessun over-claim su CLI posizionale e
+    scheduling per-modulo (non esistono ancora).
+  - [ ] Release v1.2.0 (branch `chore/release-v1.2.0`) ← PROSSIMO
+  - [ ] ⛔ **STOP dopo il push di v1.2.0**: M2 (BM-08a) parte SOLO su via libera
+    esplicita dell'utente.
   - [ ] M2 — resolver di selezione (BM-08a/b/c): la chiave di volta; chiude
     Attenzione #1 (CLI posizionali + plist scheduler) e #8 (YES_MODE).
 
@@ -73,15 +78,13 @@ tags: [state]
   storia pushata, NON riscrivere.
 
 ## Debito documentazione
-> Tutto questo blocco è il perimetro di **BM-19** (docs/readme-reality).
-- README "Running from the command line": documenta argomenti CLI posizionali NON
-  implementati (vedi Attenzione #1) — da riallineare quando si decide se
-  implementare la feature o correggere la doc.
-- README §10 (greedy): scope ora per-cask e `--dry-run` reale (BM-06).
-- README: `--version`/`-V` esiste ora (BM-07) e non è documentato.
-- README bk §3a: ora chiede conferma; in `--yes` non ripristina (BM-03).
-- README §0 (audit): l'adozione ora conferma per app; `--adopt=all` senza `--yes`
-  in non-TTY salta (BM-04, interazione con Attenzione #8).
+- ~~README vs realtà di v1.2.0~~ **SALDATO** in BM-19 ristretto (7f7f90d): rimossi
+  gli over-claim (CLI posizionale, scheduling per-modulo, esempi `./brew_manager.sh
+  bk`), aggiornati i comportamenti (adozione, cleanup, restore, greedy, integrity),
+  documentati `--version`/`-V` e SECURITY.md/VERSION/CHANGELOG.
+- **Resta aperto**: quando M2 implementerà la selezione da CLI e lo scheduling
+  per-modulo, il README va riaggiornato (le avvertenze "Not yet supported" vanno
+  rimosse) → parte residua di BM-19.
 - README "Project structure": non cita `SECURITY.md` né i file del framework
   (CLAUDE.md, Makefile, scripts/, .claude/) — da aggiornare al primo ritocco del README.
 - README "Adding a new module": promette invocabilità da CLI inesistente (stessa
@@ -169,7 +172,7 @@ tags: [state]
 ## Branch attivi
 - **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
   BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **refactor/version-deadcode** = BM-07 COMPLETO (3a35309), CHIUDE M1, in attesa
-  del merge via blocco /integrate (esegue l'utente).
+- **docs/readme-reality** = BM-19 ristretto COMPLETO (7f7f90d), in attesa del
+  merge via blocco /integrate (esegue l'utente).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
