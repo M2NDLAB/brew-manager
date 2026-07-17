@@ -23,6 +23,16 @@ un nome cambiato):
 Qui non c'è giudizio: c'è solo sincronizzazione. Una doc che mente è peggio di una
 doc che manca.
 
+> **Perimetro del LIVELLO 1.** Riguarda la doc del METODO e del progetto GESTITO
+> con questo framework. Durante un INNESTO su un progetto esistente (brownfield),
+> la doc preesistente dell'ospite in
+> disaccordo con la realtà NON si corregge d'ufficio: si registra in `STATE.md`
+> ("Debito documentazione") e si corregge solo come task deciso dall'utente —
+> prevale l'igiene di scope di `00-overview.md` (un cambiamento alla volta).
+> A innesto COMPLETATO la doc dell'ospite È la doc del progetto gestito e rientra
+> nel LIVELLO 1; restano fuori solo i debiti già registrati in `STATE.md`
+> durante l'innesto, che si smaltiscono come task decisi dall'utente.
+
 ## LIVELLO 2 — Miglioramenti di regole e processo: PROPONI soltanto
 
 Quando osservi: attrito ricorrente (stessa domanda/errore in più sessioni), una
@@ -57,6 +67,43 @@ Quando l'utente approva una IMP (direttamente o via risposta di escalation):
 3. Commit dedicato: `chore(claude): apply IMP-nnn — <titolo>`.
 4. Se la modifica cambia una regola numerata di `CLAUDE.md`: verifica che le altre
    regole e i doc restino coerenti (niente riferimenti orfani).
+
+## Il ponte verso il framework — lezioni "framework-bound"
+
+Finora ogni IMP è trattata come una lezione su QUESTO progetto. Ma quando il progetto
+USA il framework (non È il framework), una parte delle lezioni non riguarda il progetto:
+riguarda il METODO — una regola ambigua, un comando che manca, un passo di processo che
+fa attrito ovunque, non solo qui. Quelle lezioni hanno una seconda destinazione, il repo
+del framework, così da migliorare ANCHE il prossimo progetto che lo usa: è il "loop" che
+fa evolvere il framework a partire dai progetti su cui è innestato.
+
+**Come si marca.** Una IMP che riguarda il framework porta, nel suo corpo in
+`LEARNINGS.md`, la riga `- Destinazione: framework` (vedi il formato IMP nell'header di
+`LEARNINGS.md`). È un attributo di DESTINAZIONE, non un terzo livello: la lezione resta di
+Livello 2 (si PROPONE, non si applica in autonomia) e segue il suo normale ciclo NEL
+progetto; il marcatore aggiunge solo "questa, oltre che qui, va fatta risalire". Criterio
+per marcarla: è utile a QUALSIASI progetto che usi il framework, non solo a questo. Riga
+fisica singola, così `/harvest-framework` la raccoglie via grep.
+
+**Come risale — `/harvest-framework`.** Il comando raccoglie dal backlog le IMP marcate
+`Destinazione: framework` e ne STAMPA un blocco copiabile (problema → proposta →
+beneficio), pronto per essere riproposto come IMP nel repo del framework. Il comando
+**solo legge e stampa**: non clona, non copia file tra repo, non esegue git/push verso il
+framework. Il travaso è **curatela umana**: chi lo esegue incolla il blocco, lo
+**anonimizza** (nessun nome di questo progetto/cliente/ambiente nella storia condivisa del
+framework — `04-git-workflow.md`) e lo registra come nuova proposta nel framework, dove
+sarà valutata come un qualsiasi contributo secondo le sue regole.
+
+**Perché questo confine.** Un comando che scrivesse davvero nel repo del framework
+violerebbe due regole insieme: il confine di esecuzione — la storia condivisa la muove
+l'umano, non l'agente (`04-git-workflow.md`) — e l'agnosticità: il template non sa nulla,
+e non deve sapere nulla, dell'istanza concreta che lo usa (non conosce dove vive il repo
+del framework rispetto al progetto). Il blocco copiabile è deliberatamente l'unico output:
+rende il travaso esplicito, revisionabile e sotto controllo umano.
+
+> Nel REPO DEL FRAMEWORK stesso l'attributo è moot: qui ogni IMP è già una lezione sul
+> framework (regime ibrido dichiarato), quindi non si marca nulla e `/harvest-framework`
+> non ha materiale da rastrellare. Il comando serve nei progetti-cliente.
 
 ## Cosa questo protocollo NON è
 

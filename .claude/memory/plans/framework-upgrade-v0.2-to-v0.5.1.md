@@ -37,8 +37,8 @@ framework v0.5.0.
       docs/03 3-vie + poda SETUP, docs/04 3-vie, lint-memory.md controllo 10 + poda) — commit: 1bf77eb
 - [x] 2. Bundle hooks-install (3-vie per-versione v0.3.0+v0.5.1) + scripts/README +
       test-hooks-install.sh + Makefile test-scripts + VERIFICA FUNZIONALE REALE — commit: (questo)
-- [ ] 3. Pacchetto harvest lato metodo (docs/06 + poda R1, harvest-framework.md + poda,
-      CLAUDE.md +/harvest-framework) — commit: —
+- [x] 3. Pacchetto harvest lato metodo (docs/06 + poda R1, harvest-framework.md + poda,
+      CLAUDE.md +/harvest-framework) — commit: (questo)
 - [ ] 4. LEARNINGS header: attributo Destinazione:framework (eccezione memoria isolata,
       MAI le voci IMP) — commit: —
 - [ ] 5. Passo 4/5: audit marcatori + INVARIANTE memoria (git diff mostrato) + /lint-memory
