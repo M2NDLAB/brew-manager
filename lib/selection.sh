@@ -226,3 +226,17 @@ _resolve_cli() {
     (( ${#RESOLVE_INVALID[@]} > 0 )) && return 2
     (( ${#MODULES_TO_RUN[@]} > 0 ))
 }
+
+# _selection_is_valid <spec>
+# Predicate: 0 (true) iff <spec> resolves to a NON-EMPTY selection with NO unknown
+# tokens — i.e. exactly what a stored agent selection (mod_las_scheduler) may run.
+# Delegates to _resolve_cli so there is ONE grammar; runs it in a SUBSHELL so the
+# resolver's global side effects (MODULES_TO_RUN / RESOLVE_INVALID / FILTER_TOKENS)
+# do NOT leak to the caller (it is called mid-run, at agent install time).
+# NB: this is the install-time gate; the agent RUN itself goes through the same
+# _resolve_cli via positional dispatch, so a value that passes here also runs.
+_selection_is_valid() {
+    [[ -z "$1" ]] && return 1        # an empty stored selection is not valid:
+                                     # the caller must fall back to an explicit 'go'
+    ( _resolve_cli "$1" "" "" ) >/dev/null 2>&1
+}
