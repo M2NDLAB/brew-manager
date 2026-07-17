@@ -99,8 +99,11 @@ logica, si FERMA e chiede all'utente mostrando le due versioni.
 ## Versioning — SemVer su tag annotati
 
 Le versioni sono **tag git annotati** (`git tag -a vX.Y.Z -m "..."`), mai tag
-leggeri: un tag annotato porta autore, data e messaggio ed è ciò che `git describe`
-usa per calcolare la versione corrente e la distanza da essa. Formato SemVer `vX.Y.Z`.
+leggeri: un tag annotato porta autore, data e messaggio. (Precisione sul razionale:
+`git describe` SENZA `--tags` considera i soli tag annotati; il blocco di
+`/integrate` usa `git describe --tags`, che accetta anche i tag leggeri — per
+esempio ereditati da un innesto su un repo esistente — e per questo VERIFICA che
+la base sia un tag SemVer sano prima di calcolare il bump.) Formato SemVer `vX.Y.Z`.
 
 **Il tipo di conventional commit suggerisce il bump** (la decisione finale resta
 dell'utente — vedi "Tag e release"):
@@ -139,9 +142,9 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
 > due regimi: in 0.x si tagga su `develop`, da 1.0.0 su `main`. Non restano due
 > istruzioni in conflitto.
 
-> Modello di branching diverso (es. trunk-based, o nomi differenti — [DA DEFINIRE AL
-> SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla linea di lavoro,
-> post-1.0 sulla linea rilasciata.
+> Modello di branching diverso (es. trunk-based, o nomi differenti —
+> [DA DEFINIRE AL SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla
+> linea di lavoro, post-1.0 sulla linea rilasciata.
 
 **Igiene dei tag e del push (per l'utente che esegue).**
 - Il tag si DIGITA a mano, con un solo `-m` breve e ASCII puro: em-dash, accenti e
