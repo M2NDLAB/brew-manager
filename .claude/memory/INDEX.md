@@ -68,6 +68,10 @@ tags: [moc]
 - [[sessions/2026-07-17-bm08c-agent-selection]] — BM-08c (chiude M2): agenti via
   resolver + consenso fail-closed (NON_INTERACTIVE ≠ YES_MODE). Il 1° fix #8 fu un
   CRITICAL preso dal gate → rifatto; re-gate trovò il gemello bk. IMP-004
+- [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] — upgrade dell'innesto
+  framework v0.2.0 → v0.5.1 (solo processo): 3 classi di file, invariante memoria = 2
+  file, hooks-install 3-vie per-versione con verifica funzionale reale, pacchetto harvest
+  (R3), docs/01 omesso (R4), rimandi orfani potati (R1)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

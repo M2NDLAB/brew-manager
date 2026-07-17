@@ -3,7 +3,7 @@ type: plan
 prompt: framework-upgrade-v0.2-to-v0.5.1
 branch: chore/framework-upgrade-v0.2-to-v0.5.1
 created: 2026-07-17
-status: in-progress
+status: completed
 tags: [plan, framework, upgrade, process]
 ---
 # Piano: upgrade dell'innesto claude-code-framework v0.2.0 → v0.5.1
@@ -14,7 +14,7 @@ CLAUDE.md) dal framework v0.2.0 a v0.5.1, **preservando intatta la memoria di
 progetto**. Rimandi orfani potati a mano (R1), pacchetto harvest adottato completo
 (R3), blocco meta-framework di docs/01 omesso (R4). SHA pre-upgrade: `b929a23`.
 Bump prodotto: **nessun tag** (upgrade solo-processo = `chore`). Merge/push/tag =
-utente. Assessment FASE 1: [[sessions/... TBD]] · procedura: SETUP.md §upgrade del
+utente. Nota di sessione: [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] · procedura: SETUP.md §upgrade del
 framework v0.5.0.
 
 ## Decisioni dell'utente (dentro il piano)
@@ -46,7 +46,7 @@ framework v0.5.0.
       invariante memoria = ESATTAMENTE 2 file (piano + LEARNINGS header); make check rc=0,
       make test rc=0 (selection+guardrails); lint ref pulito (unico pendente: link TBD del
       piano, risolto in Task 6). Nessun fix necessario.
-- [ ] 6. Passo 6: /checkpoint (STATE→v0.5.1, nota sessione, TREE) + blocco /integrate (no tag) — commit: —
+- [x] 6. Passo 6: /checkpoint (STATE→v0.5.1, nota sessione, TREE) + blocco /integrate (no tag) — commit: (questo)
 
 ## Verifiche non negoziabili (condizioni dell'utente)
 - **Task 2**: DIMOSTRARE post-upgrade — secret finto → bloccato; commit

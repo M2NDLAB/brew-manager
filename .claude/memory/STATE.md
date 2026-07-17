@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-17 | Ultimo: **BM-08c (M2, agenti attraverso il resolver + consenso fail-closed) COMPLETO su `fix/agent-selection` — gate adversariale + RE-gate PASSATI (CRITICAL introdotto e corretto; gemello bk chiuso), in attesa di integrazione. M2 CHIUSO** · BM-08b integrato (main `3ac3f63`) · v1.2.0 RILASCIATA | Indice: [[INDEX]]
+> Aggiornato: 2026-07-17 | Ultimo: **Upgrade innesto framework v0.2.0 → v0.5.1** (SOLO processo, branch `chore/framework-upgrade-v0.2-to-v0.5.1`, 7 task; invariante `memory/` rispettata; verifica funzionale hooks-install reale; in attesa di integrazione — bump: nessun tag) · BM-08c M2 CHIUSO (`fix/agent-selection`, in attesa di integrazione) · v1.2.0 RILASCIATA | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -75,8 +75,12 @@ tags: [state]
   las, log, mas. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
   [[mod-bk-brewfile]], [[mod-las-scheduler]].
 - Framework di processo `.claude/` (docs, commands, memoria), CLAUDE.md, Makefile,
-  hook git (gitleaks + commitlint), CHANGELOG.md. Vedi
-  [[sessions/2026-07-11-innesto-note]].
+  hook git (gitleaks + commitlint), CHANGELOG.md. **Metodo aggiornato a framework
+  v0.5.1** (da v0.2.0 dell'innesto): +comando `/harvest-framework`, +self-test
+  `scripts/test-hooks-install.sh` (`make test-scripts`), hooks-install indurito
+  (hook estranei/`core.hooksPath`/dangling). Vedi
+  [[sessions/2026-07-11-innesto-note]] (innesto) e
+  [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (upgrade).
 - Test: `tests/` (zsh puro, zero-dip, `make test`, **96 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
