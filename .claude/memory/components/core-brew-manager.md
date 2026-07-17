@@ -17,12 +17,15 @@ il resto del core resta senza test.
 
 ## Cosa espone / responsabilità
 - Flag CLI: `--dry-run`, `--yes|-y` (auto-attivo se stdin non è TTY),
-  `--adopt=n|all|1,2`, `--upgrade=y|n`, `--version|-V` — esportati come env
-  `BREW_MANAGER_*`. Flag ignoti/lookalike Unicode → errore + exit 2 (micro-task).
-- **Selezione**: il registry (`MODULE_DESC`/`MODULE_IDS`) e il parser sono usciti
-  in `lib/selection.sh` (BM-08a); il core li SOURCA e chiama `_resolve_selection
-  "$module_choice"`, che popola `MODULES_TO_RUN`. La policy "vuoto = fatale"
-  (`_err` + `exit 1`) resta nel core. Vedi [[lib-selection]].
+  `--adopt=n|all|1,2`, `--upgrade=y|n`, `--only=ids`, `--skip=ids`, `--version|-V`
+  — esportati come env `BREW_MANAGER_*`. Flag ignoti/lookalike Unicode → errore +
+  exit 2 (micro-task).
+- **Selezione** (registry + parser in `lib/selection.sh`, [[lib-selection]]):
+  - **Da CLI (BM-08b)**: il loop dei flag cattura i token posizionali (uniti con
+    virgole) e `--only`/`--skip`; se presenti, `CLI_SELECTION=1` → il core chiama
+    `_resolve_cli` STRETTO (token ignoto → errore + exit 2) e SALTA il menu.
+  - **Interattiva**: nessuna selezione da CLI → menu + `read` + `_resolve_selection`
+    (lenient: warn+skip). Policy "vuoto = fatale" (`_err` + `exit 1`) nel core.
 - Dispatch: numerico → `_module_N` dinamica; speciali → case esplicito
   (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`).
 - Recording: auto-rilancio dentro `script(1)` (guard `BREW_MANAGER_RECORDING`),
@@ -30,12 +33,14 @@ il resto del core resta senza test.
 - Cleanup finale hardcoded dei temporanei `/tmp/brew_*.log`.
 
 ## Vincoli e insidie (per chi lo usa o lo modifica)
-- **Gli argomenti CLI posizionali NON sono ancora implementati** benché documentati
-  nel README e usati dai plist dello scheduler (Attenzione #1 in STATE): la
-  selezione avviene SOLO dal prompt interattivo; in non-TTY degrada a `go`. BM-08a
-  ha estratto la FONDAZIONE (il resolver); il dispatch posizionale è BM-08b, che
-  dovrà anticipare il source di `selection.sh` (oggi il parsing flag precede la
-  definizione del registry).
+- **Argomenti CLI posizionali: IMPLEMENTATI (BM-08b)** — `./brew_manager.sh 0,4,5`
+  esegue quei moduli non-interattivamente; `--only`/`--skip` filtrano. La cattura
+  dei posizionali avviene nel loop dei flag (registry non ancora sourcato), la
+  RISOLUZIONE dopo il source (dove c'era il menu). Resta aperto: gli agenti dello
+  scheduler passano i moduli come argomento ma NON sono ancora instradati per il
+  resolver → **BM-08c** (chiude la parte scheduler di Attenzione #1 e #8).
+  ATTENZIONE non-TTY: un posizionale su un singolo modulo mutante eredita
+  `YES_MODE=1` auto (Attenzione #8) — reach ampliato di un debito già noto.
 - I moduli sono funzioni SOURCATE nello stesso processo: condividono l'ambiente;
   una variabile "locale" non dichiarata `local` inquina lo stato globale.
 - Il re-exec sotto script(1) fa ripartire lo script dall'inizio: tutto ciò che
@@ -47,3 +52,5 @@ il resto del core resta senza test.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-17-bm08a-selection-resolver]] (registry/parser usciti in lib/selection.sh)
+- [[sessions/2026-07-17-bm08b-positional-dispatch]] (cattura posizionali + branch CLI)

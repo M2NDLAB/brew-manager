@@ -15,8 +15,8 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA
-  (review-agent in allow-list); 1 proposta APERTA (IMP-002, checklist superficie
-  del contratto per i test di estrazione/parità)
+  (review-agent in allow-list); 2 proposte APERTE — IMP-002 (checklist superficie
+  del contratto per i test), IMP-003 (convenzione: mai echo su dati, gate BM-08b)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -62,6 +62,9 @@ tags: [moc]
 - [[sessions/2026-07-17-bm08a-selection-resolver]] — BM-08a: estrazione
   `_resolve_selection` in lib/selection.sh, nascita dei test (43 check), gate
   adversariale passato (5 finding test-adequacy risolti), IMP-002 registrata
+- [[sessions/2026-07-17-bm08b-positional-dispatch]] — BM-08b: dispatch posizionale
+  + `--only`/`--skip` (API stretta `_resolve_cli`), 74 test, gate con 2 MEDIUM
+  fail-open del tokenizer fixati (escape/newline), IMP-003 registrata
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -77,5 +80,5 @@ tags: [moc]
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 in corso** — BM-08a COMPLETO (in attesa
-  di integrazione), prossimo BM-08b. Un task per volta, ok utente tra i task.
+  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 in corso** — BM-08a integrato, BM-08b
+  COMPLETO (in attesa di integrazione), prossimo BM-08c. Un task per volta.

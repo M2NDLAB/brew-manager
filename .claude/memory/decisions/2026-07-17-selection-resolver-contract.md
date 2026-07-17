@@ -49,3 +49,27 @@ tags: [decision, m2, dispatch]
   `go` dentro una lista viene scartato; token speciale in lista è case-sensitive) —
   il loro fix è un task separato, così BM-08a resta provabilmente behavior-neutral.
   Vedi [[core-brew-manager]], [[lib-common]], [[plans/roadmap-v2]].
+
+## Addendum BM-08b (2026-07-17) — estensione del contratto per la CLI stretta
+
+- **Contesto**: BM-08b implementa il dispatch posizionale + `--only`/`--skip`,
+  che richiedono una risoluzione NON interattiva e STRETTA (un token ignoto deve
+  fermare la run, non essere ingoiato come nel path interattivo).
+- **Estensione** (additiva, parità del path interattivo invariata):
+  - `_resolve_selection` guadagna un 2° parametro `invalid_mode` (`warn` default =
+    comportamento interattivo identico | `collect` = silenzioso) e popola il
+    globale `RESOLVE_INVALID` con i token ignoti. Il path interattivo resta
+    **lenient** (warn + skip); la CLI è **stretta**.
+  - `_resolve_cli <spec> <only> <skip>` (rc 0 ok / 1 vuota / 2 token ignoto) e
+    `_collect_module_tokens` (validazione dei filtri). `--only` = intersezione
+    con la base (ordine e duplicati della base preservati), `--skip` = sottrazione;
+    i filtri sono liste di moduli CONCRETI (no `go`/whole-string). `--only`/`--skip`
+    da soli implicano base `go` e rendono la run non-interattiva.
+- **Indurimento tokenizer (gate BM-08b, 2 MEDIUM)**: split e strip con parameter
+  expansion (`${(@s:,:)}`, `${v// /}`), MAI `echo`/`read -rA <<<` — che
+  espandevano gli escape (fail-open, `\065`→mod_05) o troncavano al newline. I
+  token vuoti (virgole adiacenti) sono ignorati su entrambi i path. Regola
+  generale proposta in [[LEARNINGS]] IMP-003.
+- **Conseguenza per BM-08c**: userà `_resolve_cli` per instradare la selezione
+  degli agenti (stesso contratto stretto), chiudendo Attenzione #8 e la parte
+  scheduler di #1.
