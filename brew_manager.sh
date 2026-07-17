@@ -82,15 +82,19 @@ LOG_FILE="$_LOGS_DIR/brew_report_$(date +%Y%m%d_%H%M%S).log"
 # FLAGS
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Parse the CLI flags. The module SELECTION is not read from here: it comes
-# from the interactive Choice prompt (see PARSE SELECTION below). Positional
-# arguments are ignored on purpose — LaunchAgent plists pass a module list that
-# this version cannot honour yet.
-# Usage: ./brew_manager.sh [--dry-run] [--yes|-y] [--adopt=n|all|1,2] [--upgrade=y|n] [--version|-V]
+# Parse the CLI flags AND the optional positional module selection. A bare
+# argument (e.g. 0,4,5 or 'go') selects modules non-interactively; --only/--skip
+# filter that selection. When any of these is present the menu is skipped (see
+# the CLI SELECTION branch below). With none, selection comes from the interactive
+# Choice prompt, exactly as before.
+# Usage: ./brew_manager.sh [modules] [--only=ids] [--skip=ids] [--dry-run] [--yes|-y] [--adopt=n|all|1,2] [--upgrade=y|n] [--version|-V]
 DRY_RUN=0
 YES_MODE=0       # --yes: skip all prompts using built-in defaults
 ADOPT_ANSWER=""  # --adopt=n|all|1,2,3
 UPGRADE_ANSWER="" # --upgrade=y|n
+ONLY_ANSWER=""   # --only=<ids>: keep only these modules from the selection
+SKIP_ANSWER=""   # --skip=<ids>: drop these modules from the selection
+typeset -a _POSITIONAL=()  # bare module spec tokens (joined with commas below)
 
 # Auto-detect non-interactive (running as LaunchAgent or piped)
 if [[ ! -t 0 ]]; then
@@ -103,6 +107,8 @@ for _arg in "$@"; do
         --yes|-y)               YES_MODE=1 ;;
         --adopt=*)              ADOPT_ANSWER="${_arg#--adopt=}" ;;
         --upgrade=*)            UPGRADE_ANSWER="${_arg#--upgrade=}" ;;
+        --only=*)               ONLY_ANSWER="${_arg#--only=}" ;;
+        --skip=*)               SKIP_ANSWER="${_arg#--skip=}" ;;
         --version|-V)           ;;  # already handled above, before any side effect
         -*|–*|—*|−*)
             # A mistyped flag must never run with defaults silently:
@@ -110,13 +116,22 @@ for _arg in "$@"; do
             # Unicode dash lookalikes (en/em dash, minus) come from smart-dash
             # copy-paste and would otherwise slip through as positionals
             echo "ERROR: unknown flag: ${_arg}" >&2
-            echo "Accepted flags: --dry-run, --yes | -y, --adopt=n|all|1,2, --upgrade=y|n, --version | -V" >&2
+            echo "Accepted flags: [modules] --only=ids --skip=ids --dry-run --yes|-y --adopt=n|all|1,2 --upgrade=y|n --version|-V" >&2
             exit 2
             ;;
-        # Non-flag args (e.g. module lists from LaunchAgent plists) are still
-        # ignored here: positional selection is a separate, planned feature
+        *)  # A bare (non-flag) argument is a module selection token. Collected
+            # here; validated only later, once lib/selection.sh has defined the
+            # registry (the CLI SELECTION branch below).
+            _POSITIONAL+=("$_arg")
+            ;;
     esac
 done
+
+# Join the bare arguments into one selection spec: both `0,4,5` (one arg) and
+# `0 4 5` (three args) become "0,4,5". CLI_SELECTION marks a non-interactive run.
+SELECTION_SPEC="${(j:,:)_POSITIONAL}"
+CLI_SELECTION=0
+[[ -n "$SELECTION_SPEC" || -n "$ONLY_ANSWER" || -n "$SKIP_ANSWER" ]] && CLI_SELECTION=1
 
 export BREW_MANAGER_DRY_RUN=$DRY_RUN
 export BREW_MANAGER_YES=$YES_MODE
@@ -227,15 +242,35 @@ _header_main \
 # sourced above — the menu, dispatcher and summary read it as before.
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MODULE SELECTION MENU
+# MODULE SELECTION — command line (non-interactive) OR interactive menu
 # ─────────────────────────────────────────────────────────────────────────────
 
-echo -e "  ${C_GRAY}CLI usage:  ./brew_manager.sh [modules] [options]${NC}"
+if (( CLI_SELECTION )); then
+    # Non-interactive: the selection came from the command line. _resolve_cli is
+    # STRICT — an unknown token aborts (exit 2) instead of being silently
+    # skipped, so a typo never runs a different set of modules than intended.
+    # DRY_RUN / YES_MODE are already applied from the flags above.
+    _resolve_cli "$SELECTION_SPEC" "$ONLY_ANSWER" "$SKIP_ANSWER"
+    _sel_rc=$?
+    if (( _sel_rc == 2 )); then
+        _err "Unknown module token(s): ${RESOLVE_INVALID[*]}"
+        _err "Valid modules: 0-13, log, bk, las, mas. Base 'go' runs the full sequence."
+        exit 2
+    fi
+    if (( ${#MODULES_TO_RUN[@]} == 0 )); then
+        _err "The selection resolved to no modules. Exiting."
+        exit 1
+    fi
+else
+# ── Interactive menu. Left un-indented so the diff shows the new control flow,
+#    not a wholesale re-indent; the branch ends at the matching 'fi' below. ──
+echo -e "  ${C_GRAY}CLI usage:  ./brew_manager.sh [modules] [--only=ids] [--skip=ids] [options]${NC}"
 echo -e "  ${C_GRAY}  go                   run all modules in sequence${NC}"
 echo -e "  ${C_GRAY}  go --yes             run all modules, skip all prompts${NC}"
 echo -e "  ${C_GRAY}  go --dry-run         read-only — no changes made${NC}"
 echo -e "  ${C_GRAY}  0,4 --adopt=all      run modules 0 and 4, adopt all${NC}"
 echo -e "  ${C_GRAY}  4 --upgrade=y        run module 4, upgrade without asking${NC}"
+echo -e "  ${C_GRAY}  go --skip=5,10       run every module except 5 and 10${NC}"
 echo -e "  ${C_GRAY}  log                  open log manager${NC}"
 echo ""
 echo -e "  ${C_CYAN_B}Available modules:${NC}"
@@ -286,6 +321,7 @@ if (( ${#MODULES_TO_RUN[@]} == 0 )); then
     _err "No valid module selected. Exiting."
     exit 1
 fi
+fi  # end MODULE SELECTION (CLI vs interactive)
 
 echo ""
 echo -e "  ${C_GREEN_B}${SYM_OK}${NC}  Running modules: ${C_CYAN_B}${MODULES_TO_RUN[*]}${NC}"

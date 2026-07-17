@@ -42,6 +42,35 @@ tags: [improvement]
   gate→hardening. Rischio: una checklist può irrigidire — va tenuta come guida
   proporzionale (docs/00), non come rito per ogni micro-test.
 - Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
+- **Rafforzata dal gate BM-08b** (2026-07-17): il gate ha trovato un gap di
+  strictness sui token vuoti (`0,4,` → errore col nome vuoto) — esattamente un
+  caso di "bordo/molteplicità" che la checklist IMP-002 avrebbe fatto scrivere
+  a monte. Segnale a favore dell'adozione.
+
+### IMP-003 — Convenzione: mai `echo` per normalizzare DATI (espande gli escape)
+- Data: 2026-07-17 | Origine: gate di sicurezza BM-08b, finding MEDIUM R1.
+- Problema osservato: `_n=$(echo "$_n" | tr -d ' ')` nel resolver espandeva i
+  backslash-escape dell'input (`echo '\065'`→`5`), così un token fasullo veniva
+  REMAPPATO su un id di modulo reale → `./brew_manager.sh '\065'` eseguiva mod_05
+  (cleanup distruttivo) invece di fallire. È un pattern **fail-open**, ed era
+  **pre-esistente**: il parity-move di BM-08a l'aveva trasportato verbatim (la
+  parità è "behavior-neutral" ma preserva anche i bug latenti). Stessa radice di
+  Attenzione #3b, che però traccia le ISTANZE, non previene la classe. Fixato in
+  BM-08b con `${_n// /}` (param expansion).
+- Proposta: aggiungere alle "Convenzioni di codice" di `CLAUDE.md` (regole tecniche)
+  una riga by-convention (docs/03, "Prevenzione by-convention"): *"Per
+  normalizzare/ripulire una stringa di DATI (specie input non fidato) usa la
+  parameter expansion (`${v// /}`, `${v//$'\t'/}`) o `printf '%s'` — MAI `echo`,
+  che espande `\e`/`\0NN`/`\x..` e può reinterpretare un token in un valore
+  diverso. `echo -e` vale anche per i messaggi che interpolano dati (vedi il
+  display di `_err`)."* Corollario: un parity-refactor che sposta codice di
+  parsing di input non fidato deve SEGNALARE i pattern fail-open che preserva,
+  invece di trattarli come neutri.
+- Beneficio atteso / rischio: previene un'intera classe di bypass di validazione
+  (chiude a monte #3b e casi simili). Rischio: quasi nullo — è una convenzione,
+  non un cambio di codice; va applicata al codice nuovo, gli istanze vecchie
+  restano tracciate in #3b.
+- Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>

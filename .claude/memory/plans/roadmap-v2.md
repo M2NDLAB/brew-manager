@@ -252,6 +252,13 @@ Legenda campi di ogni task:
   filtrano la selezione; tutto passa dal resolver di BM-08a; `--dry-run`/`--yes` rispettati.
 - Non-regressione: le combinazioni CLI producono la selezione attesa; il default interattivo resta `go`.
 - Commit: `feat(cli): implement positional module selection and --only/--skip`
+- **Status: COMPLETATO 2026-07-17** — branch `feat/positional-dispatch`, commit
+  `1e7e735` (API stretta `_resolve_cli`/`RESOLVE_INVALID`/collect) + `2e34c25`
+  (wiring brew_manager + README) + `7096d8a` (fix gate). 74 test. **Gate
+  adversariale PASSATO** (2 reviewer indipendenti): injection/parità/guard-rail
+  puliti; 2 MEDIUM fail-open del tokenizer (escape `\065`→mod_05; virgole vuote)
+  FIXATI, 3 LOW risolti. Chiude la parte CLI di Attenzione #1; contratto esteso in
+  [[2026-07-17-selection-resolver-contract]]. In attesa di integrazione.
 
 #### BM-08c · fix: gli agenti las passano la selezione attraverso il resolver
 - Tipo · branch: fix · `fix/agent-selection`

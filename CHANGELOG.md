@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Command-line module selection. `./brew_manager.sh 0,4,5` (or `go`) now runs
+  those modules non-interactively, skipping the menu; `--only=ids` / `--skip=ids`
+  filter the selection. An unknown module token is rejected with a non-zero exit
+  rather than silently skipped, so a typo cannot run a different set of modules
+  than intended. The interactive menu is unchanged when no selection is passed.
+
 ## [1.2.0] - 2026-07-14
 
 A safety release. Several actions did not honour `--dry-run`, one module

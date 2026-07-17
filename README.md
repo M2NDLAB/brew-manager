@@ -82,7 +82,27 @@ At the top of each module you will see an **About this module** section explaini
 
 ### Choosing what to run
 
-**Which modules run is decided in the TUI prompt, not on the command line.** Start the script, then type your choice at the `Choice` prompt:
+You can choose the modules **on the command line** or **interactively** — whichever fits.
+
+**On the command line** — pass the selection as a positional argument. The run is then non-interactive and skips the menu:
+
+```bash
+./brew_manager.sh go            # all standard modules, 0 to 13
+./brew_manager.sh 1,4,5         # only these, in this order
+./brew_manager.sh 5,2,0         # any order, duplicates allowed
+./brew_manager.sh log           # a named module: log, bk, las, mas
+```
+
+Refine a selection with `--only` (keep only these) or `--skip` (remove these):
+
+```bash
+./brew_manager.sh go --skip=5,10    # every module except 5 and 10
+./brew_manager.sh go --only=0,4     # only 0 and 4 out of the full sequence
+```
+
+An unknown module token is **rejected with an error and a non-zero exit** — never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
+
+**Interactively** — start the script with no selection and type your choice at the `Choice` prompt:
 
 ```
 →  Choice [go / comma-separated numbers, default: go]: go       # all standard modules, 0 to 13
@@ -90,23 +110,23 @@ At the top of each module you will see an **About this module** section explaini
 →  Choice [go / comma-separated numbers, default: go]: log      # a named module: log, bk, las, mas
 ```
 
-Flags, on the other hand, *are* passed on the command line and change **how** the run behaves:
+Flags change **how** the run behaves and combine with either form:
 
 ```bash
-# Read-only inspection — nothing on your system is modified
-./brew_manager.sh --dry-run
+# Read-only inspection of the full sequence — nothing on your system is modified
+./brew_manager.sh go --dry-run
 
-# No prompts: every question is auto-answered with its built-in safe default
-./brew_manager.sh --yes
+# Unattended full run: every question is auto-answered with its built-in safe default
+./brew_manager.sh go --yes
 
-# Pre-answer the adoption prompt of module 0 and the upgrade prompt of module 4
-./brew_manager.sh --adopt=all --upgrade=y
+# Run modules 0 and 4, pre-answering their adoption/upgrade prompts
+./brew_manager.sh 0,4 --adopt=all --upgrade=y
 
 # Print the version and exit
 ./brew_manager.sh --version
 ```
 
-> **Not yet supported:** passing the module selection as an argument (`./brew_manager.sh 1,4,5`) does **not** work — such arguments are ignored and the script falls back to its interactive prompt. Command-line module selection is planned for a future release; until then, choose the modules in the TUI.
+> What makes a run non-interactive is a **selection**: a positional spec, or a `--only` / `--skip` filter (which imply a `go` base — e.g. `./brew_manager.sh --skip=5` runs everything except module 5, unattended). A behaviour-only flag such as `--dry-run` or `--yes` on its own, with no selection, still drops to the interactive menu.
 
 ### Available flags
 
@@ -116,11 +136,13 @@ Flags, on the other hand, *are* passed on the command line and change **how** th
 | `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. |
 | `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
+| `--only=ids` | Keeps only the listed modules from the selection (e.g. `go --only=0,4`). Applied after the positional selection. |
+| `--skip=ids` | Removes the listed modules from the selection (e.g. `go --skip=5,10`). Applied after `--only`. |
 | `--version` / `-V` | Prints the version and exits. Inside a git work tree it also shows the distance from the latest release tag. |
 
-An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for.
+An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same holds for an unknown **module** token on the command line: `./brew_manager.sh 99` exits non-zero rather than running a partial, unexpected selection.
 
-> **Non-interactive runs:** always pass `--yes` explicitly (this is what the LaunchAgents installed by the `las` module do). Piping input to the script is not a supported way to drive it: the session recorder owns the script's standard input.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
@@ -347,7 +369,7 @@ Installs, modifies, and removes macOS LaunchAgents that run brew-manager automat
 
 All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`.
 
-> **What a scheduled agent actually runs:** every agent runs the **full standard sequence** (`go`, modules 0 → 13) with `--yes`. The per-agent module selection is stored in the agent's configuration but is **not yet honoured at run time** — the same limitation as command-line module selection above. Per-agent module selection is planned for a future release. Because the run is unattended, each prompt takes its conservative default, so the agent audits and reports rather than modifying your system.
+> **What a scheduled agent actually runs:** every agent currently runs the **full standard sequence** (`go`, modules 0 → 13) with `--yes`. The per-agent module selection is stored in the agent's configuration but is **not yet honoured at run time** — even though the command line now understands a module selection, the generated agents do not yet route their stored selection through it. Wiring the scheduler to the selection is planned for a future release. Because the run is unattended, each prompt takes its conservative default, so the agent audits and reports rather than modifying your system.
 
 | Option | What it does |
 |--------|--------------|
@@ -474,19 +496,19 @@ brew-manager's dispatch system is designed to make adding modules trivial.
 **Numbered module (included in `go`):**
 
 1. Create `modules/mod_NN_name.sh` containing a function named `_module_NN()`
-2. Add an entry to `MODULE_DESC` in `brew_manager.sh`: `[NN]="Description of module"`
+2. Add an entry to `MODULE_DESC` in `lib/selection.sh`: `[NN]="Description of module"`
 3. Add `NN` to the `MODULE_IDS` array
 4. Done — the source glob, dispatch loop, and summary pick it up automatically
 
 **Named module (excluded from `go`, selected by name at the prompt):**
 
 1. Create `modules/mod_KEYNAME_*.sh` with a function (any number is fine internally)
-2. Add the key to `MODULE_DESC`: `[keyname]="Description"`
-3. Add a `case` entry in the block that parses the TUI choice: `keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`
-4. Add a `case` entry in the dispatch loop: `keyname) _module_function ;;`
+2. Add the key to `MODULE_DESC` in `lib/selection.sh`: `[keyname]="Description"`
+3. In `lib/selection.sh`, teach the resolver the new key: add a whole-token `case` arm to `_resolve_selection` (`keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`) and include `keyname` in the lowercase-special checks so it is also accepted inside comma lists and `--only`/`--skip`
+4. Add a `case` entry in the dispatch loop in `brew_manager.sh`: `keyname) _module_function ;;`
 5. Add a display line in the menu below the `·` separator
 
-> Both parse blocks read what the user typed at the `Choice` prompt — not the command line. The script's arguments are only scanned for flags.
+> The selection is parsed by `_resolve_selection` (`lib/selection.sh`) from **either** a command-line spec **or** what the user types at the `Choice` prompt — the same code path backs both. `--only` / `--skip` then filter the result.
 
 **Anything a module does to the system must honour the two safety flags:** `BREW_MANAGER_DRY_RUN` (preview only, never execute) and `BREW_MANAGER_YES` (unattended: take the default answer, and let the default be the safe one). Use `_ask` / `_read_choice` from `lib/common.sh` for every prompt rather than reading input directly — they implement both flags for you.
 
