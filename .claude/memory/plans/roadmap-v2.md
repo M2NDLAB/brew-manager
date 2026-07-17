@@ -234,6 +234,13 @@ Legenda campi di ogni task:
 - Non-regressione: batteria di input (`go`, `0,4,5`, `log`, token invalido, misto) → stessa lista
   di prima del refactor. **[op]** aggiungi qui i primi smoke-test in `tests/`.
 - Commit: `refactor(dispatch): extract _resolve_selection, no behavior change`
+- **Status: COMPLETATO 2026-07-17** — branch `refactor/selection-resolver`, commit
+  refactor `3ff6cfc` + hardening test `4e1b6f1`. Registry+resolver in
+  `lib/selection.sh` (nuovo); nasce il testing (`tests/test_selection.zsh`, 43
+  check, `make test`). Contratto in [[2026-07-17-selection-resolver-contract]].
+  **Gate adversariale PASSATO**: parità/injection/scope puliti; 5 finding
+  test-adequacy LOW/INFO risolti (non accettati come debito), chiusura provata per
+  mutazione. In attesa di integrazione (merge dell'utente).
 
 #### BM-08b · feat: dispatch posizionale + `--only`/`--skip`
 - Tipo · branch: feat · `feat/positional-dispatch`

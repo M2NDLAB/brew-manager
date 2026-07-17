@@ -19,7 +19,29 @@ tags: [improvement]
 > [[sessions/2026-07-11-innesto-note]].
 
 ## Proposte APERTE (in attesa di decisione utente)
-_(nessuna proposta aperta)_
+
+### IMP-002 — Checklist "superficie del contratto" per i test di estrazione/parità
+- Data: 2026-07-17 | Origine: gate di sicurezza BM-08a. Parità/injection/scope
+  PULITI, ma 5 finding confermati TUTTI in test-adequacy: return-code mai
+  asserito, whitespace di bordo, token vuoti in lista, molteplicità dei warning
+  (N per N token invalidi), special maiuscoli BK/LAS/MAS.
+- Problema osservato: la PRIMA suite di una funzione estratta per parità, pur con
+  la guardia anti-vacuità già prescritta da docs/02, ha coperto le classi di
+  input "felici" ma non l'intera superficie osservabile del contratto. Il gate
+  adversariale l'ha scoperto — bene — ma a valle dell'implementazione; una
+  checklist a monte avrebbe prodotto la copertura giusta al primo colpo (subito
+  utile: BM-08b/c estenderanno lo stesso resolver).
+- Proposta: aggiungere a `docs/02-code-quality.md` (sezione "Test che dimostrano")
+  una checklist BREVE per i test di ESTRAZIONE/PARITÀ — enumerare la superficie
+  del contratto: (a) valore di ritorno / exit code per OGNI esito; (b) ogni
+  classe di input inclusi i BORDI (whitespace di bordo, token vuoti,
+  case-variant); (c) molteplicità dei side-effect (N eventi per N cause, non solo
+  "almeno uno"); (d) verifica per MUTAZIONE che la suite fallisca se il contratto
+  viene invertito, prima di dichiarare done.
+- Beneficio atteso / rischio: copertura completa al primo colpo, meno cicli
+  gate→hardening. Rischio: una checklist può irrigidire — va tenuta come guida
+  proporzionale (docs/00), non come rito per ogni micro-test.
+- Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>

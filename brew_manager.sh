@@ -130,8 +130,12 @@ export BREW_MANAGER_UPGRADE="$UPGRADE_ANSWER"
 # SOURCE LIBRARY
 # ─────────────────────────────────────────────────────────────────────────────
 
-source "$SCRIPT_DIR/lib/common.sh" || { echo "ERROR: lib/common.sh not found"; exit 1; }
-source "$SCRIPT_DIR/lib/log.sh"    || { echo "ERROR: lib/log.sh not found"; exit 1; }
+source "$SCRIPT_DIR/lib/common.sh"    || { echo "ERROR: lib/common.sh not found"; exit 1; }
+source "$SCRIPT_DIR/lib/log.sh"       || { echo "ERROR: lib/log.sh not found"; exit 1; }
+# selection.sh defines the module registry (MODULE_DESC/MODULE_IDS) and the
+# _resolve_selection parser; sourcing it here keeps that data available to the
+# menu, the dispatcher and the summary below.
+source "$SCRIPT_DIR/lib/selection.sh" || { echo "ERROR: lib/selection.sh not found"; exit 1; }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HOMEBREW CHECK
@@ -219,32 +223,8 @@ _header_main \
     "🍺  BREW MANAGER v${BREW_MANAGER_VERSION} — Audit, Cleanup & Unmanaged App Report" \
     "macOS · zsh · $(date '+%a %b %d %Y %H:%M') · Log: $LOG_FILE"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MODULE DEFINITIONS
-# ─────────────────────────────────────────────────────────────────────────────
-
-typeset -A MODULE_DESC=(
-    [0]="Audit unmanaged apps (not in Homebrew)"
-    [1]="Homebrew system health"
-    [2]="Formula database update"
-    [3]="Installed packages report"
-    [4]="Available updates"
-    [5]="Cache and orphan dependency cleanup"
-    [6]="Shared dependency analysis"
-    [7]="Homebrew services"
-    [8]="Untracked binaries in /usr/local/bin"
-    [9]="Brew-tracked binaries in /usr/local/bin"
-    [10]="Auto-update casks (skipped by brew upgrade)"
-    [11]="Duplicate and conflicting formulae"
-    [12]="Security audit"
-    [13]="Disk usage breakdown"
-    [log]="Log file manager (not in go sequence)"
-    [bk]="Brewfile backup and restore"
-    [las]="LaunchAgent scheduler (auto-run)"
-    [mas]="Mac App Store (MAS) integration"
-)
-
-MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
+# The module registry (MODULE_DESC / MODULE_IDS) now lives in lib/selection.sh,
+# sourced above — the menu, dispatcher and summary read it as before.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MODULE SELECTION MENU
@@ -296,29 +276,11 @@ read -r module_choice
 # PARSE SELECTION
 # ─────────────────────────────────────────────────────────────────────────────
 
-declare -a MODULES_TO_RUN=()
-case "${module_choice:-go}" in
-    log|LOG) MODULES_TO_RUN=("log") ;;
-    bk|BK)   MODULES_TO_RUN=("bk")  ;;
-    las|LAS) MODULES_TO_RUN=("las") ;;
-    mas|MAS) MODULES_TO_RUN=("mas") ;;
-    go|GO|"")
-        MODULES_TO_RUN=(${MODULE_IDS[@]})
-        ;;
-    *)
-        IFS=',' read -rA _raw_nums <<< "$module_choice"
-        for _n in "${_raw_nums[@]}"; do
-            _n=$(echo "$_n" | tr -d ' ')
-            if [[ "$_n" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_n]}" ]]; then
-                MODULES_TO_RUN+=("$_n")
-            elif [[ "$_n" == "log" || "$_n" == "bk" || "$_n" == "las" || "$_n" == "mas" ]]; then
-                MODULES_TO_RUN+=("$_n")
-            else
-                _warn "Module '$_n' is invalid — skipped"
-            fi
-        done
-        ;;
-esac
+# The parser lives in lib/selection.sh (_resolve_selection): it populates the
+# MODULES_TO_RUN array and returns non-zero when the selection is empty. The
+# empty-is-fatal policy stays here — the interactive session must not proceed
+# with nothing to run.
+_resolve_selection "$module_choice"
 
 if (( ${#MODULES_TO_RUN[@]} == 0 )); then
     _err "No valid module selected. Exiting."

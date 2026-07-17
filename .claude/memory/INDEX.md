@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-12
+updated: 2026-07-17
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -14,12 +14,14 @@ tags: [moc]
 ## Stato
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): 1 proposta APERTA
-  (IMP-001, review-agent in background e allow-list)
+- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA
+  (review-agent in allow-list); 1 proposta APERTA (IMP-002, checklist superficie
+  del contratto per i test di estrazione/parità)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
 - [[lib-common]] — utility TUI + guard-rail condivisi `_ask`/`_read_choice` (sensibile)
+- [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; senza conferma né dry-run)
 - [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; bug weekday)
@@ -55,7 +57,11 @@ tags: [moc]
 - [[sessions/2026-07-14-bm19-readme-reality]] — BM-19 ristretto: README ↔ realtà
   di v1.2.0, over-claim rimossi (CLI posizionale, scheduling per-modulo)
 - [[sessions/2026-07-14-release-v1.2.0]] — release v1.2.0: VERSION+CHANGELOG,
-  version-check simulato col tag in un clone; tag e push all'utente
+  version-check simulato col tag in un clone; tag e push all'utente (RILASCIATA
+  2026-07-17: merge c5dc3a5, tag annotato v1.2.0)
+- [[sessions/2026-07-17-bm08a-selection-resolver]] — BM-08a: estrazione
+  `_resolve_selection` in lib/selection.sh, nascita dei test (43 check), gate
+  adversariale passato (5 finding test-adequacy risolti), IMP-002 registrata
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -65,9 +71,11 @@ tags: [moc]
   dialetto zsh, il gate di sintassi resta zsh -n
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
   come arricchimento + make version-check anti-drift
+- [[2026-07-17-selection-resolver-contract]] — BM-08a: home lib/selection.sh,
+  contratto ad array globale (non stdout), return 0/1, harness zsh (no bats)
 
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  in attesa — parte DOPO l'integrazione del branch di innesto (precondizione 1
-  del piano stesso); un task per volta, ok utente tra un task e il successivo.
+  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 in corso** — BM-08a COMPLETO (in attesa
+  di integrazione), prossimo BM-08b. Un task per volta, ok utente tra i task.
