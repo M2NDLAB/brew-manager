@@ -41,8 +41,11 @@ framework v0.5.0.
       CLAUDE.md +/harvest-framework) — commit: (questo)
 - [x] 4. LEARNINGS header: attributo Destinazione:framework (eccezione memoria isolata,
       MAI le voci IMP) — commit: (questo)
-- [ ] 5. Passo 4/5: audit marcatori + INVARIANTE memoria (git diff mostrato) + /lint-memory
-      + make check/test — commit: —
+- [x] 5. Passo 4/5: audit marcatori + INVARIANTE memoria (git diff mostrato) + /lint-memory
+      + make check/test — commit: (questo). ESITO: sentinella marcatori-spezzati VUOTA;
+      invariante memoria = ESATTAMENTE 2 file (piano + LEARNINGS header); make check rc=0,
+      make test rc=0 (selection+guardrails); lint ref pulito (unico pendente: link TBD del
+      piano, risolto in Task 6). Nessun fix necessario.
 - [ ] 6. Passo 6: /checkpoint (STATE→v0.5.1, nota sessione, TREE) + blocco /integrate (no tag) — commit: —
 
 ## Verifiche non negoziabili (condizioni dell'utente)
