@@ -5,7 +5,7 @@ del progetto (compilazione, test, avvio) NON stanno qui: li aggiunge ogni proget
 
 | Script | Cosa fa |
 |---|---|
-| `hooks-install.sh` | Installa gli hook git locali: secret scanning (gitleaks, pre-commit) e Conventional Commits (commitlint, commit-msg), sempre attivi. La formattazione automatica del codice è inclusa come **esempio commentato** da adattare al linguaggio del progetto. Idempotente. |
+| `hooks-install.sh` | Installa gli hook git locali: secret scanning (gitleaks, pre-commit) e Conventional Commits (commitlint, commit-msg), sempre attivi. La formattazione automatica del codice è inclusa come **esempio commentato** da adattare al linguaggio del progetto. Idempotente sui propri hook (se li hai personalizzati, il rilancio salva prima un `.bak`); davanti a hook preesistenti di ALTRA origine — inclusi i symlink degli hook manager — si ferma (override: `FORCE_OVERWRITE=1`, con backup `.bak`), e si ferma anche se `core.hooksPath` è attivo (es. husky: `.git/hooks` verrebbe ignorato e gli hook sarebbero inerti). |
 | `reset-task.sh` | Cleanup CHIRURGICO di un task interrotto: scarta SOLO il lavoro non committato e preserva branch e commit precedenti. È il cleanup del protocollo di task planning (`.claude/docs/01-task-planning.md`). Rifiuta di operare sui branch condivisi. |
 
 ## Uso tipico

@@ -32,11 +32,11 @@ framework v0.5.0.
   file; sono generici/runtime, NON si compilano con un valore.
 
 ## Task (un commit ciascuno)
-- [ ] 0. Isolamento (worktree/branch) + questo piano — commit: —
-- [ ] 1. Riconciliazione doc/comandi v0.3.0 + fix marcatori R5 (integrate.md base-guard,
-      docs/03 3-vie + poda SETUP, docs/04 3-vie, lint-memory.md controllo 10 + poda) — commit: —
-- [ ] 2. Bundle hooks-install (3-vie per-versione v0.3.0+v0.5.1) + scripts/README +
-      test-hooks-install.sh + Makefile test-scripts + VERIFICA FUNZIONALE REALE — commit: —
+- [x] 0. Isolamento (worktree/branch) + questo piano — commit: 6c10e89
+- [x] 1. Riconciliazione doc/comandi v0.3.0 + fix marcatori R5 (integrate.md base-guard,
+      docs/03 3-vie + poda SETUP, docs/04 3-vie, lint-memory.md controllo 10 + poda) — commit: 1bf77eb
+- [x] 2. Bundle hooks-install (3-vie per-versione v0.3.0+v0.5.1) + scripts/README +
+      test-hooks-install.sh + Makefile test-scripts + VERIFICA FUNZIONALE REALE — commit: (questo)
 - [ ] 3. Pacchetto harvest lato metodo (docs/06 + poda R1, harvest-framework.md + poda,
       CLAUDE.md +/harvest-framework) — commit: —
 - [ ] 4. LEARNINGS header: attributo Destinazione:framework (eccezione memoria isolata,

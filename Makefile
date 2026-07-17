@@ -13,6 +13,9 @@ hooks-install: ## Installa gli hook git (gitleaks + commitlint; formattazione da
 reset-task: ## Scarta il mezzo-task interrotto, preservando branch e commit (task planning)
 	bash scripts/reset-task.sh
 
+test-scripts: ## Self-test degli script del framework (hooks-install, ...)
+	bash scripts/test-hooks-install.sh
+
 # ============================================================================
 # Target specifici di brew-manager (zsh, nessuna build).
 # ============================================================================
