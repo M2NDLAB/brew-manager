@@ -192,11 +192,11 @@ assert_list  " go " ""
 assert_list  " "    ""
 assert_warns " go " "invalid"
 
-# empty tokens inside comma lists are dropped with a warning
-assert_list  "0,,4" "0 4"
-assert_list  "0,"   "0"        # trailing empty token
-assert_list  ",0"   "0"        # leading empty token
-assert_warns "0,,4" "invalid"
+# empty tokens inside comma lists are IGNORED (stray/adjacent commas), no warning
+assert_list       "0,,4" "0 4"
+assert_list       "0,"   "0"        # trailing empty token
+assert_list       ",0"   "0"        # leading empty token
+assert_warn_count "0,,4" 0          # empty tokens do not warn (BM-08b hardening)
 
 # warning fidelity: the offending token is NAMED, one warning per invalid token
 assert_warns      "0,foo,4" "'foo'"
@@ -249,6 +249,32 @@ assert_cli_strict "0,foo"  ""      ""     "foo"
 assert_cli_strict "go"     "0,foo" ""     "foo"
 assert_cli_strict "go"     ""      "foo"  "foo"
 assert_cli_strict "go"     "go"    ""     "go"   # 'go' is not a valid filter token
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BM-08b security gate hardening — a bogus token must NEVER be silently remapped
+# onto a real module. Two fail-OPEN paths were found and fixed:
+#   1. echo-style backslash escapes (echo '\065' → '5' would run mod_05 cleanup);
+#   2. an embedded newline truncating the spec via `read -rA <<<`.
+# Both must now be rejected/validated whole, not reinterpreted.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# a backslash-escape token stays literal → invalid, never remapped to a digit
+assert_list        "\\065" ""              # was '5' under echo|tr; must be empty now
+assert_sel_invalid "\\065" "\\065"
+assert_cli_strict  "\\065" "" "" "\\065"
+assert_cli_strict  "\\x35" "" "" "\\x35"
+
+# a newline-bearing token is validated whole (and rejected), not truncated — the
+# post-newline part must NOT be silently dropped
+assert_cli_strict  $'5\n9'  "" "" $'5\n9'
+
+# empty tokens (stray/adjacent commas) are tolerated on the strict CLI path too:
+# a clear intent like 0,4, resolves to {0,4}, it does not abort with a blank error
+assert_cli "0,4,"  ""      ""    0 "0 4"
+assert_cli "5,,2"  ""      ""    0 "5 2"
+assert_cli ",5"    ""      ""    0 "5"
+assert_cli "go"    "0,,4"  ""    0 "0 4"
+assert_cli "go"    ""      "5,"  0 "0 1 2 3 4 6 7 8 9 10 11 12 13"
 
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""

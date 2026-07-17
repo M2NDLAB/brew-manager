@@ -126,7 +126,7 @@ Flags change **how** the run behaves and combine with either form:
 ./brew_manager.sh --version
 ```
 
-> A flag on its own, with no module selection (e.g. `./brew_manager.sh --dry-run`), still drops to the interactive menu — the selection is what makes a run non-interactive.
+> What makes a run non-interactive is a **selection**: a positional spec, or a `--only` / `--skip` filter (which imply a `go` base — e.g. `./brew_manager.sh --skip=5` runs everything except module 5, unattended). A behaviour-only flag such as `--dry-run` or `--yes` on its own, with no selection, still drops to the interactive menu.
 
 ### Available flags
 

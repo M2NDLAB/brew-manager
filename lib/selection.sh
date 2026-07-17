@@ -70,6 +70,7 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 #     special      its exact upper/lower forms (log|LOG, bk|BK, …), exactly as
 #     token        the old `case` arms did.
 #   - otherwise  → comma-split; each token stripped of spaces:
+#                    empty token (stray/adjacent comma, `0,4,`) → ignored;
 #                    numeric AND present in MODULE_DESC → kept;
 #                    lowercase special (log|bk|las|mas) → kept;
 #                    anything else → recorded in RESOLVE_INVALID.
@@ -78,15 +79,18 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 # invalid_mode (default "warn") controls ONLY how unknown tokens are surfaced —
 # not what ends up in MODULES_TO_RUN:
 #   - "warn"    → emit `_warn "…invalid — skipped"` per unknown token (the
-#                 interactive default: behaviour identical to before this param).
+#                 interactive default).
 #   - "collect" → stay silent; the caller inspects RESOLVE_INVALID and decides
 #                 (used by _resolve_cli to be strict).
 #
-# Quirks preserved ON PURPOSE — this is a parity refactor, not a fix (fixing
-# them is a separate, later task so this change stays provably behaviour-neutral):
-#   - mixed-case whole tokens like `Log` do NOT match (only `log`/`LOG` do);
-#   - a special token inside a comma list is case-SENSITIVE (`0,LOG` drops LOG);
-#   - `go` inside a comma list (e.g. `0,go`) is dropped as invalid.
+# Quirks preserved on purpose (they were parity-moved from the original parser
+# and are NOT security-relevant): mixed-case whole tokens like `Log` do NOT match
+# (only `log`/`LOG` do); a special inside a comma list is case-SENSITIVE (`0,LOG`
+# drops LOG); `go` inside a comma list (`0,go`) is invalid.
+# Hardened in BM-08b (gate finding): tokens are split and space-stripped with
+# parameter expansion, never `echo`/`read -rA <<<`, so a token can no longer be
+# reinterpreted through backslash-escape expansion or truncated at a newline —
+# both were fail-OPEN paths that could run a DIFFERENT module than requested.
 #
 # Requires: MODULE_DESC / MODULE_IDS (above) and _warn (lib/common.sh).
 # Returns:  0 if MODULES_TO_RUN ended up non-empty, 1 if empty. The caller owns
@@ -112,9 +116,19 @@ _resolve_selection() {
             MODULES_TO_RUN=(${MODULE_IDS[@]})
             ;;
         *)
-            IFS=',' read -rA _raw_nums <<< "$_spec"
+            # Split on comma with parameter expansion, NOT `read -rA <<<`: a
+            # here-string is one "line", so read would truncate a token that
+            # contains a newline (dropping everything after it silently). (@s:,:)
+            # keeps every field, empties included, and preserves embedded newlines
+            # so a bogus token like $'5\n9' is validated (and rejected) whole.
+            _raw_nums=("${(@s:,:)_spec}")
             for _n in "${_raw_nums[@]}"; do
-                _n=$(echo "$_n" | tr -d ' ')
+                _n="${_n// /}"                       # strip spaces via param expansion:
+                                                     # echo would interpret \e/\0NN escapes,
+                                                     # remapping a bogus token onto a real
+                                                     # module id (a fail-open bypass).
+                [[ -z "$_n" ]] && continue           # a stray/adjacent comma yields an empty
+                                                     # token — ignore it, don't call it invalid
                 if [[ "$_n" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_n]}" ]]; then
                     MODULES_TO_RUN+=("$_n")
                 elif [[ "$_n" == "log" || "$_n" == "bk" || "$_n" == "las" || "$_n" == "mas" ]]; then
@@ -143,9 +157,10 @@ _collect_module_tokens() {
     local -a _toks
     FILTER_TOKENS=()
     [[ -z "$_csv" ]] && return 0
-    IFS=',' read -rA _toks <<< "$_csv"
+    _toks=("${(@s:,:)_csv}")                 # same safe split as _resolve_selection
     for _t in "${_toks[@]}"; do
         _t="${_t// /}"                       # strip spaces (param expansion: no echo escapes)
+        [[ -z "$_t" ]] && continue           # tolerate stray/adjacent commas (0,4, / 5,,2)
         _valid=0
         if [[ "$_t" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_t]}" ]]; then
             _valid=1
