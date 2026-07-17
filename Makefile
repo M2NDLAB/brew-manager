@@ -14,17 +14,27 @@ reset-task: ## Scarta il mezzo-task interrotto, preservando branch e commit (tas
 	bash scripts/reset-task.sh
 
 # ============================================================================
-# Target specifici di brew-manager (zsh, nessuna build; test assenti — debito
-# annotato in .claude/memory/STATE.md).
+# Target specifici di brew-manager (zsh, nessuna build).
 # ============================================================================
 
 run: ## Avvia la TUI di brew-manager
 	./brew_manager.sh
 
 check: ## Check di sintassi zsh su tutti gli script (fallisce al primo errore)
-	@for f in brew_manager.sh lib/*.sh modules/*.sh; do \
+	@for f in brew_manager.sh lib/*.sh modules/*.sh tests/*.zsh; do \
 		zsh -n "$$f" && echo "  ok  $$f" || exit 1; \
 	done
+
+# Harness zsh a mano, zero dipendenze (niente bats da installare): coerente con
+# la filosofia del progetto (nessun tool obbligatorio). Ogni file tests/*.zsh è
+# eseguibile da solo e ritorna non-zero se un check fallisce → gate bloccante.
+test: ## Esegue i test (harness zsh, nessuna dipendenza)
+	@fail=0; \
+	for t in tests/*.zsh; do \
+		echo "── $$t"; \
+		zsh "$$t" || fail=1; \
+	done; \
+	exit $$fail
 
 # Il file VERSION è la fonte autorevole (funziona anche senza .git: tarball,
 # copia). Questo target è il guard-rail che impedisce il drift che c'era prima
