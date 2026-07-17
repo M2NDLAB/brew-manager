@@ -50,6 +50,34 @@ assert_warns() {
     fi
 }
 
+# assert_rc <spec> <expected>: the resolver returns 0 when MODULES_TO_RUN ended
+# up non-empty and 1 when empty. This contract is NOT load-bearing on the
+# interactive path today (which reads the array length), but BM-08b/c will wire
+# the return code into CLI / scheduled dispatch — so pin it now.
+assert_rc() {
+    local _spec="$1" _expected="$2" _rc
+    _resolve_selection "$_spec" >/dev/null 2>&1
+    _rc=$?
+    if (( _rc == _expected )); then
+        _pass "rc(spec='${_spec}') = ${_rc}"
+    else
+        _fail "rc(spec='${_spec}') = ${_rc}, expected ${_expected}"
+    fi
+}
+
+# assert_warn_count <spec> <n>: exactly <n> invalid-token warnings must appear —
+# one line per invalid token, never deduped or collapsed. grep -c counts lines,
+# and each _warn emits exactly one line.
+assert_warn_count() {
+    local _spec="$1" _expected="$2" _count
+    _count="$(_resolve_selection "$_spec" 2>&1 | grep -c 'invalid')"
+    if (( _count == _expected )); then
+        _pass "warn_count(spec='${_spec}') = ${_count}"
+    else
+        _fail "warn_count(spec='${_spec}') = ${_count}, expected ${_expected}"
+    fi
+}
+
 _ALL="0 1 2 3 4 5 6 7 8 9 10 11 12 13"   # the full 'go' sequence (MODULE_IDS)
 
 # ── go / empty → full sequence ──────────────────────────────────────────────
@@ -86,6 +114,43 @@ assert_list "0,LOG,4" "0 4"        # special inside a list is case-SENSITIVE
 # ── the drop must be observable, not silent ─────────────────────────────────
 assert_warns "0,99,4"  "invalid"
 assert_warns "0,foo,4" "invalid"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parity hardening — closes the test-adequacy findings of the BM-08a security
+# gate (2026-07-17). Each expected value was confirmed against the live resolver
+# before being pinned here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# return-code contract: 0 when non-empty, 1 when empty
+assert_rc "go"     0
+assert_rc "0,4,5"  0
+assert_rc "0,foo"  0            # one valid token kept → non-empty → 0
+assert_rc "14"     1
+assert_rc "99"     1
+assert_rc "Log"    1
+assert_rc " "      1           # lone space → empty
+
+# whole-string leading/trailing whitespace: padding is literal, NOT trimmed —
+# " go " does not expand to the full sequence (locks parity for future callers)
+assert_list  " go " ""
+assert_list  " "    ""
+assert_warns " go " "invalid"
+
+# empty tokens inside comma lists are dropped with a warning
+assert_list  "0,,4" "0 4"
+assert_list  "0,"   "0"        # trailing empty token
+assert_list  ",0"   "0"        # leading empty token
+assert_warns "0,,4" "invalid"
+
+# warning fidelity: the offending token is NAMED, one warning per invalid token
+assert_warns      "0,foo,4" "'foo'"
+assert_warn_count "foo,bar" 2
+assert_warn_count "0,4,5"   0
+
+# uppercase named specials — the |BK/|LAS/|MAS case arms (only LOG was covered)
+assert_list "BK"  "bk"
+assert_list "LAS" "las"
+assert_list "MAS" "mas"
 
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""
