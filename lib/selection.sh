@@ -13,10 +13,14 @@
 # in brew_manager.sh and could not be reused or tested.
 #
 # Provides:
-#   MODULE_DESC         — id/name → human description; its keys are also the
-#                         single source of truth for which numbered ids exist
-#   MODULE_IDS          — the numbered modules, in the 'go' sequence order
-#   _resolve_selection  — parse a selection spec into MODULES_TO_RUN
+#   MODULE_DESC          — id/name → human description; its keys are also the
+#                          single source of truth for which numbered ids exist
+#   MODULE_IDS           — the numbered modules, in the 'go' sequence order
+#   _resolve_selection   — parse a selection spec into MODULES_TO_RUN
+#   _resolve_cli         — strict non-interactive selection (spec + --only/--skip),
+#                          used by positional CLI dispatch (BM-08b)
+#   RESOLVE_INVALID      — global set by both: the unknown tokens seen, so a
+#                          caller can be strict (CLI) or lenient (interactive)
 # =============================================================================
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -54,11 +58,13 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 # SELECTION RESOLVER
 # ─────────────────────────────────────────────────────────────────────────────
 
-# _resolve_selection <spec>
+# _resolve_selection <spec> [invalid_mode]
 # Parse a raw selection spec into the canonical run list.
 #
-# Populates the global array MODULES_TO_RUN (reset on entry). Behaviour is a
-# faithful move of the former inline parser — no semantic change:
+# Populates the global array MODULES_TO_RUN (reset on entry) and the global
+# RESOLVE_INVALID (reset on entry) with every unknown token seen. Behaviour of
+# the resolution itself is a faithful move of the former inline parser — no
+# semantic change:
 #   - ""|go|GO   → every MODULE_IDS entry, in order
 #   - a lone     → that single named module. Matched case-insensitively ONLY in
 #     special      its exact upper/lower forms (log|LOG, bk|BK, …), exactly as
@@ -66,14 +72,21 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 #   - otherwise  → comma-split; each token stripped of spaces:
 #                    numeric AND present in MODULE_DESC → kept;
 #                    lowercase special (log|bk|las|mas) → kept;
-#                    anything else → _warn "…invalid — skipped".
+#                    anything else → recorded in RESOLVE_INVALID.
 #   Duplicates and order are preserved verbatim (1,1,2 → 1 1 2; 5,2,0 → 5 2 0).
+#
+# invalid_mode (default "warn") controls ONLY how unknown tokens are surfaced —
+# not what ends up in MODULES_TO_RUN:
+#   - "warn"    → emit `_warn "…invalid — skipped"` per unknown token (the
+#                 interactive default: behaviour identical to before this param).
+#   - "collect" → stay silent; the caller inspects RESOLVE_INVALID and decides
+#                 (used by _resolve_cli to be strict).
 #
 # Quirks preserved ON PURPOSE — this is a parity refactor, not a fix (fixing
 # them is a separate, later task so this change stays provably behaviour-neutral):
 #   - mixed-case whole tokens like `Log` do NOT match (only `log`/`LOG` do);
 #   - a special token inside a comma list is case-SENSITIVE (`0,LOG` drops LOG);
-#   - `go` inside a comma list (e.g. `0,go`) is dropped with a warning.
+#   - `go` inside a comma list (e.g. `0,go`) is dropped as invalid.
 #
 # Requires: MODULE_DESC / MODULE_IDS (above) and _warn (lib/common.sh).
 # Returns:  0 if MODULES_TO_RUN ended up non-empty, 1 if empty. The caller owns
@@ -84,10 +97,11 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 # into the result. The array contract also keeps the warnings interleaved in the
 # TUI exactly as before.
 _resolve_selection() {
-    local _spec="$1"
+    local _spec="$1" _invalid_mode="${2:-warn}"
     local _n
     local -a _raw_nums
     MODULES_TO_RUN=()
+    RESOLVE_INVALID=()
 
     case "${_spec:-go}" in
         log|LOG) MODULES_TO_RUN=("log") ;;
@@ -106,11 +120,94 @@ _resolve_selection() {
                 elif [[ "$_n" == "log" || "$_n" == "bk" || "$_n" == "las" || "$_n" == "mas" ]]; then
                     MODULES_TO_RUN+=("$_n")
                 else
-                    _warn "Module '$_n' is invalid — skipped"
+                    RESOLVE_INVALID+=("$_n")
+                    [[ "$_invalid_mode" == "warn" ]] && _warn "Module '$_n' is invalid — skipped"
                 fi
             done
             ;;
     esac
 
+    (( ${#MODULES_TO_RUN[@]} > 0 ))
+}
+
+# _collect_module_tokens <csv>
+# Validate a plain comma-separated list of module tokens, for the --only/--skip
+# filters. Unlike _resolve_selection there is NO 'go'/whole-string special
+# handling — a filter names concrete modules — so each token must be numeric and
+# present in MODULE_DESC, or one of log|bk|las|mas.
+# Populates the global FILTER_TOKENS (valid tokens, in order) and APPENDS every
+# unknown token to RESOLVE_INVALID (which it does NOT reset — the caller owns it).
+_collect_module_tokens() {
+    local _csv="$1"
+    local _t _valid
+    local -a _toks
+    FILTER_TOKENS=()
+    [[ -z "$_csv" ]] && return 0
+    IFS=',' read -rA _toks <<< "$_csv"
+    for _t in "${_toks[@]}"; do
+        _t="${_t// /}"                       # strip spaces (param expansion: no echo escapes)
+        _valid=0
+        if [[ "$_t" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_t]}" ]]; then
+            _valid=1
+        elif [[ "$_t" == "log" || "$_t" == "bk" || "$_t" == "las" || "$_t" == "mas" ]]; then
+            _valid=1
+        fi
+        if (( _valid )); then
+            FILTER_TOKENS+=("$_t")
+        else
+            RESOLVE_INVALID+=("$_t")
+        fi
+    done
+}
+
+# _resolve_cli <spec> <only_csv> <skip_csv>
+# Build a NON-INTERACTIVE selection, STRICTLY. Resolve <spec> (default 'go'),
+# then — when given — keep only the modules also in <only_csv> (intersection,
+# preserving base order and duplicates), then remove those in <skip_csv>.
+#
+# Strict: any unknown token anywhere (spec, only, skip) is recorded in
+# RESOLVE_INVALID and makes the call fail — nothing is silently skipped, unlike
+# the lenient interactive path. <only_csv>/<skip_csv> are plain module-token
+# lists: they do NOT accept 'go' or the whole-string specials (a bare 'go' in a
+# filter is an unknown token).
+#
+# Populates MODULES_TO_RUN. Returns:
+#   2  → at least one invalid token (caller reports RESOLVE_INVALID and aborts)
+#   1  → all tokens valid but the result is empty (e.g. --skip removed everything)
+#   0  → a non-empty selection
+_resolve_cli() {
+    local _spec="$1" _only="$2" _skip="$3"
+    local _m
+    local -a _base _only_set _skip_set _kept
+
+    # Base resolution in collect mode: silent, base invalids land in RESOLVE_INVALID
+    # (which _resolve_selection resets), so it must run before the filters below.
+    _resolve_selection "${_spec:-go}" collect
+    _base=("${MODULES_TO_RUN[@]}")
+
+    _collect_module_tokens "$_only"; _only_set=("${FILTER_TOKENS[@]}")
+    _collect_module_tokens "$_skip"; _skip_set=("${FILTER_TOKENS[@]}")
+
+    # --only: intersection, keeping base order and duplicates
+    if [[ -n "$_only" ]]; then
+        _kept=()
+        for _m in "${_base[@]}"; do
+            (( ${_only_set[(Ie)$_m]} )) && _kept+=("$_m")
+        done
+        _base=("${_kept[@]}")
+    fi
+
+    # --skip: removal of every occurrence
+    if [[ -n "$_skip" ]]; then
+        _kept=()
+        for _m in "${_base[@]}"; do
+            (( ${_skip_set[(Ie)$_m]} )) || _kept+=("$_m")
+        done
+        _base=("${_kept[@]}")
+    fi
+
+    MODULES_TO_RUN=("${_base[@]}")
+
+    (( ${#RESOLVE_INVALID[@]} > 0 )) && return 2
     (( ${#MODULES_TO_RUN[@]} > 0 ))
 }

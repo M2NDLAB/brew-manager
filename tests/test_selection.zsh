@@ -78,6 +78,62 @@ assert_warn_count() {
     fi
 }
 
+# ── BM-08b helpers: collect mode, RESOLVE_INVALID, and _resolve_cli ──────────
+
+# assert_collect_silent <spec>: an invalid <spec> must produce NO output in
+# 'collect' mode and a warning in 'warn' mode (same list either way).
+assert_collect_silent() {
+    local _spec="$1" _cout _wout
+    _cout="$(_resolve_selection "$_spec" collect 2>&1)"
+    _wout="$(_resolve_selection "$_spec" warn 2>&1)"
+    if [[ -z "$_cout" && -n "$_wout" ]]; then
+        _pass "collect silent / warn loud for '${_spec}'"
+    else
+        _fail "collect/warn for '${_spec}': collect=[${_cout}] warn=[${_wout}]"
+    fi
+}
+
+# assert_sel_invalid <spec> <expected>: RESOLVE_INVALID after resolving <spec>.
+assert_sel_invalid() {
+    local _spec="$1" _expected="$2" _inv
+    _resolve_selection "$_spec" collect >/dev/null 2>&1
+    _inv="${(j: :)RESOLVE_INVALID}"
+    if [[ "$_inv" == "$_expected" ]]; then
+        _pass "sel_invalid(spec='${_spec}') = [${_inv}]"
+    else
+        _fail "sel_invalid(spec='${_spec}') = [${_inv}], expected [${_expected}]"
+    fi
+}
+
+# assert_cli <spec> <only> <skip> <exp_rc> <exp_list>: full non-interactive
+# resolution. Used for rc 0/1 (success / empty) — checks rc AND the module list.
+assert_cli() {
+    local _spec="$1" _only="$2" _skip="$3" _erc="$4" _elist="$5" _rc _list
+    _resolve_cli "$_spec" "$_only" "$_skip" >/dev/null 2>&1
+    _rc=$?
+    _list="${(j: :)MODULES_TO_RUN}"
+    if (( _rc == _erc )) && [[ "$_list" == "$_elist" ]]; then
+        _pass "cli[${_spec}|only=${_only}|skip=${_skip}] rc=${_rc} [${_list}]"
+    else
+        _fail "cli[${_spec}|only=${_only}|skip=${_skip}] rc=${_rc} [${_list}], expected rc=${_erc} [${_elist}]"
+    fi
+}
+
+# assert_cli_strict <spec> <only> <skip> <exp_invalid>: a strict-failure case —
+# rc MUST be 2 and RESOLVE_INVALID MUST list exactly the unknown tokens. The
+# partial module list is intentionally NOT asserted (the caller aborts on rc 2).
+assert_cli_strict() {
+    local _spec="$1" _only="$2" _skip="$3" _einv="$4" _rc _inv
+    _resolve_cli "$_spec" "$_only" "$_skip" >/dev/null 2>&1
+    _rc=$?
+    _inv="${(j: :)RESOLVE_INVALID}"
+    if (( _rc == 2 )) && [[ "$_inv" == "$_einv" ]]; then
+        _pass "cli-strict[${_spec}|only=${_only}|skip=${_skip}] rc=2 invalid=[${_inv}]"
+    else
+        _fail "cli-strict[${_spec}|only=${_only}|skip=${_skip}] rc=${_rc} invalid=[${_inv}], expected rc=2 invalid=[${_einv}]"
+    fi
+}
+
 _ALL="0 1 2 3 4 5 6 7 8 9 10 11 12 13"   # the full 'go' sequence (MODULE_IDS)
 
 # ── go / empty → full sequence ──────────────────────────────────────────────
@@ -151,6 +207,48 @@ assert_warn_count "0,4,5"   0
 assert_list "BK"  "bk"
 assert_list "LAS" "las"
 assert_list "MAS" "mas"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BM-08b — strict non-interactive resolution (_resolve_cli) + collect mode.
+# Values confirmed against the live resolver before being pinned.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# collect mode is silent, warn mode is loud — same list either way
+assert_collect_silent "0,foo,4"
+assert_collect_silent "99"
+
+# RESOLVE_INVALID records the unknown tokens (one per invalid token, in order)
+assert_sel_invalid "0,foo,bar,4" "foo bar"
+assert_sel_invalid "go"          ""
+assert_sel_invalid "0,4,5"       ""
+
+# _resolve_cli base resolution mirrors _resolve_selection
+assert_cli "0,4,5" "" "" 0 "0 4 5"
+assert_cli "go"    "" "" 0 "$_ALL"
+assert_cli ""      "" "" 0 "$_ALL"        # empty spec → go
+assert_cli "log"   "" "" 0 "log"
+
+# --only: intersection with the base, preserving base order and duplicates
+assert_cli "go"    "0,4"   "" 0 "0 4"
+assert_cli "5,2,0" "0,2,5" "" 0 "5 2 0"
+assert_cli "1,1,2" "1"     "" 0 "1 1"
+
+# --skip: removes every occurrence
+assert_cli "go"    "" "5,10" 0 "0 1 2 3 4 6 7 8 9 11 12 13"
+assert_cli "1,1,2" "" "1"    0 "2"
+
+# --only then --skip (only restricts, then skip removes)
+assert_cli "go" "0,4,5" "5" 0 "0 4"
+
+# empty result (all tokens valid) → rc 1, not a strict failure
+assert_cli "5"  ""     "5" 1 ""
+assert_cli "go" "log"  ""  1 ""          # log is not in the 'go' set → intersection empty
+
+# strict: any unknown token anywhere → rc 2, recorded in RESOLVE_INVALID
+assert_cli_strict "0,foo"  ""      ""     "foo"
+assert_cli_strict "go"     "0,foo" ""     "foo"
+assert_cli_strict "go"     ""      "foo"  "foo"
+assert_cli_strict "go"     "go"    ""     "go"   # 'go' is not a valid filter token
 
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""
