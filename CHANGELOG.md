@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rather than silently skipped, so a typo cannot run a different set of modules
   than intended. The interactive menu is unchanged when no selection is passed.
 
+### Fixed
+- Scheduled LaunchAgents now run the modules they were configured for, instead of
+  always falling back to the full sequence. An agent — or a restored agents backup
+  — whose stored module selection is invalid is refused/skipped rather than
+  silently rewritten to run everything.
+- A non-interactive run (a pipe, cron, `ssh host cmd`) without `--yes` now
+  declines every confirmation prompt, so nothing on your system is modified unless
+  you explicitly pass `--yes`. Only an explicit `--yes` — as the scheduled agents
+  use — authorises the tool to act on the built-in defaults.
+
 ## [1.2.0] - 2026-07-14
 
 A safety release. Several actions did not honour `--dry-run`, one module
