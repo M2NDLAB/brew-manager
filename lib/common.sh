@@ -102,10 +102,18 @@ _spinner() {
 _ask() {
     local question="$1"
     local default="${2:-n}"  # second arg sets default: y or n
-    # Non-interactive / --yes mode: use default without prompting
+    # Explicit consent (--yes): take the built-in default without prompting.
     if (( BREW_MANAGER_YES )); then
         echo -e "\n  ${C_CYAN_B}?${NC}  ${C_WHITE}${question}${NC} ${C_GRAY}[auto: ${default}]${NC}"
         [[ "$default" == "y" ]] && return 0 || return 1
+    fi
+    # Non-interactive WITHOUT --yes: NEVER auto-confirm — decline (fail-closed),
+    # rather than read a dead stdin. This is what keeps a destructive default
+    # (e.g. mod_05's cleanup, default y) from running unattended: consent to take
+    # a default comes only from an explicit --yes, never from "there's no tty".
+    if (( BREW_MANAGER_NONINTERACTIVE )); then
+        echo -e "\n  ${C_CYAN_B}?${NC}  ${C_WHITE}${question}${NC} ${C_GRAY}[non-interactive: no]${NC}"
+        return 1
     fi
     echo -e "\n  ${C_CYAN_B}?${NC}  ${C_WHITE}${question}${NC} ${C_GRAY}(y/N)${NC} "
     read -r response
@@ -129,9 +137,17 @@ _read_choice() {
             return
         fi
     fi
-    # Non-interactive: use default
+    # Explicit consent (--yes): use the default without prompting.
     if (( BREW_MANAGER_YES )); then
         echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[auto: ${default}]${NC}" >&2
+        printf '%s\n' "$default"
+        return
+    fi
+    # Non-interactive WITHOUT --yes: use the (safe) default instead of reading a
+    # dead stdin — the same value a --yes run takes, but a per-item _ask still
+    # declines, so nothing is auto-confirmed.
+    if (( BREW_MANAGER_NONINTERACTIVE )); then
+        echo -e "  ${C_CYAN}${SYM_ARR}${NC}  ${prompt} ${C_GRAY}[non-interactive: ${default}]${NC}" >&2
         printf '%s\n' "$default"
         return
     fi
