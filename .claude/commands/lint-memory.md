@@ -40,6 +40,13 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
    problemi aperti di `STATE.md` (e viceversa); il debito accettato dal security
    gate (docs/03) vive in `STATE.md` col motivo; ogni voce di debito ha il suo
    TRIGGER esplicito, non è generica.
+10. **Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili.** Nessuno *slot* da compilare
+    è spezzato dal word-wrap su due righe fisiche: sfuggirebbe al `grep -rn "DA
+    DEFINIRE AL SETUP" .` che li individua, restando non compilato in silenzio.
+    Sentinella: `grep -rn "DA DEFINIRE AL$" .` — ogni hit è un candidato. Falsi
+    positivi NOTI da ignorare (prosa che *discute* il marcatore, non uno slot): i
+    record IMP di `LEARNINGS.md`. Un hit altrove, o che è davvero uno slot fillable,
+    va ricompattato su una sola riga fisica.
 
 ## Output e risoluzione
 Una tabella: **Area | Problema rilevato | Tipo** (disallineamento / contraddizione /
