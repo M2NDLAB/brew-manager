@@ -72,6 +72,30 @@ tags: [improvement]
   restano tracciate in #3b.
 - Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
 
+### IMP-004 — Chiudere una CLASSE di difetto = grep di TUTTI i siti + verifica adversariale
+- Data: 2026-07-17 | Origine: gate BM-08c e il suo re-gate. Due lezioni: (1) ho
+  fixato il fail-open-verso-`go` in `_install_agent` (scheduler) ma ho MANCATO il
+  gemello `_restore_agents` in `mod_bk` — l'altro writer di plist con lo STESSO
+  pattern; il re-gate l'ha trovato (MEDIUM, componente sensibile). (2) Il fix #8
+  toccava una guard-rail di consenso: la mia verifica iniziale FUNZIONALE ("YES
+  sopravvive al re-exec?") non bastava — serviva l'ADVERSARIALE ("cosa ora
+  AUTORIZZA?"), che il gate ha fornito trovando un CRITICAL (auto-conferma di
+  cleanup distruttivo senza --yes).
+- Problema osservato: fixare solo l'istanza sotto mano lascia i gemelli aperti; e
+  una verifica solo funzionale su una guard-rail di sicurezza non vede cosa il fix
+  ora permette. Nessuna regola imponeva l'enumerazione dei siti né la ri-esecuzione
+  del gate dopo un fix sensibile.
+- Proposta: riga in `docs/03-security-gate.md` (o DoD di docs/02): *"Fix di una
+  CLASSE di difetto (un pattern, non un one-off): PRIMA di dichiararla chiusa,
+  `grep` del pattern su TUTTO il codice, enumera i siti, fixa o registra ciascuno.
+  Per un fix a una guard-rail di consenso/sicurezza la verifica include 'cosa
+  questo ora AUTORIZZA?' (adversariale), non solo 'funziona?'. Dopo un fix
+  sostanziale a codice sensibile condiviso, RI-esegui il gate."*
+- Beneficio atteso / rischio: difetti chiusi per classe, non a spizzichi; re-gate
+  come prassi dopo fix sensibili (qui ha trovato il gemello bk). Rischio: minimo —
+  è disciplina di verifica, non codice.
+- Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>

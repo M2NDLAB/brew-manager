@@ -134,9 +134,10 @@ _module_14() {
             local _pl="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^label=" | cut -d= -f2-)"
             local _ps="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^schedule=" | cut -d= -f2-)"
             local _pm="$(printf '%s\n' "$_pd" | tr '|' '\n' | grep "^modules=" | cut -d= -f2-)"
-            # Mirror what the real restore would do, so the preview never lies
-            if [[ ! "$_pm" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
-                _pm="go (bundle value '$_pm' invalid)"
+            # Mirror what the real restore would do, so the preview never lies:
+            # an invalid selection is SKIPPED, not restored (as 'go').
+            if ! _selection_is_valid "$_pm"; then
+                _pm="(invalid '$_pm' — will be skipped)"
             fi
             printf "  ${C_CYAN}${SYM_ARR}${NC}  ${C_WHITE}%-36s${NC}  ${C_GRAY}%-16s${NC}  ${C_CYAN_B}%s${NC}\n" "$_pl" "$_ps" "$_pm"
         done < "$agents_bundle"
@@ -169,12 +170,16 @@ _module_14() {
                 continue
             fi
 
-            # Only the real selection grammar may reach the plist: legacy
-            # mangled values ('--ye') would make the agent exit 2 on every run,
-            # and XML metacharacters would inject into the plist heredoc
-            if [[ ! "$_modules" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
-                _warn "Bundle modules '$_modules' for $_label is invalid — restoring with 'go'"
-                _modules="go"
+            # Only a value the dispatcher REALLY runs may reach the plist —
+            # validated against the same _resolve_cli the agent run uses
+            # (_selection_is_valid, lib/selection.sh). An invalid value is SKIPPED,
+            # NOT substituted with 'go': substituting would silently turn a
+            # mangled/foreign bundle entry into the FULL sequence (incl. the
+            # destructive mod_05 cleanup) running unattended under --yes. This
+            # matches the scheduler's _install_agent, the other plist writer.
+            if ! _selection_is_valid "$_modules"; then
+                _warn "Bundle modules '$_modules' for $_label is not a valid selection — agent skipped"
+                continue
             fi
 
             # Multi-day schedules ('Mon+Wed+Fri') can't round-trip through the

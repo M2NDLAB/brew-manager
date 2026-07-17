@@ -134,6 +134,22 @@ assert_cli_strict() {
     fi
 }
 
+# assert_valid_sel <spec> <exp 0|1>: _selection_is_valid predicate (0=valid), used
+# by mod_las_scheduler to gate a stored agent selection. Also asserts NO global
+# side effect (it runs mid-run at install time — a leak would corrupt the summary).
+assert_valid_sel() {
+    local _spec="$1" _exp="$2" _rc _got=1 _leak=0
+    MODULES_TO_RUN=(SENTINEL); RESOLVE_INVALID=(SENTINEL)
+    _selection_is_valid "$_spec"; _rc=$?
+    (( _rc == 0 )) && _got=0
+    [[ "${MODULES_TO_RUN[*]}" == "SENTINEL" && "${RESOLVE_INVALID[*]}" == "SENTINEL" ]] || _leak=1
+    if (( _got == _exp )) && (( _leak == 0 )); then
+        _pass "valid_sel('${_spec}')=${_got} (no leak)"
+    else
+        _fail "valid_sel('${_spec}')=${_got} leak=${_leak}, expected ${_exp} no-leak"
+    fi
+}
+
 _ALL="0 1 2 3 4 5 6 7 8 9 10 11 12 13"   # the full 'go' sequence (MODULE_IDS)
 
 # ── go / empty → full sequence ──────────────────────────────────────────────
@@ -275,6 +291,30 @@ assert_cli "5,,2"  ""      ""    0 "5 2"
 assert_cli ",5"    ""      ""    0 "5"
 assert_cli "go"    "0,,4"  ""    0 "0 4"
 assert_cli "go"    ""      "5,"  0 "0 1 2 3 4 6 7 8 9 10 11 12 13"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BM-08c — _selection_is_valid: the install-time gate for a stored agent
+# selection (mod_las_scheduler). Same grammar as the agent RUN (_resolve_cli),
+# so what installs is exactly what runs; a value that fails here falls back to a
+# safe explicit 'go'. Must be side-effect free (called mid-run at install time).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# valid stored selections
+assert_valid_sel "go"     0
+assert_valid_sel "GO"     0
+assert_valid_sel "0,1,3"  0
+assert_valid_sel "5"      0
+assert_valid_sel "log"    0
+assert_valid_sel "bk"     0
+assert_valid_sel "0,,4"   0          # tolerated empty tokens still valid
+
+# invalid → caller falls back to 'go' (these would exit 2 as an agent, or inject)
+assert_valid_sel "99"     1          # alphanumeric but not a real module
+assert_valid_sel "foo"    1
+assert_valid_sel "0,99"   1          # one bad token taints the whole selection
+assert_valid_sel "--ye"   1          # flag-shaped legacy value
+assert_valid_sel '0;<x>'  1          # shell/XML metacharacters
+assert_valid_sel ""       1          # empty is not a valid stored selection
 
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""

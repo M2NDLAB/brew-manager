@@ -29,9 +29,13 @@ Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
 - **Restore [3]/[3b] NON rispetta `BREW_MANAGER_DRY_RUN`** (Attenzione #3);
   [3a] restore agenti non chiede NESSUNA conferma y/n (solo gate dry-run).
 - Generazione plist DUPLICATA rispetto a mod_las: una modifica al formato va
-  fatta in ENTRAMBI i punti (candidata a estrazione in lib).
+  fatta in ENTRAMBI i punti (candidata a estrazione in lib). NB (BM-08c): la
+  VALIDAZIONE della selezione è ora unificata — `_restore_agents` e la preview
+  usano `_selection_is_valid` e **SKIPPANO** un agente con modules invalidi
+  (niente più fallback-`go` distruttivo), come `_install_agent` di mod_las.
 - Gli schedule multi-giorno (`Mon+Wed+Fri`) non fanno round-trip nel parsing del
   restore (la feature multi-giorno è comunque scollegata, vedi mod-las).
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-17-bm08c-agent-selection]] (restore agenti valida + skip invalidi)

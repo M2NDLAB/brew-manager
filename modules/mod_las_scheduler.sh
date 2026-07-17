@@ -14,8 +14,9 @@ _module_15() {
     local agents_dir="$BREW_MANAGER_SCRIPT_DIR/agents"
     mkdir -p "$agents_dir" "$plist_dir"
 
-    # Scheduler is inherently interactive — skip in non-interactive/YES mode
-    if (( BREW_MANAGER_YES )); then
+    # Scheduler is inherently interactive — skip whenever we cannot prompt
+    # (--yes OR no usable stdin), so an agent never tries to manage agents.
+    if (( BREW_MANAGER_YES || BREW_MANAGER_NONINTERACTIVE )); then
         _info "Scheduler module skipped in non-interactive mode"
         _info "Run brew_manager.sh manually to configure agents"
         return
@@ -115,17 +116,18 @@ EOF
             "$ts" "$event" "$label" "$note" >> "$agents_dir/agents_activity.log"
     }
 
-    # ── Modules sanitizer: only the real selection grammar may reach a plist
-    # ('go' or comma-separated lowercase tokens). Anything else falls back to
-    # 'go': flag-shaped legacy values ('--ye') make agents exit 2 forever with
-    # the strict CLI parser, and XML metacharacters from an untrusted bundle
-    # would be interpolated RAW into the plist heredoc (structural injection) ──
-    # Grammar = what the dispatcher really accepts: 'go', the named modules
-    # (log/bk/las/mas, any case) and comma-separated numeric lists. Nothing
-    # else — a dash, a space or an XML character never reaches a plist.
+    # ── Modules normalizer for the re-register CONF/listing only. The
+    # authoritative gate that decides what reaches a PLIST is _install_agent,
+    # which validates via _selection_is_valid and REFUSES an invalid value (no
+    # 'go' substitution). Here — adopting an orphan plist into tracking, where the
+    # plist is NOT rewritten — an unrecoverable value is displayed as 'go' as a
+    # placeholder. NOTE: this can make the conf listing disagree with a mangled
+    # plist's real argv (tracked as a known divergence in STATE); it never affects
+    # what an agent EXECUTES. Validity uses the single source of truth,
+    # _selection_is_valid (lib/selection.sh) ──
     _sanitize_agent_modules() {
         local m="$1"
-        if [[ "$m" =~ ^[0-9A-Za-z]+(,[0-9A-Za-z]+)*$ ]]; then
+        if _selection_is_valid "$m"; then
             printf '%s\n' "$m"
         else
             printf '%s\n' "go"
@@ -175,10 +177,15 @@ EOF
             _err "Invalid minute '$minute' (0-59) — agent not installed"
             return 1
         fi
-        local _mods_clean="$(_sanitize_agent_modules "$modules")"
-        if [[ "$_mods_clean" != "$modules" ]]; then
-            _warn "Modules value '$modules' is invalid — using 'go' instead"
-            modules="$_mods_clean"
+        # REFUSE an invalid selection — do NOT substitute 'go'. Falling back to
+        # 'go' would silently turn a typo (or a mangled legacy value on the
+        # migration path) into the FULL sequence, including the destructive
+        # mod_05 cleanup, running unattended under --yes. Validated against the
+        # same _resolve_cli the agent run uses, so what installs is what runs.
+        if ! _selection_is_valid "$modules"; then
+            _err "Modules value '$modules' is not a valid selection — agent not installed"
+            _err "Use 'go', module ids 0-13, or a named module (log/bk/las/mas)"
+            return 1
         fi
 
         if (( BREW_MANAGER_DRY_RUN )); then
@@ -746,7 +753,11 @@ EOF
                                     if [[ -z "$_mg_mods" || "$_mg_mods" == -* ]]; then
                                         _mg_mods="$(grep "^modules=" "$_lp_conf" | cut -d= -f2-)"
                                     fi
-                                    _mg_mods="$(_sanitize_agent_modules "$_mg_mods")"
+                                    # Pass the extracted value RAW: _install_agent
+                                    # validates it and REFUSES if invalid, so a
+                                    # doubly-mangled legacy agent fails migration
+                                    # loudly instead of being silently rewritten to
+                                    # the destructive 'go' sequence.
                                     # Log MIGRATED only on success: a failed reload
                                     # must not be recorded as a repaired agent
                                     if _install_agent "$_lp_label" "$_lp_plist" \

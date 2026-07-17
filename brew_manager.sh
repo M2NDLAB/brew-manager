@@ -96,9 +96,24 @@ ONLY_ANSWER=""   # --only=<ids>: keep only these modules from the selection
 SKIP_ANSWER=""   # --skip=<ids>: drop these modules from the selection
 typeset -a _POSITIONAL=()  # bare module spec tokens (joined with commas below)
 
-# Auto-detect non-interactive (running as LaunchAgent or piped)
-if [[ ! -t 0 ]]; then
-    YES_MODE=1
+# NON_INTERACTIVE marks a run with no usable stdin (a LaunchAgent, a pipe, cron,
+# `ssh host cmd` without -t). Its ONLY job is to keep _ask / _read_choice from
+# blocking on a dead stdin — it is NOT consent. Consent to auto-confirm a
+# prompt's built-in default comes ONLY from an explicit --yes (parsed below): a
+# non-interactive run WITHOUT --yes DENIES every _ask (fail-closed), so a
+# destructive default (e.g. mod_05's cleanup) is never taken unattended.
+#
+# The script re-execs itself under script(1) for logging, and script(1) gives the
+# child a pty (a TTY) — so `! -t 0` is false in the child. We therefore detect on
+# the FIRST launch from the real stdin and, in the re-exec'd child (RECORDING
+# set), trust the parent's internal handoff BREW_MANAGER_NONINTERACTIVE instead.
+# That handoff never grants consent and is only read inside the re-exec, so a
+# stale value in the environment cannot silence prompts on a fresh interactive run.
+NON_INTERACTIVE=0
+if [[ -z "$BREW_MANAGER_RECORDING" ]]; then
+    [[ ! -t 0 ]] && NON_INTERACTIVE=1
+else
+    [[ "${BREW_MANAGER_NONINTERACTIVE:-0}" == "1" ]] && NON_INTERACTIVE=1
 fi
 
 for _arg in "$@"; do
@@ -134,7 +149,10 @@ CLI_SELECTION=0
 [[ -n "$SELECTION_SPEC" || -n "$ONLY_ANSWER" || -n "$SKIP_ANSWER" ]] && CLI_SELECTION=1
 
 export BREW_MANAGER_DRY_RUN=$DRY_RUN
+# Overwrite any inherited value: ONLY an explicit --yes on THIS invocation sets it,
+# so a stale BREW_MANAGER_YES in the environment can never auto-confirm prompts.
 export BREW_MANAGER_YES=$YES_MODE
+export BREW_MANAGER_NONINTERACTIVE=$NON_INTERACTIVE
 # Export RAW values (empty when the flag was not passed): a non-empty default
 # here would make _read_choice's override branch always fire, killing the
 # interactive prompt. Consumers apply their own 'n' default (${VAR:-n}).
@@ -331,7 +349,10 @@ if (( DRY_RUN )); then
 fi
 if (( YES_MODE )); then
     echo ""
-    echo -e "  ${C_CYAN}${SYM_INFO}${NC}  ${C_GRAY}Non-interactive mode — all prompts use built-in defaults${NC}"
+    echo -e "  ${C_CYAN}${SYM_INFO}${NC}  ${C_GRAY}Non-interactive mode (--yes) — all prompts use built-in defaults${NC}"
+elif (( NON_INTERACTIVE )); then
+    echo ""
+    echo -e "  ${C_CYAN}${SYM_INFO}${NC}  ${C_GRAY}Non-interactive, no --yes — every prompt is declined, nothing is modified${NC}"
 fi
 echo ""
 

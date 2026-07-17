@@ -273,6 +273,14 @@ Legenda campi di ogni task:
 - Non-regressione: installare agente con selezione read-only, forzarne l'esecuzione
   (`launchctl start`), leggere `agent_stdout_*` e confermare che `mod_05` non è girato.
 - Commit: `fix(scheduler): route agent runs through selection resolver`
+- **Status: COMPLETATO 2026-07-17 → CHIUDE M2** — branch `fix/agent-selection`,
+  commit `7f4f218` (NON_INTERACTIVE ≠ consenso, chiude #8) + `cd110d4` (scheduler
+  rifiuta invalidi) + `d1a5e2b` (gemello bk). 96 test. **Gate + RE-gate PASSATI**:
+  il 1° fix #8 introdusse un CRITICAL (auto-conferma cleanup distruttivo senza
+  --yes) → branch resettato, rifatto separando NON_INTERACTIVE da YES_MODE
+  ([[2026-07-17-consent-vs-noninteractive]]); re-gate confermò corretto+completo
+  salvo il gemello bk (fixato). Chiude Attenzione #1/#8/#9. In attesa di
+  integrazione. → [[sessions/2026-07-17-bm08c-agent-selection]].
 
 ---
 

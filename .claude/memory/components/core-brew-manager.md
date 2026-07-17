@@ -28,6 +28,10 @@ il resto del core resta senza test.
     (lenient: warn+skip). Policy "vuoto = fatale" (`_err` + `exit 1`) nel core.
 - Dispatch: numerico → `_module_N` dinamica; speciali → case esplicito
   (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`).
+- **Consenso vs non-interattivo (BM-08c)**: `NON_INTERACTIVE` (da `! -t 0`, o
+  dall'handoff `BREW_MANAGER_NONINTERACTIVE` nel figlio re-exec col pty) NON è
+  consenso — solo `--yes` setta `YES_MODE`. Export di entrambi per i moduli.
+  Vedi [[2026-07-17-consent-vs-noninteractive]], [[lib-common]].
 - Recording: auto-rilancio dentro `script(1)` (guard `BREW_MANAGER_RECORDING`),
   post-processing sed che rimuove escape ANSI; `logs/` con fallback mktemp.
 - Cleanup finale hardcoded dei temporanei `/tmp/brew_*.log`.
@@ -54,3 +58,4 @@ il resto del core resta senza test.
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
 - [[sessions/2026-07-17-bm08a-selection-resolver]] (registry/parser usciti in lib/selection.sh)
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (cattura posizionali + branch CLI)
+- [[sessions/2026-07-17-bm08c-agent-selection]] (NON_INTERACTIVE vs YES_MODE)
