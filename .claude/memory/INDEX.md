@@ -14,9 +14,9 @@ tags: [moc]
 ## Stato
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA
-  (review-agent in allow-list); 2 proposte APERTE — IMP-002 (checklist superficie
-  del contratto per i test), IMP-003 (convenzione: mai echo su dati, gate BM-08b)
+- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
+  3 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  dati), IMP-004 (chiudi la CLASSE: grep tutti i siti + verifica adversariale)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -65,6 +65,9 @@ tags: [moc]
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] — BM-08b: dispatch posizionale
   + `--only`/`--skip` (API stretta `_resolve_cli`), 74 test, gate con 2 MEDIUM
   fail-open del tokenizer fixati (escape/newline), IMP-003 registrata
+- [[sessions/2026-07-17-bm08c-agent-selection]] — BM-08c (chiude M2): agenti via
+  resolver + consenso fail-closed (NON_INTERACTIVE ≠ YES_MODE). Il 1° fix #8 fu un
+  CRITICAL preso dal gate → rifatto; re-gate trovò il gemello bk. IMP-004
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -76,9 +79,11 @@ tags: [moc]
   come arricchimento + make version-check anti-drift
 - [[2026-07-17-selection-resolver-contract]] — BM-08a: home lib/selection.sh,
   contratto ad array globale (non stdout), return 0/1, harness zsh (no bats)
+- [[2026-07-17-consent-vs-noninteractive]] — BM-08c: NON_INTERACTIVE (anti-blocco)
+  separato da YES_MODE (solo --yes); "non c'è tty" ≠ consenso
 
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 in corso** — BM-08a integrato, BM-08b
-  COMPLETO (in attesa di integrazione), prossimo BM-08c. Un task per volta.
+  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 CHIUSO** (BM-08a/b integrati, BM-08c in
+  attesa di integrazione). Prossimo: M3 (TUI) o release, decisione utente.

@@ -30,6 +30,10 @@ del tokenizer trovati e fixati).
   duplicati della base preservati; i filtri sono liste di moduli concreti (no `go`).
 - `_collect_module_tokens <csv>`: valida i token di un filtro → `FILTER_TOKENS`
   (validi) + append a `RESOLVE_INVALID` (ignoti).
+- `_selection_is_valid <spec>` (BM-08c): predicato SENZA side effect (delega a
+  `_resolve_cli` in subshell) — 0 sse lo spec è una selezione valida non vuota.
+  UNA sorgente di verità per la grammatica degli agenti (mod_las/mod_bk lo usano
+  per accettare/rifiutare un valore salvato: ciò che valida = ciò che gira).
 
 ## Vincoli e insidie (per chi lo usa o lo modifica)
 - **Contratto ad array globale, non stdout**: `_warn` (lib/common.sh) scrive su
@@ -60,3 +64,4 @@ del tokenizer trovati e fixati).
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-17-bm08a-selection-resolver]] (nascita)
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (API CLI stretta + hardening gate)
+- [[sessions/2026-07-17-bm08c-agent-selection]] (`_selection_is_valid` per gli agenti)

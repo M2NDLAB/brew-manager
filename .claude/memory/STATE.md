@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-17 | Ultimo: **BM-08b (M2, dispatch posizionale + `--only`/`--skip`) COMPLETO su `feat/positional-dispatch` — gate adversariale PASSATO (2 MEDIUM fail-open fixati), in attesa di integrazione** · BM-08a integrato (main `f1e1029`) · v1.2.0 RILASCIATA | Indice: [[INDEX]]
+> Aggiornato: 2026-07-17 | Ultimo: **BM-08c (M2, agenti attraverso il resolver + consenso fail-closed) COMPLETO su `fix/agent-selection` — gate adversariale + RE-gate PASSATI (CRITICAL introdotto e corretto; gemello bk chiuso), in attesa di integrazione. M2 CHIUSO** · BM-08b integrato (main `3ac3f63`) · v1.2.0 RILASCIATA | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -42,23 +42,22 @@ tags: [state]
     su origin; branch `chore/release-v1.2.0` eliminato; `make version-check` verde.
     Merge/tag/push eseguiti dall'utente.
   - [x] Via libera esplicita dell'utente al gate ⛔ pre-M2 (2026-07-17): M2 avviato.
-  - [ ] M2 — resolver di selezione (BM-08a/b/c): la chiave di volta; chiude
-    Attenzione #1 (CLI posizionali + plist scheduler) e #8 (YES_MODE).
-    - [x] **BM-08a** estrazione `_resolve_selection` (parità pura) — **INTEGRATO
-      in main** (merge `f1e1029`). Registry+resolver in `lib/selection.sh`; nasce
-      il testing (`tests/test_selection.zsh`, `make test`). Contratto:
-      [[2026-07-17-selection-resolver-contract]]. Gate adversariale passato.
-    - [x] **BM-08b** dispatch posizionale + `--only`/`--skip` — branch
-      `feat/positional-dispatch`, commit `1e7e735` (API stretta) + `2e34c25`
-      (wiring+README) + `7096d8a` (fix gate). `./brew_manager.sh 0,4,5` esegue
-      non-interattivamente; token ignoto → exit 2; menu interattivo invariato.
-      74 test. **Gate adversariale PASSATO**: injection/parità/guard-rail puliti;
-      **2 MEDIUM fail-open del tokenizer** (escape `\065`→mod_05; virgole vuote →
-      errore vuoto) **fixati** (`${(@s:,:)}`/`${// /}`/skip-empty), + 3 LOW
-      (newline, doc/code, test) risolti. In attesa di integrazione. Chiude la
-      parte CLI di Attenzione #1. → [[sessions/2026-07-17-bm08b-positional-dispatch]].
-    - [ ] **BM-08c** agenti las attraverso `_resolve_cli` — chiude Attenzione #8
-      e la parte scheduler di #1.
+  - [x] **M2 — resolver di selezione (BM-08a/b/c): CHIUSO.** Chiude Attenzione #1
+    (CLI posizionali + plist scheduler), #8 (consenso) e #9 (grammatica agenti).
+    - [x] **BM-08a** estrazione `_resolve_selection` (parità pura) — INTEGRATO in
+      main (merge `f1e1029`). [[2026-07-17-selection-resolver-contract]].
+    - [x] **BM-08b** dispatch posizionale + `--only`/`--skip` — INTEGRATO in main
+      (merge `3ac3f63`). 2 MEDIUM fail-open del tokenizer fixati.
+      → [[sessions/2026-07-17-bm08b-positional-dispatch]].
+    - [x] **BM-08c** agenti attraverso il resolver + consenso fail-closed — branch
+      `fix/agent-selection`, commit `7f4f218` (NON_INTERACTIVE≠consenso) +
+      `cd110d4` (scheduler refuse) + `d1a5e2b` (bk refuse). 96 test (87 selection +
+      9 guardrails). **Gate + RE-gate PASSATI**: il 1° fix #8 introdusse un
+      **CRITICAL** (auto-conferma di cleanup distruttivo senza --yes) → branch
+      resettato e rifatto col fix corretto (separare NON_INTERACTIVE da YES_MODE,
+      [[2026-07-17-consent-vs-noninteractive]]); re-gate confermò corretto+completo
+      salvo il gemello bk (fixato). In attesa di integrazione.
+      → [[sessions/2026-07-17-bm08c-agent-selection]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -78,10 +77,12 @@ tags: [state]
 - Framework di processo `.claude/` (docs, commands, memoria), CLAUDE.md, Makefile,
   hook git (gitleaks + commitlint), CHANGELOG.md. Vedi
   [[sessions/2026-07-11-innesto-note]].
-- Test: `tests/test_selection.zsh` (zsh puro, zero-dip, `make test`, **74 check**
-  con anti-vacuità) copre `_resolve_selection` + `_resolve_cli` + l'hardening del
-  gate. Resto del codice ancora non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt
-  non installati; blocco formattazione predisposto ma commentato nell'hook). CI: assente.
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **96 check** con anti-vacuità):
+  `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
+  `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
+  (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`). Resto del codice non
+  coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
+  formattazione predisposto ma commentato nell'hook). CI: assente.
 
 ## Decisioni prese (non ovvie dal codice)
 - Trunk-based su `main` (integrazione = stabile); `origin/dev` dormiente, non è
@@ -117,23 +118,24 @@ tags: [state]
   VERSION + `make version-check`).
 
 ## Attenzione / problemi aperti
-1. **CLI posizionale: PARTE CLI CHIUSA (BM-08b), parte SCHEDULER aperta** — il
-   dispatch posizionale ora esiste (`./brew_manager.sh 0,4,5`, `--only`/`--skip`,
-   stretto). RESTA APERTO: i plist di `mod_las_scheduler` passano i moduli come
-   argomenti ma NON sono ancora instradati per `_resolve_cli`; un agente in non-TTY
-   degrada ancora a `go --yes` (include mod_05 autoremove+cleanup SENZA conferma).
-   NUOVO (gate BM-08b, INFO): il posizionale permette anche a un caller non-TTY di
-   puntare un singolo modulo mutante (es. `./brew_manager.sh 5`), che eredita
-   `YES_MODE=1` auto (vedi #8) — reach ampliato di un debito già noto, non un
-   bypass nuovo. → TRIGGER: **BM-08c** (instradare gli agenti + chiudere #8),
-   PRIMA di pubblicizzare gli agenti schedulati.
+1. ~~**CLI posizionale + plist scheduler**~~ **CHIUSO (M2, BM-08b+BM-08c)**: il
+   dispatch posizionale esiste (BM-08b) e gli agenti lo instradano davvero via
+   `_resolve_cli` (BM-08c) — un agente esegue la selezione salvata, non più `go`.
+   Un valore invalido è RIFIUTATO all'install (non più fallback-`go`). Il rischio
+   "non-TTY punta un modulo mutante" è neutralizzato da #8 (consenso): senza
+   `--yes` ogni `_ask` è negata. → residuo: il README documenta la CLI posizionale
+   (BM-08b) ma NON lo scheduling per-modulo come feature pubblicizzata — ok così.
 2. ~~**Off-by-one zsh (array 1-based)**~~ **CHIUSO**: adozione mod_00 (BM-04, col
    canale di selezione morto su tutte le release), weekday in las/bk + selezione
    Modify/Remove dello scheduler (BM-05a), contatore mod_09 (BM-05b). La regola
    by-convention resta in CLAUDE.md per il codice nuovo.
 3. **DRY_RUN non uniforme**: ~~mod_05~~ (risolto in BM-02), ~~restore bk
    [3]/[3b]~~ (risolto in BM-03); resta `brew install mas` non gated in
-   mod_mas. → TRIGGER: qualunque modifica a mod_mas deve prima chiudere il gap.
+   mod_mas; e (gate BM-08c) `mod_02` esegue `brew update` INCONDIZIONATAMENTE — no
+   `_ask`, non gated da `--dry-run`: gira anche con `2 --dry-run` e in non-TTY. È
+   refresh di metadati (nessun install/rimozione/file utente), ma è comunque una
+   mutazione fuori dal contratto DRY_RUN/consenso. → TRIGGER: primo intervento su
+   mod_02 o mod_mas.
 3b. **Echo intermedio sui dati espande gli escape** (LOW, gate BM-03): l'echo
    builtin zsh converte `\e`/`\0NN`/`\x..`. Istanza nel resolver **CHIUSA in
    BM-08b** (era un bypass MEDIUM: `\065`→mod_05; ora `${(@s:,:)}`/`${// /}`).
@@ -171,30 +173,23 @@ tags: [state]
 7. Secret scanning attivo solo sui commit nuovi (`gitleaks protect --staged`):
    la storia git preesistente non è mai stata scansionata. → TRIGGER: one-off
    `gitleaks detect` alla prima occasione utile (repo pubblico: basso rischio).
-8. **YES_MODE auto-detect perso nel re-exec script(1)** (MEDIUM, security review
-   BM-02, debito accettato): il processo esterno rileva stdin non-TTY e setta
-   YES_MODE=1, ma il figlio sotto script(1) ri-parsa i flag con stdin=pty (→ TTY)
-   e lo azzera. Run non-TTY SENZA --yes: le _ask leggono un pty a EOF → hang o
-   skip silenzioso (fail-closed; con la conferma di BM-02 ora tocca anche mod_05).
-   I LaunchAgent passano --yes espliciti: NON impattati. Fix candidato (1 riga in
-   brew_manager.sh): `[[ ! -t 0 || "${BREW_MANAGER_YES:-0}" == 1 ]] && YES_MODE=1`.
-   INTERAZIONE NUOVA (gate BM-04): con l'_ask per-app dell'adozione,
-   `--adopt=all` SENZA --yes esplicito in non-TTY salta ogni adozione
-   (fail-closed); il README (~riga 101, "without asking") va riallineato in
-   BM-19. AMPLIAMENTO (gate BM-08b, INFO): il posizionale ora permette a un
-   caller non-TTY di puntare un SINGOLO modulo mutante (`./brew_manager.sh 5`),
-   che eredita lo stesso YES auto — reach più ampio, stesso fix. → TRIGGER:
-   BM-08c (decisione utente confermata 2026-07-13).
-9. ~~Flag CLI ignoti ignorati in silenzio~~ **RISOLTO** (micro-task 0e48373,
-   2026-07-13): flag ignoti e lookalike Unicode → errore + exit 2. RESIDUI
-   ANCORA APERTI (LOW, fail-safe): typo nei VALORI (`--upgrade=yes` degrada in
-   silenzio a `n`) — BM-08b NON l'ha toccato (scope: selezione, non valori dei
-   flag), resta candidato a un task dedicato; plist legacy con `modules` corrotto
-   (es. `--ye` dal mangling tr dell'integrity re-register, che storpia anche
-   go→o) ora fallirebbe con exit 2 a ogni run schedulato → sanificare l'estrazione
-   in mod_las (ambito BM-08c / integrity). NB: i token della SELEZIONE sono ora
-   induriti (escape/newline, BM-08b), ma la sanificazione dell'estrazione da
-   plist resta a monte, in mod_las.
+8. ~~**YES_MODE perso nel re-exec script(1)**~~ **CHIUSO (BM-08c)**, ma NON col fix
+   "candidato" originale — che il gate ha bocciato come CRITICAL (avrebbe
+   auto-confermato i default distruttivi senza --yes). Chiuso separando
+   **NON_INTERACTIVE** (solo anti-blocco) da **YES_MODE** (solo --yes): una run
+   non-TTY senza --yes ora NEGA ogni `_ask` (fail-closed, anche default `y`); un
+   `BREW_MANAGER_YES` stale in env è sovrascritto. I LaunchAgent (--yes) eseguono
+   la loro selezione. Decisione: [[2026-07-17-consent-vs-noninteractive]].
+   INVARIANTE nuova: "non c'è tty" ≠ "consenso" — un modulo che muta SENZA passare
+   per `_ask` NON è coperto (vedi #12 mod_02).
+9. ~~Flag CLI ignoti ignorati in silenzio~~ **RISOLTO** (micro-task 0e48373).
+   ~~plist legacy con `modules` corrotto → exit 2 a ogni run~~ **CHIUSO (BM-08c)**:
+   `_install_agent` (scheduler) e `_restore_agents`/preview (bk) validano con
+   `_selection_is_valid` e RIFIUTANO/SKIPPANO un valore invalido invece di
+   installare (niente più `go`-fallback distruttivo né exit-2 inerte). RESIDUO
+   ANCORA APERTO (LOW): typo nei VALORI dei flag (`--upgrade=yes` degrada in
+   silenzio a `n`) — mai toccato (scope selezione, non valori), candidato a un
+   task dedicato.
 10. `_ask` mostra sempre "(y/N)" anche con default y, e "Runs only after
    confirmation" vale solo interattivamente (LOW, lib condivisa). → TRIGGER:
    UX conferme in BM-10/BM-16.
@@ -202,19 +197,34 @@ tags: [state]
    O_TRUNC segue i symlink — su Mac multi-utente un altro utente locale può
    pre-piazzare un symlink. Pre-esistente in più moduli. → TRIGGER: BM-07
    (refactor) o un pass di hardening dedicato: mktemp per-run.
+12. **Re-register: divergenza conf/plist** (LOW, PRE-ESISTENTE, gate BM-08c): la
+   re-register (mod_las) estrae i moduli con `grep -A1 brew_manager.sh | tail -1`
+   → legge SOLO il primo `<string>` positionale. Un plist artefatto con due arg
+   posizionali (`<string>3</string><string>5</string>`) è registrato nel conf come
+   `modules=3` mentre l'agente esegue `3,5` (5=cleanup). Richiede un plist
+   manipolato a mano (brew-manager ne genera sempre UNO). Il listato under-reporta;
+   non cambia l'esecuzione. → TRIGGER: hardening re-register / BM-14 (viste report):
+   estrarre TUTTI i `<string>` fino al primo `--flag`.
+13. **Label injection sul path recreate** (LOW, PRE-ESISTENTE, gate BM-08c): il
+   heredoc del plist interpola `${label}` RAW; sui path recreate/re-register il
+   label viene da un filename/conf non fidato (solo il suffisso INTERATTIVO è
+   validato `^[A-Za-z0-9._-]+$`). Un plist/conf manipolato con metacaratteri XML
+   nel label potrebbe iniettare struttura. → TRIGGER: hardening mod_las — validare
+   il label anche sui path non-interattivi (stessa forma del suffisso).
 - [[LEARNINGS]]: IMP-001 APPLICATA; **IMP-002** (checklist superficie del
-  contratto per i test) e **IMP-003** (convenzione: mai echo su dati) APERTE,
+  contratto per i test), **IMP-003** (mai echo su dati) e **IMP-004** (chiudi la
+  CLASSE: grep tutti i siti + verifica adversariale + re-gate) APERTE,
   propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `f1e1029` (BM-08a
-  integrato), allineato a `origin/main`; tag `v1.2.0` (annotato) + `v1.1.2-baseline`.
-- **feat/positional-dispatch** = BM-08b COMPLETO (commit `1e7e735` + `2e34c25` +
-  `7096d8a` fix gate + il commit di checkpoint), gate passato. In attesa di merge
-  dell'utente (blocco `/integrate`).
-- **refactor/selection-resolver** = BM-08a, MERGIATO in main (`f1e1029`); il branch
+- **main** = integrazione + stabile (trunk-based); HEAD `3ac3f63` (BM-08a + BM-08b
+  integrati), allineato a `origin/main`; tag `v1.2.0` (annotato) + `v1.1.2-baseline`.
+  In `CHANGELOG [Unreleased]`: la CLI posizionale (BM-08b), da promuovere a v1.3.0
+  alla prossima release.
+- **fix/agent-selection** = BM-08c COMPLETO (commit `7f4f218` consenso + `cd110d4`
+  scheduler + `d1a5e2b` bk + il commit di checkpoint), gate + re-gate passati. In
+  attesa di merge dell'utente (blocco `/integrate`). **Chiude M2.**
+- **feat/positional-dispatch** = BM-08b, MERGIATO in main (`3ac3f63`); il branch
   andava eliminato al merge (`git branch -d`).
-- **chore/memory-reconcile-v1.2.0** = superato dal checkpoint di BM-08a, da
-  scartare se ancora presente (`git branch -D`).
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

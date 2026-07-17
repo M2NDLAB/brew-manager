@@ -46,6 +46,7 @@ tags: [structure]
 │   ├── README.md
 │   └── reset-task.sh
 ├── tests
+│   ├── test_guardrails.zsh
 │   └── test_selection.zsh
 ├── brew_manager.sh
 ├── CHANGELOG.md
@@ -57,7 +58,7 @@ tags: [structure]
 ├── SECURITY.md
 └── VERSION
 
-5 directories, 34 files
+5 directories, 35 files
 ```
 
 ## Legenda directory chiave
