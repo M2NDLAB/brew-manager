@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-07-12
+updated: 2026-07-17
 branch: main
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-14 | Ultimo: **release v1.2.0 pronta — attende merge+tag+push dell'utente** | Indice: [[INDEX]]
+> Aggiornato: 2026-07-17 | Ultimo: **BM-08a (M2, resolver `_resolve_selection`) COMPLETO su `refactor/selection-resolver` — gate adversariale PASSATO, in attesa di integrazione** · v1.2.0 già RILASCIATA | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -37,20 +37,37 @@ tags: [state]
   - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
   - [x] Decisione utente 2026-07-14: **si rilascia v1.2.0 ORA** (strada A), M2 dopo.
   - [x] BM-19 RISTRETTO: INTEGRATO in main (merge 3e7b462).
-  - [x] Release v1.2.0 PREPARATA — branch `chore/release-v1.2.0`, commit 0dcb072
-    (VERSION → 1.2.0, CHANGELOG [1.2.0]). Attende merge + `git tag -a v1.2.0` +
-    push (li esegue l'utente).
-  - [ ] ⛔ **STOP dopo il push di v1.2.0**: M2 (BM-08a) parte SOLO su via libera
-    esplicita dell'utente.
+  - [x] Release v1.2.0 **RILASCIATA** (2026-07-17): merge `c5dc3a5` in main, tag
+    **annotato** `v1.2.0` (→ c5dc3a5) creato e pushato; `origin/main == main`, tag
+    su origin; branch `chore/release-v1.2.0` eliminato; `make version-check` verde.
+    Merge/tag/push eseguiti dall'utente.
+  - [x] Via libera esplicita dell'utente al gate ⛔ pre-M2 (2026-07-17): M2 avviato.
   - [ ] M2 — resolver di selezione (BM-08a/b/c): la chiave di volta; chiude
     Attenzione #1 (CLI posizionali + plist scheduler) e #8 (YES_MODE).
+    - [x] **BM-08a** estrazione `_resolve_selection` (parità pura) — branch
+      `refactor/selection-resolver`, commit refactor `3ff6cfc` + hardening test
+      `4e1b6f1`. Registry+resolver in `lib/selection.sh` (nuovo); nasce il testing
+      (`tests/test_selection.zsh`, 43 check, `make test`). Contratto:
+      [[2026-07-17-selection-resolver-contract]]. **Gate adversariale PASSATO**
+      (parità/injection/scope puliti; 5 finding test-adequacy LOW/INFO risolti,
+      non accettati come debito; chiusura provata per mutazione). In attesa di
+      integrazione (merge dell'utente).
+    - [ ] **BM-08b** dispatch posizionale + `--only`/`--skip` — PUNTA a
+      [[2026-07-17-selection-resolver-contract]]. Dovrà spostare il source di
+      `selection.sh`/il punto di chiamata (il parsing CLI avviene prima che
+      MODULE_DESC sia definito). Chiude Attenzione #1.
+    - [ ] **BM-08c** agenti las attraverso il resolver — chiude Attenzione #8.
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
 - `brew_manager.sh` — entry point TUI, stabile; dispatch, parsing flag, recording
-  sessione via script(1). Vedi [[core-brew-manager]].
+  sessione via script(1). Dal BM-08a la selezione passa per `_resolve_selection`.
+  Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Vedi [[lib-common]].
+- `lib/selection.sh` (dal BM-08a) — registry `MODULE_DESC`/`MODULE_IDS` +
+  `_resolve_selection`; infrastruttura di dispatch condivisa (sensibile). Vedi
+  [[lib-selection]].
 - 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
   `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
   las, log, mas. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
@@ -58,8 +75,10 @@ tags: [state]
 - Framework di processo `.claude/` (docs, commands, memoria), CLAUDE.md, Makefile,
   hook git (gitleaks + commitlint), CHANGELOG.md. Vedi
   [[sessions/2026-07-11-innesto-note]].
-- Test: ASSENTI. Linter/formatter: ASSENTI (shellcheck/shfmt non installati;
-  blocco formattazione predisposto ma commentato nell'hook). CI: assente.
+- Test: PRIMO harness dal BM-08a — `tests/test_selection.zsh` (zsh puro,
+  zero-dip, `make test`, 43 check con anti-vacuità) copre `_resolve_selection`.
+  Resto del codice ancora non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt
+  non installati; blocco formattazione predisposto ma commentato nell'hook). CI: assente.
 
 ## Decisioni prese (non ovvie dal codice)
 - Trunk-based su `main` (integrazione = stabile); `origin/dev` dormiente, non è
@@ -84,7 +103,9 @@ tags: [state]
   documentati `--version`/`-V` e SECURITY.md/VERSION/CHANGELOG.
 - **Resta aperto**: quando M2 implementerà la selezione da CLI e lo scheduling
   per-modulo, il README va riaggiornato (le avvertenze "Not yet supported" vanno
-  rimosse) → parte residua di BM-19.
+  rimosse) → parte residua di BM-19. Nota: **BM-08a NON tocca il README** — è un
+  refactor a parità pura, comportamento utente invariato; il debito CLI si salda in
+  **BM-08b** (quando il posizionale esisterà davvero).
 - README "Project structure": non cita `SECURITY.md` né i file del framework
   (CLAUDE.md, Makefile, scripts/, .claude/) — da aggiornare al primo ritocco del README.
 - README "Adding a new module": promette invocabilità da CLI inesistente (stessa
@@ -99,6 +120,11 @@ tags: [state]
    ignorano e in non-TTY degradano a `go --yes`, che include mod_05
    (autoremove+cleanup SENZA conferma). → TRIGGER: bloccante per qualunque lavoro
    su scheduler/CLI; da risolvere PRIMA di pubblicizzare gli agenti schedulati.
+   AGGIORNAMENTO (BM-08a): la FONDAZIONE esiste — `_resolve_selection` in
+   `lib/selection.sh` centralizza la selezione. Il dispatch posizionale vero e
+   proprio (`./brew_manager.sh 0,4,5`) resta da implementare in **BM-08b**, e la
+   messa in sicurezza degli agenti in **BM-08c**. Fino ad allora il difetto è
+   invariato.
 2. ~~**Off-by-one zsh (array 1-based)**~~ **CHIUSO**: adozione mod_00 (BM-04, col
    canale di selezione morto su tutte le release), weekday in las/bk + selezione
    Modify/Remove dello scheduler (BM-05a), contatore mod_09 (BM-05b). La regola
@@ -121,10 +147,11 @@ tags: [state]
    incondizionato, quindi una run schedulata che fallisce riporta comunque
    successo a chi la monitora. Cambiare il contratto di exit tocca TUTTI i
    moduli. → TRIGGER: decisione utente (candidato a BM-08/BM-18 doctor).
-5. **Tag esistenti lightweight** (v1.1.1, v1.1.2), il framework prevede tag
-   annotati per /integrate e git describe. → TRIGGER: dal prossimo tag si usa
-   `git tag -a` (i vecchi restano com'erano). Nota: `v1.1.2-baseline` è annotato
-   ed è un tag HELPER, escluso dal `git describe` del tool (vedi BM-07).
+5. ~~**Tag esistenti lightweight**~~ **CONVENZIONE IN VIGORE da v1.2.0**: `v1.2.0`
+   è il primo tag di release **annotato** (i legacy v1.1.1/v1.1.2 restano
+   lightweight, com'erano). Ogni release futura usa `git tag -a`. Nota:
+   `v1.1.2-baseline` è annotato ed è un tag HELPER, escluso dal `git describe` del
+   tool (vedi BM-07).
 5b. **VERSION e tag devono restare allineati**: `make version-check` fallisce se
    divergono. Alla release: aggiornare `VERSION` e taggare nello STESSO commit,
    e spostare `[Unreleased]` del CHANGELOG sotto la nuova versione.
@@ -170,9 +197,14 @@ tags: [state]
   vuoto alla nascita, le IMP del progetto partono da 001.
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); include innesto (7893f87) e
-  BM-01 (3d3af76); tag `v1.1.2-baseline`.
-- **chore/release-v1.2.0** = release PRONTA (0dcb072), in attesa di merge + tag
-  annotato `v1.2.0` + push (li esegue l'utente).
+- **main** = integrazione + stabile (trunk-based); HEAD `c5dc3a5`, allineato a
+  `origin/main`; tag di release `v1.2.0` (annotato) + `v1.1.2-baseline`.
+- **refactor/selection-resolver** = BM-08a COMPLETO (commit `3ff6cfc` refactor +
+  `4e1b6f1` hardening test + il commit di checkpoint), gate passato. In attesa di
+  merge dell'utente (blocco `/integrate`).
+- **chore/memory-reconcile-v1.2.0** = branch di sola riconciliazione memoria della
+  release (commit `2fab35c`) — **SUPERATO da questo checkpoint**, che riscrive
+  STATE alla realtà completa. Da SCARTARE (non mergiare): il suo contenuto è
+  sussunto qui. `git branch -D chore/memory-reconcile-v1.2.0`.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

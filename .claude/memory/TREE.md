@@ -1,6 +1,6 @@
 ---
 type: tree
-updated: 2026-07-12
+updated: 2026-07-17
 generated-by: /checkpoint
 tags: [structure]
 ---
@@ -20,7 +20,8 @@ tags: [structure]
 .
 ├── lib
 │   ├── common.sh
-│   └── log.sh
+│   ├── log.sh
+│   └── selection.sh
 ├── modules
 │   ├── mod_00_audit.sh
 │   ├── mod_01_health.sh
@@ -44,6 +45,8 @@ tags: [structure]
 │   ├── hooks-install.sh
 │   ├── README.md
 │   └── reset-task.sh
+├── tests
+│   └── test_selection.zsh
 ├── brew_manager.sh
 ├── CHANGELOG.md
 ├── CLAUDE.md
@@ -51,9 +54,10 @@ tags: [structure]
 ├── LICENSE
 ├── Makefile
 ├── README.md
-└── SECURITY.md
+├── SECURITY.md
+└── VERSION
 
-4 directories, 31 files
+5 directories, 34 files
 ```
 
 ## Legenda directory chiave
@@ -62,9 +66,10 @@ tags: [structure]
 | .claude/docs/ | documentazione di processo (il "metodo") — caricare solo i file rilevanti |
 | .claude/commands/ | slash command del metodo — l'elenco autorevole è in `CLAUDE.md`, "Comandi rapidi" |
 | .claude/memory/ | questa memoria: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
-| lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) |
+| lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) + registry/resolver di selezione ([[lib-selection]]) |
 | modules/ | i 18 moduli (funzioni sourcate): 14 numerici `mod_00`–`mod_13` (sequenza `go`) + 4 speciali per nome (`bk`, `las`, `log`, `mas`) |
 | scripts/ | script di processo del framework (hooks-install, reset-task) — NON script applicativi |
+| tests/ | test del progetto (harness zsh, zero-dip, `make test`): `test_selection.zsh` copre il resolver ([[lib-selection]]) |
 | logs/ (ignorata) | log di sessione `brew_report_*.log` generati via script(1) |
 | backups/ (ignorata) | Brewfile e bundle agenti prodotti dal modulo `bk` |
 | agents/ (ignorata) | conf e activity log dei LaunchAgent del modulo `las` |
