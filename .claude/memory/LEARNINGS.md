@@ -17,6 +17,14 @@ tags: [improvement]
 > brownfield osservate durante l'innesto sono materiale per il FRAMEWORK, non per
 > questo progetto: sono annotate in
 > [[sessions/2026-07-11-innesto-note]].
+>
+> **Attributo `Destinazione: framework`.** In un progetto-CLIENTE una IMP può
+> riguardare il FRAMEWORK invece che questo progetto: si marca con la riga
+> `- Destinazione: framework` (riga fisica singola, così `/harvest-framework` la
+> raccoglie via grep). Omessa = lezione-di-questo-progetto, che resta nel cliente.
+> È un attributo di DESTINAZIONE, non un livello: la lezione resta di Livello 2 —
+> vedi `docs/06-self-improvement.md`, *"Il ponte verso il framework"*. NEL REPO DEL
+> FRAMEWORK l'attributo è moot (ogni IMP è già framework) e non si usa sulle voci.
 
 ## Proposte APERTE (in attesa di decisione utente)
 
@@ -103,6 +111,8 @@ tags: [improvement]
 - Proposta: <cosa cambiare e dove: CLAUDE.md / docs/NN / comando / hook / processo>
 - Beneficio atteso / rischio:
 - Trigger di ripresa: <se non è applicabile subito: quale evento la fa tornare in gioco>
+- Destinazione: framework   (OPZIONALE — solo se la lezione va fatta risalire al
+                             framework; riga fisica singola per il grep di /harvest-framework)
 -->
 
 ## Applicate

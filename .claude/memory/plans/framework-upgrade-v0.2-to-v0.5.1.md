@@ -39,8 +39,8 @@ framework v0.5.0.
       test-hooks-install.sh + Makefile test-scripts + VERIFICA FUNZIONALE REALE — commit: (questo)
 - [x] 3. Pacchetto harvest lato metodo (docs/06 + poda R1, harvest-framework.md + poda,
       CLAUDE.md +/harvest-framework) — commit: (questo)
-- [ ] 4. LEARNINGS header: attributo Destinazione:framework (eccezione memoria isolata,
-      MAI le voci IMP) — commit: —
+- [x] 4. LEARNINGS header: attributo Destinazione:framework (eccezione memoria isolata,
+      MAI le voci IMP) — commit: (questo)
 - [ ] 5. Passo 4/5: audit marcatori + INVARIANTE memoria (git diff mostrato) + /lint-memory
       + make check/test — commit: —
 - [ ] 6. Passo 6: /checkpoint (STATE→v0.5.1, nota sessione, TREE) + blocco /integrate (no tag) — commit: —
