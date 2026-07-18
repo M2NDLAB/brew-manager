@@ -54,6 +54,12 @@ tags: [improvement]
   strictness sui token vuoti (`0,4,` → errore col nome vuoto) — esattamente un
   caso di "bordo/molteplicità" che la checklist IMP-002 avrebbe fatto scrivere
   a monte. Segnale a favore dell'adozione.
+- **Rafforzata dalla verifica README v1.3.0** (2026-07-18): il claim "unknown
+  module token → exit non-zero" era stato scritto asserendo l'exit del FIGLIO
+  (rc=2 di `_resolve_cli`, unit-testato) ma mai quello END-TO-END del processo
+  che l'utente invoca: il wrapper script(1) perde l'exit 2 del figlio nella
+  strip ANSI e il parent esce 0. È il punto (a) della checklist — "exit code per
+  OGNI esito" — misurato al bordo REALE del programma, non all'unità interna.
 
 ### IMP-003 — Convenzione: mai `echo` per normalizzare DATI (espande gli escape)
 - Data: 2026-07-17 | Origine: gate di sicurezza BM-08b, finding MEDIUM R1.
