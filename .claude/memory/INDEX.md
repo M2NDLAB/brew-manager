@@ -72,10 +72,14 @@ tags: [moc]
   framework v0.2.0 → v0.5.1 (solo processo): 3 classi di file, invariante memoria = 2
   file, hooks-install 3-vie per-versione con verifica funzionale reale, pacchetto harvest
   (R3), docs/01 omesso (R4), rimandi orfani potati (R1)
-- [[sessions/2026-07-18-readme-v1.3.0]] — README ↔ realtà di v1.3.0 (task 1/2
+- [[sessions/2026-07-18-readme-v1.3.0]] — README ↔ realtà di v1.3.0 (task 1
   pre-release): scheduler per-modulo e fail-closed documentati; 2 claim corretti
   dalla verifica dal vivo (exit del parent perso in script(1), default `y` del
   cleanup sotto `--yes`); IMP-002 rafforzata (exit end-to-end)
+- [[sessions/2026-07-18-exit-code-propagation]] — micro-task pre-release: il
+  parent propaga l'rc del figlio (chiusa la metà parent di #4b; scope solo-A
+  deciso dall'utente); gate adversariale 0 C/H/M, 2 LOW applicati (warning
+  strip, test in sandbox symlink-farm); 102 test
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

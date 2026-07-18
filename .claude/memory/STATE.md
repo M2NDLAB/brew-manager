@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-18 | Ultimo: **README allineato alla realtà di v1.3.0** (branch `docs/readme-v1.3.0`, commit 9ceb69b — in attesa di integrazione; salda il residuo BM-19) · framework v0.5.1 e BM-08c ora INTEGRATI in main (`45bf4bc`, `b929a23`) · Decisione utente 2026-07-18: **release v1.3.0 ORA** (task 2: `chore/release-v1.3.0`) | Indice: [[INDEX]]
+> Aggiornato: 2026-07-18 | Ultimo: **micro-task exit-code propagation** (branch `fix/exit-code-propagation`, 3 commit, gate adversariale PASSATO — in attesa di integrazione; chiude la metà PARENT di Attenzione #4b) · README v1.3.0 INTEGRATO (merge `56cf64d`) · Prossimo: **release v1.3.0** (task 2: `chore/release-v1.3.0`, decisione utente 2026-07-18) | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -60,12 +60,21 @@ tags: [state]
       branch eliminato). → [[sessions/2026-07-17-bm08c-agent-selection]].
   - [x] Upgrade framework v0.2.0 → v0.5.1: INTEGRATO in main (merge `45bf4bc`,
     branch eliminato). → [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]].
-  - [x] **README ↔ realtà di v1.3.0** (2026-07-18, task 1/2 pre-release): scheduler
+  - [x] **README ↔ realtà di v1.3.0** (2026-07-18, task 1 pre-release): scheduler
     per-modulo e invariante fail-closed documentati, 2 claim corretti perché
     smentiti dalla verifica dal vivo (exit del parent, default `y` di mod_05 sotto
-    `--yes`). Branch `docs/readme-v1.3.0` (9ceb69b), in attesa di integrazione.
+    `--yes`). INTEGRATO in main (merge `56cf64d`).
     → [[sessions/2026-07-18-readme-v1.3.0]].
-  - [ ] **Release v1.3.0** (task 2/2, decisione utente 2026-07-18): branch
+  - [x] **Micro-task exit-code propagation** (2026-07-18, inserito dall'utente
+    pre-release): il parent propaga l'rc del figlio attraverso script(1)
+    (`_run_rc` prima della strip ANSI) — `99`→2, selezione vuota→1, segnale→
+    numero grezzo; strip fallita = WARNING, rc invariato. Scope deciso
+    dall'utente: SOLO metà parent di #4b (la metà moduli → BM-18). Gate
+    adversariale passato (0 C/H/M; 2 LOW + 4 INFO applicati). Test end-to-end
+    nuovi (102 totali). README: claim non-zero RIPRISTINATO (ora vero). Branch
+    `fix/exit-code-propagation` (4cef18c+a6d1be9+a3a4ad1), in attesa di
+    integrazione. → [[sessions/2026-07-18-exit-code-propagation]].
+  - [ ] **Release v1.3.0** (task 2, decisione utente 2026-07-18): branch
     `chore/release-v1.3.0` — VERSION→1.3.0, CHANGELOG `[Unreleased]`→`[1.3.0]`,
     blocco `/integrate` con tag annotato; merge/tag/push dell'utente.
 
@@ -91,10 +100,12 @@ tags: [state]
   (hook estranei/`core.hooksPath`/dangling). Vedi
   [[sessions/2026-07-11-innesto-note]] (innesto) e
   [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (upgrade).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **96 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **102 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
-  (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`). Resto del codice non
+  (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
+  `test_exit_codes.zsh` (6) fissa l'exit end-to-end del binario reale (sandbox
+  symlink-farm + mock brew con tripwire). Resto del codice non
   coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
@@ -162,20 +173,18 @@ tags: [state]
 4. ~~**mod_10 greedy**: scope globale + exit code non verificato~~ **RISOLTO** in
    BM-06. Resta lo stesso pattern "successo stampato comunque" in **mod_02** e
    **mod_mas**. → TRIGGER: primo intervento su quei moduli.
-4b. **Il `return` dei moduli è inerte** (LOW, gate BM-06): il dispatcher di
-   `brew_manager.sh` ignora i valori di ritorno e il core termina con `exit 0`
-   incondizionato, quindi una run schedulata che fallisce riporta comunque
-   successo a chi la monitora. Cambiare il contratto di exit tocca TUTTI i
-   moduli. → TRIGGER: decisione utente (candidato a BM-08/BM-18 doctor).
-   **Caso MISURATO in più (2026-07-18, verifica README)**: anche quando il figlio
-   esce ≠0 (token CLI ignoto → exit 2 di `_resolve_cli`), il PARENT lo perde —
-   la strip ANSI tra `script(1)` e `exit $?` (`brew_manager.sh:245-250`) fa sì
-   che `$?` sia l'esito di `mv`, non del figlio → `./brew_manager.sh 99` esce 0.
-   Il claim exit≠0 è stato RIMOSSO dal README (resta vero per i FLAG ignoti,
-   validati pre-recording). Micro-fix candidato: catturare `rc=$?` subito dopo
-   `script` e propagarlo dopo la strip (~2 righe; tocca `brew_manager.sh`,
-   sensibile → gate). → TRIGGER: decisione utente (prima della v1.3.0 o insieme
-   al contratto exit di questo punto).
+4b. **Il `return` dei moduli è inerte** (LOW, gate BM-06) — ora SOLO metà aperta:
+   ~~il PARENT perde l'exit del figlio nella strip ANSI (misurato 2026-07-18:
+   `99` → exit 0)~~ **CHIUSA** dal micro-task exit-code (2026-07-18, scope
+   deciso dall'utente): `_run_rc` catturato dopo `script(1)` e propagato —
+   selezione invalida→2, vuota→1, segnale→numero grezzo, contratto fissato da
+   `tests/test_exit_codes.zsh` e documentato nel README. RESTA APERTA la metà
+   MODULI: il dispatcher ignora i return e il core esce 0 anche se un modulo
+   fallisce a runtime; i return odierni sono RUMORE (mod_02 ritorna 1 su run
+   sane, campionato 2026-07-18) → serve un contratto di return su TUTTI i 18
+   moduli. → TRIGGER: decisione utente (candidato BM-18 doctor). Nota
+   idiosincrasia documentata: Ctrl+C → exit 2 (numero segnale grezzo di
+   script(1) macOS), indistinguibile da "unknown token" per un caller.
 5. ~~**Tag esistenti lightweight**~~ **CONVENZIONE IN VIGORE da v1.2.0**: `v1.2.0`
    è il primo tag di release **annotato** (i legacy v1.1.1/v1.1.2 restano
    lightweight, com'erano). Ogni release futura usa `git tag -a`. Nota:
@@ -241,14 +250,15 @@ tags: [state]
   propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `45bf4bc` (BM-08c mergiato
-  in `b929a23`, framework v0.5.1 in `45bf4bc`), allineato a `origin/main`; tag
-  `v1.2.0` (annotato) + `v1.1.2-baseline`. In `CHANGELOG [Unreleased]`: CLI
-  posizionale (BM-08b) + selezione agenti/consenso (BM-08c), da promuovere a
-  v1.3.0 alla release (task 2).
-- **docs/readme-v1.3.0** = README ↔ realtà di v1.3.0 (commit `9ceb69b` + questo
-  checkpoint). In attesa di merge dell'utente (blocco `/integrate`).
-- **fix/agent-selection**, **feat/positional-dispatch**,
+- **main** = integrazione + stabile (trunk-based); HEAD `56cf64d` (merge del
+  README v1.3.0); tag `v1.2.0` (annotato) + `v1.1.2-baseline`. In
+  `CHANGELOG [Unreleased]`: CLI posizionale (BM-08b) + selezione
+  agenti/consenso (BM-08c) + exit-code propagation, da promuovere a v1.3.0
+  alla release (task 2).
+- **fix/exit-code-propagation** = micro-task exit-code (commit `4cef18c` fix +
+  `a6d1be9` finding gate + `a3a4ad1` README + questo checkpoint), gate
+  adversariale passato. In attesa di merge dell'utente (blocco `/integrate`).
+- **docs/readme-v1.3.0**, **fix/agent-selection**, **feat/positional-dispatch**,
   **chore/framework-upgrade-v0.2-to-v0.5.1** = MERGIATI in main, branch eliminati.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
