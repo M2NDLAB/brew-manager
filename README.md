@@ -100,7 +100,7 @@ Refine a selection with `--only` (keep only these) or `--skip` (remove these):
 ./brew_manager.sh go --only=0,4     # only 0 and 4 out of the full sequence
 ```
 
-An unknown module token is **rejected with an error and a non-zero exit** — never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
+An unknown module token is **rejected with an error and nothing runs** — never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
 
 **Interactively** — start the script with no selection and type your choice at the `Choice` prompt:
 
@@ -132,7 +132,7 @@ Flags change **how** the run behaves and combine with either form:
 
 | Flag | What it does |
 |------|--------------|
-| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. The defaults are conservative: destructive actions default to *no*, so an unattended run inspects and reports rather than modifying. Pass `--adopt=` / `--upgrade=` to opt into specific actions. |
+| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`, and force-upgrades (module `10`), Mac App Store updates and restores stay off. The one deliberate exception is module `5`, whose cleanup prompt defaults to *yes* so a scheduled maintenance run can actually free disk space — add `--skip=5` (or `--dry-run`) if you don't want that. |
 | `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. |
 | `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
@@ -140,9 +140,9 @@ Flags change **how** the run behaves and combine with either form:
 | `--skip=ids` | Removes the listed modules from the selection (e.g. `go --skip=5,10`). Applied after `--only`. |
 | `--version` / `-V` | Prints the version and exits. Inside a git work tree it also shows the distance from the latest release tag. |
 
-An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same holds for an unknown **module** token on the command line: `./brew_manager.sh 99` exits non-zero rather than running a partial, unexpected selection.
+An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` prints an error and runs nothing, rather than a partial, unexpected selection.
 
-> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
@@ -220,7 +220,7 @@ Removes two categories of files that Homebrew accumulates over time:
 - **Orphan dependencies** — formulae that were installed as dependencies of something you removed, but are no longer needed by any installed package. Removed via `brew autoremove`.
 - **Old versions and download cache** — previous versions of upgraded packages and the downloaded archives used to install them. Removed via `brew cleanup -s`.
 
-Nothing is removed until you confirm: the module asks first, and `--dry-run` previews what `brew autoremove` and `brew cleanup -s` would delete (including the space that would be freed) without touching anything.
+Nothing is removed until you confirm: interactively the module requires an explicit `y`, and `--dry-run` previews what `brew autoremove` and `brew cleanup -s` would delete (including the space that would be freed) without touching anything. In an unattended `--yes` run this prompt is deliberately auto-confirmed — freeing space is what a scheduled maintenance run is for; leave `5` out of the selection (or `--skip=5`) if you don't want that.
 
 Cache size is measured before and after so you can see exactly how much space was freed.
 
@@ -342,7 +342,7 @@ Creates and manages portable snapshots of your entire setup — both Homebrew pa
 | `5` — View | Shows saved Brewfile contents with color-coded categories + agents bundle |
 | `6` — Delete | Removes Brewfile, lock file, and/or agents bundle (selectable) |
 
-All three restore options ask for confirmation before writing anything, so in an unattended run (`--yes`) they do nothing: a restore is a deliberate act. Under `--dry-run` they show exactly what would be installed and which agents would be loaded, without executing.
+All three restore options ask for confirmation before writing anything, so in an unattended run (`--yes`) they do nothing: a restore is a deliberate act. Under `--dry-run` they show exactly what would be installed and which agents would be loaded, without executing. When agents are restored, each stored module selection is validated first: an entry that no longer resolves to real modules is skipped with a warning — never silently replaced with the full sequence.
 
 **To move your setup to a new Mac:**
 
@@ -369,7 +369,7 @@ Installs, modifies, and removes macOS LaunchAgents that run brew-manager automat
 
 All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`.
 
-> **What a scheduled agent actually runs:** every agent currently runs the **full standard sequence** (`go`, modules 0 → 13) with `--yes`. The per-agent module selection is stored in the agent's configuration but is **not yet honoured at run time** — even though the command line now understands a module selection, the generated agents do not yet route their stored selection through it. Wiring the scheduler to the selection is planned for a future release. Because the run is unattended, each prompt takes its conservative default, so the agent audits and reports rather than modifying your system.
+> **What a scheduled agent actually runs:** exactly the module selection you configured — the agent's plist invokes `brew_manager.sh <your modules> --yes`, so an agent installed for `8,9` runs modules 8 and 9 and nothing else. The selection is validated whenever an agent is written (install, modify, re-register): a value that does not resolve to real modules is refused — and skipped on restore from a backup — never silently replaced with the full sequence. Scheduled runs are unattended, so each prompt is auto-answered with its built-in default: conservative everywhere except module `5`'s cleanup (see *Available flags*) — schedule `5` only if you want the agent to actually free disk space.
 
 | Option | What it does |
 |--------|--------------|

@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-07-17
-branch: main
+updated: 2026-07-18
+branch: docs/readme-v1.3.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-17 | Ultimo: **Upgrade innesto framework v0.2.0 → v0.5.1** (SOLO processo, branch `chore/framework-upgrade-v0.2-to-v0.5.1`, 7 task; invariante `memory/` rispettata; verifica funzionale hooks-install reale; in attesa di integrazione — bump: nessun tag) · BM-08c M2 CHIUSO (`fix/agent-selection`, in attesa di integrazione) · v1.2.0 RILASCIATA | Indice: [[INDEX]]
+> Aggiornato: 2026-07-18 | Ultimo: **README allineato alla realtà di v1.3.0** (branch `docs/readme-v1.3.0`, commit 9ceb69b — in attesa di integrazione; salda il residuo BM-19) · framework v0.5.1 e BM-08c ora INTEGRATI in main (`45bf4bc`, `b929a23`) · Decisione utente 2026-07-18: **release v1.3.0 ORA** (task 2: `chore/release-v1.3.0`) | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -32,8 +32,8 @@ tags: [state]
   - [x] BM-05a: INTEGRATO in main (merge 5d51b14).
   - [x] BM-05b: INTEGRATO in main (merge d555f54).
   - [x] BM-06: INTEGRATO in main (merge cb234fd).
-  - [x] BM-07 versione a fonte unica + codice morto — branch
-    `refactor/version-deadcode`, commit 3a35309. In attesa di integrazione.
+  - [x] BM-07 versione a fonte unica + codice morto — INTEGRATO in main
+    (commit 3a35309 in main, verificato 2026-07-18; la voce era stale).
   - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
   - [x] Decisione utente 2026-07-14: **si rilascia v1.2.0 ORA** (strada A), M2 dopo.
   - [x] BM-19 RISTRETTO: INTEGRATO in main (merge 3e7b462).
@@ -56,8 +56,18 @@ tags: [state]
       **CRITICAL** (auto-conferma di cleanup distruttivo senza --yes) → branch
       resettato e rifatto col fix corretto (separare NON_INTERACTIVE da YES_MODE,
       [[2026-07-17-consent-vs-noninteractive]]); re-gate confermò corretto+completo
-      salvo il gemello bk (fixato). In attesa di integrazione.
-      → [[sessions/2026-07-17-bm08c-agent-selection]].
+      salvo il gemello bk (fixato). INTEGRATO in main (merge `b929a23`,
+      branch eliminato). → [[sessions/2026-07-17-bm08c-agent-selection]].
+  - [x] Upgrade framework v0.2.0 → v0.5.1: INTEGRATO in main (merge `45bf4bc`,
+    branch eliminato). → [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]].
+  - [x] **README ↔ realtà di v1.3.0** (2026-07-18, task 1/2 pre-release): scheduler
+    per-modulo e invariante fail-closed documentati, 2 claim corretti perché
+    smentiti dalla verifica dal vivo (exit del parent, default `y` di mod_05 sotto
+    `--yes`). Branch `docs/readme-v1.3.0` (9ceb69b), in attesa di integrazione.
+    → [[sessions/2026-07-18-readme-v1.3.0]].
+  - [ ] **Release v1.3.0** (task 2/2, decisione utente 2026-07-18): branch
+    `chore/release-v1.3.0` — VERSION→1.3.0, CHANGELOG `[Unreleased]`→`[1.3.0]`,
+    blocco `/integrate` con tag annotato; merge/tag/push dell'utente.
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -109,15 +119,15 @@ tags: [state]
   gli over-claim (CLI posizionale, scheduling per-modulo, esempi `./brew_manager.sh
   bk`), aggiornati i comportamenti (adozione, cleanup, restore, greedy, integrity),
   documentati `--version`/`-V` e SECURITY.md/VERSION/CHANGELOG.
-- **Resta aperto**: quando M2 implementerà la selezione da CLI e lo scheduling
-  per-modulo, il README va riaggiornato (le avvertenze "Not yet supported" vanno
-  rimosse) → parte residua di BM-19. Nota: **BM-08a NON tocca il README** — è un
-  refactor a parità pura, comportamento utente invariato; il debito CLI si salda in
-  **BM-08b** (quando il posizionale esisterà davvero).
-- README "Project structure": non cita `SECURITY.md` né i file del framework
-  (CLAUDE.md, Makefile, scripts/, .claude/) — da aggiornare al primo ritocco del README.
-- README "Adding a new module": promette invocabilità da CLI inesistente (stessa
-  radice del punto 1).
+- ~~Residuo BM-19: README da riaggiornare quando M2 avrebbe implementato CLI e
+  scheduling per-modulo~~ **SALDATO** (2026-07-18, `docs/readme-v1.3.0` 9ceb69b):
+  scheduling per-modulo documentato come reale (callout las riscritto), invariante
+  fail-closed documentata, validazione restore agenti in bk. La CLI posizionale
+  era già documentata da BM-19+BM-08b. → [[sessions/2026-07-18-readme-v1.3.0]].
+- ~~README "Project structure": non cita SECURITY.md né i file del framework~~ e
+  ~~"Adding a new module": promette CLI inesistente~~ — **voci STALE, già a posto**
+  (verificato 2026-07-18 sul file reale: SECURITY.md e il tooling sono citati;
+  la sezione moduli descrive il resolver reale). Chiuse.
 - ~~`BREW_MANAGER_VERSION="1.1.0"` vs tag v1.1.2~~ **RISOLTO** in BM-07 (file
   VERSION + `make version-check`).
 
@@ -127,8 +137,9 @@ tags: [state]
    `_resolve_cli` (BM-08c) — un agente esegue la selezione salvata, non più `go`.
    Un valore invalido è RIFIUTATO all'install (non più fallback-`go`). Il rischio
    "non-TTY punta un modulo mutante" è neutralizzato da #8 (consenso): senza
-   `--yes` ogni `_ask` è negata. → residuo: il README documenta la CLI posizionale
-   (BM-08b) ma NON lo scheduling per-modulo come feature pubblicizzata — ok così.
+   `--yes` ogni `_ask` è negata. → residuo README SALDATO (2026-07-18,
+   `docs/readme-v1.3.0`): anche lo scheduling per-modulo è ora documentato come
+   reale, con l'invariante di consenso. Nessun residuo.
 2. ~~**Off-by-one zsh (array 1-based)**~~ **CHIUSO**: adozione mod_00 (BM-04, col
    canale di selezione morto su tutte le release), weekday in las/bk + selezione
    Modify/Remove dello scheduler (BM-05a), contatore mod_09 (BM-05b). La regola
@@ -156,6 +167,15 @@ tags: [state]
    incondizionato, quindi una run schedulata che fallisce riporta comunque
    successo a chi la monitora. Cambiare il contratto di exit tocca TUTTI i
    moduli. → TRIGGER: decisione utente (candidato a BM-08/BM-18 doctor).
+   **Caso MISURATO in più (2026-07-18, verifica README)**: anche quando il figlio
+   esce ≠0 (token CLI ignoto → exit 2 di `_resolve_cli`), il PARENT lo perde —
+   la strip ANSI tra `script(1)` e `exit $?` (`brew_manager.sh:245-250`) fa sì
+   che `$?` sia l'esito di `mv`, non del figlio → `./brew_manager.sh 99` esce 0.
+   Il claim exit≠0 è stato RIMOSSO dal README (resta vero per i FLAG ignoti,
+   validati pre-recording). Micro-fix candidato: catturare `rc=$?` subito dopo
+   `script` e propagarlo dopo la strip (~2 righe; tocca `brew_manager.sh`,
+   sensibile → gate). → TRIGGER: decisione utente (prima della v1.3.0 o insieme
+   al contratto exit di questo punto).
 5. ~~**Tag esistenti lightweight**~~ **CONVENZIONE IN VIGORE da v1.2.0**: `v1.2.0`
    è il primo tag di release **annotato** (i legacy v1.1.1/v1.1.2 restano
    lightweight, com'erano). Ogni release futura usa `git tag -a`. Nota:
@@ -221,14 +241,14 @@ tags: [state]
   propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `3ac3f63` (BM-08a + BM-08b
-  integrati), allineato a `origin/main`; tag `v1.2.0` (annotato) + `v1.1.2-baseline`.
-  In `CHANGELOG [Unreleased]`: la CLI posizionale (BM-08b), da promuovere a v1.3.0
-  alla prossima release.
-- **fix/agent-selection** = BM-08c COMPLETO (commit `7f4f218` consenso + `cd110d4`
-  scheduler + `d1a5e2b` bk + il commit di checkpoint), gate + re-gate passati. In
-  attesa di merge dell'utente (blocco `/integrate`). **Chiude M2.**
-- **feat/positional-dispatch** = BM-08b, MERGIATO in main (`3ac3f63`); il branch
-  andava eliminato al merge (`git branch -d`).
+- **main** = integrazione + stabile (trunk-based); HEAD `45bf4bc` (BM-08c mergiato
+  in `b929a23`, framework v0.5.1 in `45bf4bc`), allineato a `origin/main`; tag
+  `v1.2.0` (annotato) + `v1.1.2-baseline`. In `CHANGELOG [Unreleased]`: CLI
+  posizionale (BM-08b) + selezione agenti/consenso (BM-08c), da promuovere a
+  v1.3.0 alla release (task 2).
+- **docs/readme-v1.3.0** = README ↔ realtà di v1.3.0 (commit `9ceb69b` + questo
+  checkpoint). In attesa di merge dell'utente (blocco `/integrate`).
+- **fix/agent-selection**, **feat/positional-dispatch**,
+  **chore/framework-upgrade-v0.2-to-v0.5.1** = MERGIATI in main, branch eliminati.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

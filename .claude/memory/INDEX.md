@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-17
+updated: 2026-07-18
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -72,6 +72,10 @@ tags: [moc]
   framework v0.2.0 → v0.5.1 (solo processo): 3 classi di file, invariante memoria = 2
   file, hooks-install 3-vie per-versione con verifica funzionale reale, pacchetto harvest
   (R3), docs/01 omesso (R4), rimandi orfani potati (R1)
+- [[sessions/2026-07-18-readme-v1.3.0]] — README ↔ realtà di v1.3.0 (task 1/2
+  pre-release): scheduler per-modulo e fail-closed documentati; 2 claim corretti
+  dalla verifica dal vivo (exit del parent perso in script(1), default `y` del
+  cleanup sotto `--yes`); IMP-002 rafforzata (exit end-to-end)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -89,5 +93,6 @@ tags: [moc]
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 CHIUSO** (BM-08a/b integrati, BM-08c in
-  attesa di integrazione). Prossimo: M3 (TUI) o release, decisione utente.
+  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 CHIUSO e INTEGRATO** (BM-08a/b/c in
+  main). In corso: **release v1.3.0** (decisione utente 2026-07-18) — task 1/2
+  README fatto, task 2/2 release da fare.
