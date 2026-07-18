@@ -10,7 +10,7 @@ Entry point TUI: parsing flag, caricamento lib+moduli, dispatch, recording della
 sessione, summary finale.
 
 ## Stato attuale
-Stabile, v1.2.0 rilasciata. Versione da file `VERSION` (BM-07, non più costante
+Stabile, v1.3.0 rilasciata. Versione da file `VERSION` (BM-07, non più costante
 hardcoded). Dal BM-08a la selezione moduli è delegata a `_resolve_selection`
 ([[lib-selection]]) — coperta da `tests/test_selection.zsh`. Dal fix exit-code
 (2026-07-18) il PARENT propaga l'exit del figlio attraverso il wrapper

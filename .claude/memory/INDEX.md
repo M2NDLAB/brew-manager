@@ -80,9 +80,9 @@ tags: [moc]
   parent propaga l'rc del figlio (chiusa la metà parent di #4b; scope solo-A
   deciso dall'utente); gate adversariale 0 C/H/M, 2 LOW applicati (warning
   strip, test in sandbox symlink-farm); 102 test
-- [[sessions/2026-07-18-release-v1.3.0]] — release v1.3.0 preparata (VERSION +
-  CHANGELOG "scheduler release"); version-check e 102 test verificati da clone
-  pulito con tag simulato; merge/tag/push all'utente
+- [[sessions/2026-07-18-release-v1.3.0]] — release v1.3.0 (VERSION + CHANGELOG
+  "scheduler release"); verificata da clone pulito con tag simulato;
+  **RILASCIATA 2026-07-18**: merge c6c80c0, tag annotato v1.3.0 pushato
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -100,6 +100,6 @@ tags: [moc]
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** e v1.2.0 rilasciata; **M2 CHIUSO e INTEGRATO** (BM-08a/b/c in
-  main). In corso: **release v1.3.0** (decisione utente 2026-07-18) — task 1/2
-  README fatto, task 2/2 release da fare.
+  **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
+  (2026-07-18: CLI posizionale, scheduling per-modulo, consenso fail-closed,
+  exit code). Prossimo: M3 (TUI) o altro, decisione utente.

@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-18 | Ultimo: **release v1.3.0 PREPARATA** (branch `chore/release-v1.3.0`, commit `8e53a1c`: VERSION 1.3.0 + CHANGELOG promosso; version-check e 102 test verificati da clone pulito col tag simulato — in attesa del blocco di release: merge, tag annotato `v1.3.0` su main e push, tutti dell'utente) · exit-code INTEGRATO (merge `1fa521a`) · README INTEGRATO (`56cf64d`) | Indice: [[INDEX]]
+> Aggiornato: 2026-07-18 | Ultimo: **v1.3.0 RILASCIATA** (merge `c6c80c0` in main, tag annotato `v1.3.0` pushato, `main == origin/main`, version-check verde — "the scheduler release": CLI posizionale, scheduling per-modulo, consenso fail-closed, exit code end-to-end) · Prossimo: M3 (TUI) o altro, decisione utente | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -76,12 +76,12 @@ tags: [state]
     integrazione. → [[sessions/2026-07-18-exit-code-propagation]].
   - [x] Micro-task exit-code: INTEGRATO in main (merge `1fa521a`, branch
     eliminato).
-  - [ ] **Release v1.3.0** (task 2, decisione utente 2026-07-18): **PREPARATA** —
-    branch `chore/release-v1.3.0` (`8e53a1c`): VERSION→1.3.0, CHANGELOG
-    `[Unreleased]`→`[1.3.0] - 2026-07-18` (intro "scheduler release"), bump
-    MINOR (feat BM-08b nel set). Verificata da clone pulito con tag simulato:
-    version-check ok, 102 test, `--version`=`1.3.0 (v1.3.0)`. RESTA: merge +
-    tag annotato `v1.3.0` su main + push (azioni utente, blocco stampato).
+  - [x] **Release v1.3.0 RILASCIATA** (2026-07-18): merge `c6c80c0` in main,
+    tag **annotato** `v1.3.0` (→ c6c80c0) creato e pushato; `main ==
+    origin/main`; branch `chore/release-v1.3.0` eliminato; `make
+    version-check` verde. Bump MINOR (feat BM-08b nel set); verificata da
+    clone pulito prima del rilascio (version-check + 102 test + `--version`).
+    Merge/tag/push eseguiti dall'utente.
     → [[sessions/2026-07-18-release-v1.3.0]].
 
 ## Cosa esiste adesso
@@ -256,13 +256,14 @@ tags: [state]
   propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `1fa521a` (merge
-  exit-code); tag `v1.2.0` (annotato) + `v1.1.2-baseline`. Il prossimo tag è
-  `v1.3.0`, annotato, applicato dall'utente su main dopo il merge di release.
-- **chore/release-v1.3.0** = release preparata (commit `8e53a1c` + questo
-  checkpoint). In attesa del blocco di release dell'utente (merge + tag + push).
-- **docs/readme-v1.3.0**, **fix/exit-code-propagation**, **fix/agent-selection**,
-  **feat/positional-dispatch**, **chore/framework-upgrade-v0.2-to-v0.5.1** =
-  MERGIATI in main, branch eliminati.
+- **main** = integrazione + stabile (trunk-based); HEAD `c6c80c0` (merge di
+  release v1.3.0), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
+  pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
+  `CHANGELOG [Unreleased]`: vuota.
+- **chore/checkpoint-post-v1.3.0** = questo checkpoint di riconciliazione
+  (sola memoria). In attesa di merge dell'utente (blocco `/integrate`).
+- **docs/readme-v1.3.0**, **fix/exit-code-propagation**, **chore/release-v1.3.0**,
+  **fix/agent-selection**, **feat/positional-dispatch**,
+  **chore/framework-upgrade-v0.2-to-v0.5.1** = MERGIATI in main, branch eliminati.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).
