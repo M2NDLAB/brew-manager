@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-18 | Ultimo: **micro-task exit-code propagation** (branch `fix/exit-code-propagation`, 3 commit, gate adversariale PASSATO — in attesa di integrazione; chiude la metà PARENT di Attenzione #4b) · README v1.3.0 INTEGRATO (merge `56cf64d`) · Prossimo: **release v1.3.0** (task 2: `chore/release-v1.3.0`, decisione utente 2026-07-18) | Indice: [[INDEX]]
+> Aggiornato: 2026-07-18 | Ultimo: **release v1.3.0 PREPARATA** (branch `chore/release-v1.3.0`, commit `8e53a1c`: VERSION 1.3.0 + CHANGELOG promosso; version-check e 102 test verificati da clone pulito col tag simulato — in attesa del blocco di release: merge, tag annotato `v1.3.0` su main e push, tutti dell'utente) · exit-code INTEGRATO (merge `1fa521a`) · README INTEGRATO (`56cf64d`) | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -74,9 +74,15 @@ tags: [state]
     nuovi (102 totali). README: claim non-zero RIPRISTINATO (ora vero). Branch
     `fix/exit-code-propagation` (4cef18c+a6d1be9+a3a4ad1), in attesa di
     integrazione. → [[sessions/2026-07-18-exit-code-propagation]].
-  - [ ] **Release v1.3.0** (task 2, decisione utente 2026-07-18): branch
-    `chore/release-v1.3.0` — VERSION→1.3.0, CHANGELOG `[Unreleased]`→`[1.3.0]`,
-    blocco `/integrate` con tag annotato; merge/tag/push dell'utente.
+  - [x] Micro-task exit-code: INTEGRATO in main (merge `1fa521a`, branch
+    eliminato).
+  - [ ] **Release v1.3.0** (task 2, decisione utente 2026-07-18): **PREPARATA** —
+    branch `chore/release-v1.3.0` (`8e53a1c`): VERSION→1.3.0, CHANGELOG
+    `[Unreleased]`→`[1.3.0] - 2026-07-18` (intro "scheduler release"), bump
+    MINOR (feat BM-08b nel set). Verificata da clone pulito con tag simulato:
+    version-check ok, 102 test, `--version`=`1.3.0 (v1.3.0)`. RESTA: merge +
+    tag annotato `v1.3.0` su main + push (azioni utente, blocco stampato).
+    → [[sessions/2026-07-18-release-v1.3.0]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -250,15 +256,13 @@ tags: [state]
   propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `56cf64d` (merge del
-  README v1.3.0); tag `v1.2.0` (annotato) + `v1.1.2-baseline`. In
-  `CHANGELOG [Unreleased]`: CLI posizionale (BM-08b) + selezione
-  agenti/consenso (BM-08c) + exit-code propagation, da promuovere a v1.3.0
-  alla release (task 2).
-- **fix/exit-code-propagation** = micro-task exit-code (commit `4cef18c` fix +
-  `a6d1be9` finding gate + `a3a4ad1` README + questo checkpoint), gate
-  adversariale passato. In attesa di merge dell'utente (blocco `/integrate`).
-- **docs/readme-v1.3.0**, **fix/agent-selection**, **feat/positional-dispatch**,
-  **chore/framework-upgrade-v0.2-to-v0.5.1** = MERGIATI in main, branch eliminati.
+- **main** = integrazione + stabile (trunk-based); HEAD `1fa521a` (merge
+  exit-code); tag `v1.2.0` (annotato) + `v1.1.2-baseline`. Il prossimo tag è
+  `v1.3.0`, annotato, applicato dall'utente su main dopo il merge di release.
+- **chore/release-v1.3.0** = release preparata (commit `8e53a1c` + questo
+  checkpoint). In attesa del blocco di release dell'utente (merge + tag + push).
+- **docs/readme-v1.3.0**, **fix/exit-code-propagation**, **fix/agent-selection**,
+  **feat/positional-dispatch**, **chore/framework-upgrade-v0.2-to-v0.5.1** =
+  MERGIATI in main, branch eliminati.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

@@ -80,6 +80,9 @@ tags: [moc]
   parent propaga l'rc del figlio (chiusa la metà parent di #4b; scope solo-A
   deciso dall'utente); gate adversariale 0 C/H/M, 2 LOW applicati (warning
   strip, test in sandbox symlink-farm); 102 test
+- [[sessions/2026-07-18-release-v1.3.0]] — release v1.3.0 preparata (VERSION +
+  CHANGELOG "scheduler release"); version-check e 102 test verificati da clone
+  pulito con tag simulato; merge/tag/push all'utente
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
