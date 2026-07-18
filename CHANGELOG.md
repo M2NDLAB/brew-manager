@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-18
+
+The scheduler release. The command line now takes a module selection, scheduled
+agents finally run exactly the modules you configured, and unattended runs are
+fail-closed: without `--yes` nothing on your system is modified, and the exit
+code now tells launchd and scripts how the run really ended.
+
 ### Added
 - Command-line module selection. `./brew_manager.sh 0,4,5` (or `go`) now runs
   those modules non-interactively, skipping the menu; `--only=ids` / `--skip=ids`
