@@ -100,7 +100,7 @@ Refine a selection with `--only` (keep only these) or `--skip` (remove these):
 ./brew_manager.sh go --only=0,4     # only 0 and 4 out of the full sequence
 ```
 
-An unknown module token is **rejected with an error and nothing runs** — never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
+An unknown module token is **rejected with an error and a non-zero exit** — nothing runs, never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
 
 **Interactively** — start the script with no selection and type your choice at the `Choice` prompt:
 
@@ -140,9 +140,9 @@ Flags change **how** the run behaves and combine with either form:
 | `--skip=ids` | Removes the listed modules from the selection (e.g. `go --skip=5,10`). Applied after `--only`. |
 | `--version` / `-V` | Prints the version and exits. Inside a git work tree it also shows the distance from the latest release tag. |
 
-An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` prints an error and runs nothing, rather than a partial, unexpected selection.
+An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` exits `2` without running anything, rather than a partial, unexpected selection.
 
-> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 

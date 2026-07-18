@@ -1,6 +1,6 @@
 ---
 type: tree
-updated: 2026-07-17
+updated: 2026-07-18
 generated-by: /checkpoint
 tags: [structure]
 ---
@@ -47,6 +47,7 @@ tags: [structure]
 │   ├── reset-task.sh
 │   └── test-hooks-install.sh
 ├── tests
+│   ├── test_exit_codes.zsh
 │   ├── test_guardrails.zsh
 │   └── test_selection.zsh
 ├── brew_manager.sh
@@ -59,7 +60,7 @@ tags: [structure]
 ├── SECURITY.md
 └── VERSION
 
-5 directories, 36 files
+5 directories, 37 files
 ```
 
 ## Legenda directory chiave
@@ -71,7 +72,7 @@ tags: [structure]
 | lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) + registry/resolver di selezione ([[lib-selection]]) |
 | modules/ | i 18 moduli (funzioni sourcate): 14 numerici `mod_00`–`mod_13` (sequenza `go`) + 4 speciali per nome (`bk`, `las`, `log`, `mas`) |
 | scripts/ | script di processo del framework (hooks-install, reset-task, test-hooks-install self-test) — NON script applicativi |
-| tests/ | test del progetto (harness zsh, zero-dip, `make test`): `test_selection.zsh` copre il resolver ([[lib-selection]]) |
+| tests/ | test del progetto (harness zsh, zero-dip, `make test`): `test_selection.zsh` (resolver, [[lib-selection]]), `test_guardrails.zsh` (consenso `_ask`/`_read_choice`), `test_exit_codes.zsh` (exit end-to-end via sandbox, [[core-brew-manager]]) |
 | logs/ (ignorata) | log di sessione `brew_report_*.log` generati via script(1) |
 | backups/ (ignorata) | Brewfile e bundle agenti prodotti dal modulo `bk` |
 | agents/ (ignorata) | conf e activity log dei LaunchAgent del modulo `las` |

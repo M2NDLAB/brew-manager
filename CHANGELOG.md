@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   declines every confirmation prompt, so nothing on your system is modified unless
   you explicitly pass `--yes`. Only an explicit `--yes` — as the scheduled agents
   use — authorises the tool to act on the built-in defaults.
+- The exit status of the process now reflects how the run actually ended: the
+  session recorder (`script(1)` wrapper) no longer swallows the child's exit
+  code, so an invalid selection (`./brew_manager.sh 99`) exits `2` and a
+  selection that resolves to nothing exits `1` — visible to launchd, shell
+  scripts and CI. A run interrupted by a signal now exits with the raw signal
+  number (`script(1)` semantics: Ctrl+C → `2`), no longer `0`. (A failure
+  *inside* a module still exits `0`: pre-existing behaviour, tracked
+  separately.)
 
 ## [1.2.0] - 2026-07-14
 

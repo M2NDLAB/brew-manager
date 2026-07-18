@@ -243,11 +243,20 @@ if [[ -z "$BREW_MANAGER_RECORDING" ]]; then
     export BREW_MANAGER_RECORDING=1
     export BREW_MANAGER_VERSION
     script -q "$LOG_FILE" zsh "$SCRIPT_DIR/brew_manager.sh" "$@"
-    # Strip ANSI escape codes and carriage returns from the saved log
+    # Capture the child's status BEFORE the ANSI strip: script(1) propagates
+    # it, but sed/mv would overwrite $? — and automation (launchd agents,
+    # shell scripts) reads THIS process's exit code, not the child's.
+    _run_rc=$?
+    # Strip ANSI escape codes and carriage returns from the saved log. A failed
+    # strip must not replace the run's rc (the contract with callers) — but it
+    # must not be silent either: say why the log was left raw.
     _tmp="$(mktemp)"
     sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g; s/\x1b[()][AB012]//g; s/\x1b[DMEH]//g; s/\r//g; s/^[[:space:]]*$//g' \
-        "$LOG_FILE" > "$_tmp" && mv "$_tmp" "$LOG_FILE"
-    exit $?
+        "$LOG_FILE" > "$_tmp" && mv "$_tmp" "$LOG_FILE" || {
+        echo "WARNING: log cleanup failed — raw log kept at $LOG_FILE" >&2
+        rm -f "$_tmp"
+    }
+    exit $_run_rc
 fi
 
 clear
