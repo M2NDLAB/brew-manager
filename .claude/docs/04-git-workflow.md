@@ -119,17 +119,49 @@ Per un deliverable che raccoglie più commit, il bump è il **più alto** tra qu
 commit inclusi (un solo `feat` tra tanti `chore` → MINOR; nessun `feat`/`fix` →
 nessun tag, è lavoro interno, non un rilascio).
 
-Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
+**Cosa è un «breaking change» — il criterio del MAJOR.** SemVer parla di compatibilità
+del *contratto pubblico* del progetto: è breaking ogni modifica che costringe un
+consumatore ad adattarsi per adottare la nuova versione. brew-manager è un progetto **di
+codice**: il suo contratto pubblico — ciò che una release promette di NON rompere senza un
+MAJOR — è l'insieme di queste superfici:
+- **Flag CLI** — nomi e semantica di `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`,
+  `--upgrade=y|n`, `--only=`, `--skip=`, `--version|-V`: rimuoverne uno, rinominarlo o
+  cambiarne il significato è MAJOR;
+- **Grammatica di selezione** — il posizionale `[modules]` (lista di id, oppure `go`) più
+  `--only`/`--skip`: cambiarne il formato in modo incompatibile è MAJOR;
+- **Identificatori di modulo** — i NUMERI (`0`–`13`), la keyword `go` e i NOMI speciali
+  (`bk`/`las`/`log`/`mas`) sono CONGELATI: rinumerare, riassegnare un numero a un modulo
+  diverso o rinominare è MAJOR; i moduli nuovi si APPENDONO (numeri/nomi nuovi), mai
+  riorganizzando quelli esistenti. Motivo concreto: i numeri sono persistiti nei plist dei
+  LaunchAgent sui Mac degli utenti (`modules=3,5`), e riassegnarli cambierebbe in silenzio
+  ciò che un agente già installato esegue;
+- **Contratto di exit-code** — i codici fissati dai test end-to-end
+  (`tests/test_exit_codes.zsh`): `0` esecuzione riuscita, `1` selezione che risolve vuota,
+  `2` token di modulo o flag ignoto — cambiarli è MAJOR. *(Fuori dal contratto per ora, in
+  ingresso come estensione additiva con BM-18: la propagazione del fallimento a runtime di
+  un modulo, che oggi esce ancora `0` — #4b.)*;
+- **Formato del plist/LaunchAgent** — lo schema scritto dallo scheduler in
+  `~/Library/LaunchAgents` e il campo `modules=` letto dal restore: un cambio incompatibile
+  rompe gli agenti già installati, quindi è MAJOR.
+
+Aggiunte retrocompatibili (un modulo in più in append, un flag nuovo, un campo opzionale)
+sono MINOR; le correzioni che non toccano il contratto sono PATCH. Sotto `1.0.0` la
+promessa non è ancora attiva (vedi i regimi qui sotto).
+
+Il versioning ha **due regimi**, separati dalla release `1.0.0`, e determinano su QUALE
+BRANCH vive il tag:
 
 - **Pre-1.0 — si tagga sul branch di SVILUPPO.** Finché non c'è la prima release
   stabile la versione è `0.y.z` e i tag vivono su `develop`, non su `main`: feature →
   bump MINOR (`v0.1.0` → `v0.2.0`), fix/sicurezza → bump PATCH (`v0.2.0` → `v0.2.1`),
   refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
   breaking interno resta nel MINOR e non forza da solo l'1.0.0.
-- **Rilascio della 1.0.0 — promozione al branch STABILE.** Quando lo sviluppo è
-  completo e l'API è considerata stabile, si porta `develop` su `main` con un merge
-  di release (nella forma scelta in *Merge*) e si applica il tag **`v1.0.0` su
-  `main`**. Da qui `main` è la linea delle versioni rilasciate.
+- **La release `1.0.0` — l'atto che attiva la promessa.** Attraversare la `1.0.0` è il
+  momento in cui un progetto DICHIARA stabile il proprio contratto pubblico: si porta
+  `develop` su `main` con un merge di release (nella forma scelta in *Merge*) e si
+  applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle versioni
+  rilasciate e vale il regime post-1.0: da questo punto in poi rompere il contratto
+  (breaking change, come definito sopra) costa un MAJOR.
 - **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
   `main`, dopo il merge di release `develop → main`: breaking → MAJOR
   (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH

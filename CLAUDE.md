@@ -64,6 +64,7 @@ Stack: zsh (macOS-only, nessuna build) | Repo: github.com/M2NDLAB/brew-manager
 - Slash command: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
   `/new-component`, `/lint-memory`, `/harvest-framework`
 - `make hooks-install` — installa gli hook git (gitleaks + commitlint)
+- `make test-scripts` — self-test degli script del framework (hooks-install)
 - `./scripts/reset-task.sh` — scarta il mezzo-task interrotto (preserva i commit)
 
 ---

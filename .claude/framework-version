@@ -1,0 +1,8 @@
+# Provenance pin del claude-code-framework innestato in questo progetto.
+# Serve alla procedura di upgrade (SETUP.md del framework, "Aggiornare il
+# framework", Passo 0/6) come baseline certa del merge a 3 vie.
+# Righe chiave: valore, nessun parser. Vive FUORI da .claude/memory/ apposta,
+# così l'invariante "diff vuoto su memory/" dell'upgrade resta intatta.
+version: 1.0.0
+commit: e3f1f51
+grafted: n/d (retrofit 2026-07-19)
