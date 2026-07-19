@@ -66,7 +66,9 @@ _uni "LANG UTF-8 → 1"           1  en_US.UTF-8 "" ""
 _uni "LANG utf8 → 1"            1  en_US.utf8  "" ""
 _uni "LANG=C → 0"              0  C           "" ""
 _uni "LC_ALL UTF-8 wins → 1"    1  C           en_US.UTF-8 ""
+_uni "LC_ALL=C beats UTF-8 LANG → 0" 0  en_US.UTF-8 C ""
 _uni "LC_CTYPE UTF-8 → 1"       1  C           "" it_IT.UTF-8
+_uni "LC_ALL=C beats LC_CTYPE UTF-8 → 0" 0 "" C it_IT.UTF-8
 _uni "all empty → 0"            0  ""          "" ""
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -80,11 +82,15 @@ else
 fi
 
 TUI_COLOR_LEVEL=1; _init_palette
+# Assert every tier-overridden state color (green/red/gray/yellow/orange/white)
+# still equals its historical 16-color code — a poor terminal must be unchanged.
 if [[ "$C_GREEN" == '\033[0;32m' && "$C_RED" == '\033[0;31m' \
-   && "$C_GRAY" == '\033[0;90m' && "$C_YELLOW" == '\033[1;33m' ]]; then
+   && "$C_GRAY" == '\033[0;90m' && "$C_YELLOW" == '\033[1;33m' \
+   && "$C_ORANGE" == '\033[0;33m' && "$C_WHITE" == '\033[1;37m' \
+   && "$C_GREEN_B" == '\033[1;32m' ]]; then
     _pass "palette L1: 16-color values match the historical palette"
 else
-    _fail "palette L1: 16-color baseline drifted (C_GREEN=$C_GREEN)"
+    _fail "palette L1: 16-color baseline drifted (C_GREEN=$C_GREEN C_ORANGE=$C_ORANGE)"
 fi
 
 TUI_COLOR_LEVEL=2; _init_palette
@@ -152,6 +158,15 @@ if ! has_nonascii "$_box_out" && ! has_esc "$_box_out" \
     _pass "_box: ASCII+no-color box is pure ASCII, no ANSI"
 else
     _fail "_box: ASCII/no-color box fallback wrong"
+fi
+# echo-on-data guard: a title carrying a literal backslash escape must be printed
+# verbatim, NOT expanded into a real ESC — the box renders DATA through printf %s,
+# never `echo -e`. With no color (L0) the only possible ESC source is the title.
+_box_evil="$(_box '' 'A\033[31mEVIL' 'x')"
+if ! has_esc "$_box_evil" && [[ "$_box_evil" == *'\033[31m'* ]]; then
+    _pass "_box: title backslash-escapes are printed literally (no echo-on-data)"
+else
+    _fail "_box: title escape leaked a real ESC (echo-on-data regression)"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

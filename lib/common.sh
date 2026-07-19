@@ -35,10 +35,16 @@ _tui_color_level() {
 }
 
 # _tui_unicode → 1 if the locale is UTF-8 (round box glyphs are safe to emit),
-# else 0 (fall back to ASCII +-|). Reads the standard locale precedence vars.
+# else 0 (fall back to ASCII +-|).
+# Honors POSIX character-type precedence — LC_ALL overrides LC_CTYPE overrides
+# LANG (first non-empty wins), NOT a union of all three. `LC_ALL=C` must force
+# the ASCII fallback even when LANG carries a UTF-8 value (a common CI/cron/
+# `env`-wrapper combo): otherwise the round glyphs render as mojibake AND, in a C
+# locale, zsh counts a 3-byte '─' as 3 columns, so _box's border-width math
+# misaligns. (Union matching missed this — gate finding BM-09.)
 _tui_unicode() {
-    [[ "${LANG}${LC_ALL}${LC_CTYPE}" == *(UTF-8|utf-8|UTF8|utf8)* ]] \
-        && print -r -- 1 || print -r -- 0
+    local eff="${LC_ALL:-${LC_CTYPE:-$LANG}}"
+    [[ "$eff" == *(UTF-8|utf-8|UTF8|utf8)* ]] && print -r -- 1 || print -r -- 0
 }
 
 # _detect_capabilities: populate TUI_COLOR_LEVEL / TUI_UNICODE.
@@ -209,9 +215,12 @@ _hline() {
 # _box <frame_color> <title> [line ...]
 # Draws a bordered block at the standard 2-space indent — a rounded box in
 # UTF-8, +--+ in ASCII, no borders/color when degraded. The FRAME is colored;
-# content lines are printed plain, so pass plain text (an embedded escape would
-# throw off the width padding). A line longer than the inner field is NOT
-# truncated — never hide content such as what a destructive action will remove;
+# the TITLE and content lines are rendered as literal DATA (printf %s / %-*s,
+# never `echo -e`), so a caller-supplied title/line — a module name, a package,
+# a path — cannot expand backslash escapes or inject terminal control sequences
+# (the "echo on data" trap; gate-hardened for the BM-10/BM-11 consumers). Pass
+# plain text for correct alignment; a line longer than the inner field is NOT
+# truncated — never hide content such as what a destructive action will remove —
 # it simply overflows the right border.
 _box() {
     local color="$1" title="$2"; shift 2
@@ -228,16 +237,16 @@ _box() {
     else
         top="${BOX_TL}$(_repeat $inner "$BOX_H")${BOX_TR}"
     fi
-    echo -e "${TUI_INDENT}${color}${top}${NC}"
+    # %b renders the trusted color/NC escapes; %s keeps the border+title literal.
+    printf '%s%b%s%b\n' "$TUI_INDENT" "$color" "$top" "$NC"
 
     local line
     for line in "$@"; do
-        # %b renders the color escapes; %s keeps the glyph/content literal.
         printf '%s%b%s%b %-*s %b%s%b\n' \
             "$TUI_INDENT" "$color" "$BOX_V" "$NC" "$field" "$line" "$color" "$BOX_V" "$NC"
     done
 
-    echo -e "${TUI_INDENT}${color}${BOX_BL}$(_repeat $inner "$BOX_H")${BOX_BR}${NC}"
+    printf '%s%b%s%b\n' "$TUI_INDENT" "$color" "${BOX_BL}$(_repeat $inner "$BOX_H")${BOX_BR}" "$NC"
 }
 
 # _pad <text> → the text indented by the standard 2 spaces.
