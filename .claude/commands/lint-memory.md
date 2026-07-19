@@ -47,6 +47,27 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
     positivi NOTI da ignorare (prosa che *discute* il marcatore, non uno slot): i
     record IMP di `LEARNINGS.md`. Un hit altrove, o che è davvero uno slot fillable,
     va ricompattato su una sola riga fisica.
+11. **Inventari vs realtà.** Le liste-inventario ENUMERATE qui sotto corrispondono
+    al filesystem? Confronto insiemistico nei DUE versi: voce che ESISTE ma manca
+    dall'inventario; voce ELENCATA ma inesistente. Si controllano SOLO le liste
+    enumerate — mai le menzioni in prosa altrove (è l'enumerazione a evitare i
+    falsi positivi lista-vs-prosa):
+    (a) file in `.claude/commands/` ↔ elenco "Comandi rapidi" di `CLAUDE.md` e,
+        dove presente, la riga `commands/` della "Struttura" del `README.md`;
+    (b) target di PROCESSO del `Makefile` ↔ gli stessi elenchi. Di processo = la
+        ricetta invoca uno script di `scripts/` (ancoraggio STRUTTURALE, non
+        posizionale: regge anche quando il setup compila o rimuove il banner
+        `[DA DEFINIRE AL SETUP]`); `help` è escluso (meta-target che stampa la
+        lista) e i target di PROGETTO (build/test/run dello stack) sono FUORI
+        perimetro — mai segnalarli;
+    (c) file in `scripts/` ↔ tabella di `scripts/README.md`.
+    Una voce vale anche in forma equivalente (`make reset-task` ≡
+    `./scripts/reset-task.sh`). Mismatch = BUG (semantica del lint): si allinea la
+    doc alla realtà. Esclusi per dichiarazione, come nel controllo 10 (registrano
+    stati PASSATI, non inventari dello stato corrente): i documenti append-only
+    (`CHANGELOG.md`) e i record IMP di `LEARNINGS.md`. Nei progetti-cliente
+    valgono i soli file copiati dal template (il `README.md` del framework non è
+    tra questi).
 
 ## Output e risoluzione
 Una tabella: **Area | Problema rilevato | Tipo** (disallineamento / contraddizione /

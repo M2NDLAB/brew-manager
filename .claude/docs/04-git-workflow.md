@@ -119,17 +119,36 @@ Per un deliverable che raccoglie più commit, il bump è il **più alto** tra qu
 commit inclusi (un solo `feat` tra tanti `chore` → MINOR; nessun `feat`/`fix` →
 nessun tag, è lavoro interno, non un rilascio).
 
-Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
+**Cosa è un «breaking change» — il criterio del MAJOR.** SemVer parla di compatibilità
+del *contratto pubblico* del progetto: è breaking ogni modifica che costringe un
+consumatore ad adattarsi per adottare la nuova versione. COSA sia quel contratto dipende
+dal progetto — [DA DEFINIRE AL SETUP] — ma il criterio è unico:
+- progetto **di codice**: firma pubblica di API/CLI, formato di dati o messaggi, schema
+  di persistenza, contratto di configurazione — romperli è MAJOR;
+- progetto **di metodo/tooling** (com'è questo framework): rimozione o rinomina di un
+  comando, un cambio incompatibile del formato della memoria o dei marcatori, o una
+  modifica della struttura che rompe gli innesti o gli upgrade già esistenti su un
+  progetto — è la stessa promessa, applicata al contratto di un metodo invece che di
+  un'API.
+
+Aggiunte retrocompatibili (un comando in più, una regola nuova, un campo opzionale) sono
+MINOR; le correzioni che non toccano il contratto sono PATCH. Sotto `1.0.0` la promessa
+non è ancora attiva (vedi i regimi qui sotto).
+
+Il versioning ha **due regimi**, separati dalla release `1.0.0`, e determinano su QUALE
+BRANCH vive il tag:
 
 - **Pre-1.0 — si tagga sul branch di SVILUPPO.** Finché non c'è la prima release
   stabile la versione è `0.y.z` e i tag vivono su `develop`, non su `main`: feature →
   bump MINOR (`v0.1.0` → `v0.2.0`), fix/sicurezza → bump PATCH (`v0.2.0` → `v0.2.1`),
   refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
   breaking interno resta nel MINOR e non forza da solo l'1.0.0.
-- **Rilascio della 1.0.0 — promozione al branch STABILE.** Quando lo sviluppo è
-  completo e l'API è considerata stabile, si porta `develop` su `main` con un merge
-  di release (nella forma scelta in *Merge*) e si applica il tag **`v1.0.0` su
-  `main`**. Da qui `main` è la linea delle versioni rilasciate.
+- **La release `1.0.0` — l'atto che attiva la promessa.** Attraversare la `1.0.0` è il
+  momento in cui un progetto DICHIARA stabile il proprio contratto pubblico: si porta
+  `develop` su `main` con un merge di release (nella forma scelta in *Merge*) e si
+  applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle versioni
+  rilasciate e vale il regime post-1.0: da questo punto in poi rompere il contratto
+  (breaking change, come definito sopra) costa un MAJOR.
 - **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
   `main`, dopo il merge di release `develop → main`: breaking → MAJOR
   (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH
