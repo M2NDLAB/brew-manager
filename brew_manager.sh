@@ -175,23 +175,23 @@ source "$SCRIPT_DIR/lib/selection.sh" || { echo "ERROR: lib/selection.sh not fou
 # ─────────────────────────────────────────────────────────────────────────────
 
 if ! command -v brew &>/dev/null; then
-    clear
+    _clear
     echo ""
-    echo -e "\033[1;36m  🍺  BREW MANAGER\033[0m"
+    echo -e "${C_CYAN_B}  🍺  BREW MANAGER${NC}"
     echo ""
-    echo -e "\033[0;31m  ✗  Homebrew is not installed on this system.\033[0m"
+    echo -e "${C_RED}  ${SYM_ERR}  Homebrew is not installed on this system.${NC}"
     echo ""
-    echo -e "\033[0;90m  Homebrew is required for brew-manager to work.\033[0m"
-    echo -e "\033[0;90m  It is the macOS package manager that this tool is built around.\033[0m"
+    echo -e "${C_GRAY}  Homebrew is required for brew-manager to work.${NC}"
+    echo -e "${C_GRAY}  It is the macOS package manager that this tool is built around.${NC}"
     echo ""
-    echo -e "\033[1;37m  Install Homebrew now?\033[0m \033[0;90m(y/N)\033[0m"
+    echo -e "${C_WHITE}  Install Homebrew now?${NC} ${C_GRAY}(y/N)${NC}"
     echo ""
-    printf "  \033[0;36m→\033[0m  Choice: "
+    printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice: "
     read -r _brew_install_choice
 
     if [[ "$_brew_install_choice" =~ ^[Yy]$ ]]; then
         echo ""
-        echo -e "  \033[0;36m›\033[0m  Installing Homebrew..."
+        echo -e "  ${C_CYAN}${SYM_INFO}${NC}  Installing Homebrew..."
         echo ""
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         echo ""
@@ -205,21 +205,21 @@ if ! command -v brew &>/dev/null; then
 
         if command -v brew &>/dev/null; then
             echo ""
-            echo -e "  \033[1;32m  ✓  Homebrew installed successfully — launching brew-manager...\033[0m"
+            echo -e "  ${C_GREEN_B}  ${SYM_OK}  Homebrew installed successfully — launching brew-manager...${NC}"
             sleep 1
             # Re-exec the script now that brew is available
             exec zsh "$0" "$@"
         else
             echo ""
-            echo -e "  \033[0;31m  ✗  Homebrew installation failed or brew not found in PATH.\033[0m"
-            echo -e "  \033[0;90m  Try opening a new terminal and running brew_manager.sh again.\033[0m"
+            echo -e "  ${C_RED}  ${SYM_ERR}  Homebrew installation failed or brew not found in PATH.${NC}"
+            echo -e "  ${C_GRAY}  Try opening a new terminal and running brew_manager.sh again.${NC}"
             echo ""
             exit 1
         fi
     else
         echo ""
-        echo -e "  \033[0;90m  Homebrew not installed — brew-manager cannot continue.\033[0m"
-        echo -e "  \033[0;90m  Install manually: https://brew.sh\033[0m"
+        echo -e "  ${C_GRAY}  Homebrew not installed — brew-manager cannot continue.${NC}"
+        echo -e "  ${C_GRAY}  Install manually: https://brew.sh${NC}"
         echo ""
         exit 0
     fi
@@ -259,7 +259,7 @@ if [[ -z "$BREW_MANAGER_RECORDING" ]]; then
     exit $_run_rc
 fi
 
-clear
+_clear
 
 _header_main \
     "🍺  BREW MANAGER v${BREW_MANAGER_VERSION} — Audit, Cleanup & Unmanaged App Report" \

@@ -13,9 +13,9 @@ _handle_log() {
     echo ""
     echo -e "  ${C_WHITE}What do you want to do with the log?${NC}"
     echo ""
-    printf "  \033[0;32m%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[1]" "Keep" "Save the log to $log_file"
-    printf "  \033[1;37m%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[2]" "Open" "Log is saved — opens editor to view it"
-    printf "  \033[0;31m%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[3]" "Delete" "Discard the log — session data lost"
+    printf "  ${C_GREEN}%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[1]" "Keep" "Save the log to $log_file"
+    printf "  ${C_WHITE}%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[2]" "Open" "Log is saved — opens editor to view it"
+    printf "  ${C_RED}%-4s${C_WHITE}%-10s${NC}  ${C_GRAY}%s${NC}\n" "[3]" "Delete" "Discard the log — session data lost"
     echo ""
     printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[1/2/3, default: 1]${NC}: "
     read -r log_choice
