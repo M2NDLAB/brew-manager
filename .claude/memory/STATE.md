@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-07-19
-branch: feat/tui-foundation
+branch: chore/framework-upgrade-v1.0.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-19 | Ultimo: **BM-09 fondazione TUI** (M3, primo task) su `feat/tui-foundation` (3 commit, HEAD `910d551`) — rendering capability-aware in `lib/common.sh`: detection colore/Unicode, handoff parent→child, palette semantica con degradazione a ASCII puro (pipe/NO_COLOR), primitivi `_box`/`_clear`; guard-rail intatti; **gate adversariale PASSATO** (1 LOW fixato, 0 H/C/M); 132 test verdi. **In attesa di integrazione** (blocco `/integrate`) · Prossimo: STOP — decisione utente su BM-10/11/12 | Indice: [[INDEX]]
+> Aggiornato: 2026-07-19 | Ultimo: **Upgrade framework v0.5.1 → v1.0.0** su `chore/framework-upgrade-v1.0.0` (4 commit: riconciliazione `41808f7` + contratto `c9b8284` + pin `2668a75` + checkpoint) — solo PROCESSO: `docs/04` con il criterio del MAJOR + il **contratto pubblico di brew** (flag/selezione/exit-code/plist + **moduli CONGELATI**), `/lint-memory` +controllo 11 (caso-limite 7: file personalizzato), CLAUDE.md +`make test-scripts`, `scripts/README`, retrofit pin `.claude/framework-version`; **invariante memoria = diff VUOTO**; 132 test verdi. **In attesa di integrazione** (blocco `/integrate`, bump "nessun tag"). Prima: **BM-09 INTEGRATO in main** (merge `5867137`). Prossimo: STOP — decisione utente su BM-10/11/12; riportare la sorgente framework su main | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -94,11 +94,18 @@ tags: [state]
       per-finding): 1 LOW fixato (precedenza `LC_ALL` in `_tui_unicode`) + 1
       hardening (echo-on-data in `_box`, IMP-003), 5 refutati; consent-invariance
       e correctness-regression puliti. `tests/test_capabilities.zsh` (30 check,
-      e2e "pipato = zero ANSI"); suite 132 verde. **In attesa di integrazione.**
+      e2e "pipato = zero ANSI"); suite 132 verde. **INTEGRATO in main** (merge
+      `5867137`, branch `feat/tui-foundation` eliminato).
       → [[sessions/2026-07-19-bm09-tui-foundation]].
     - [ ] BM-10 (badge rischio + UX conferma), BM-11 (banner+menu redesign),
       BM-12 (progress+summary): decisione utente se procedere oggi o altra
       sessione. BM-10/BM-11 costruiranno su `_box`/palette di BM-09.
+- [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
+  processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
+  lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
+  compilato in docs/04 (moduli CONGELATI, decisione utente); invariante memoria VUOTA;
+  132 test verdi. In attesa di integrazione (bump "nessun tag", merge/push = utente).
+  → [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -120,11 +127,13 @@ tags: [state]
   [[mod-bk-brewfile]], [[mod-las-scheduler]].
 - Framework di processo `.claude/` (docs, commands, memoria), CLAUDE.md, Makefile,
   hook git (gitleaks + commitlint), CHANGELOG.md. **Metodo aggiornato a framework
-  v0.5.1** (da v0.2.0 dell'innesto): +comando `/harvest-framework`, +self-test
-  `scripts/test-hooks-install.sh` (`make test-scripts`), hooks-install indurito
-  (hook estranei/`core.hooksPath`/dangling). Vedi
-  [[sessions/2026-07-11-innesto-note]] (innesto) e
-  [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (upgrade).
+  v1.0.0** (da v0.5.1): `docs/04` con il criterio del MAJOR + il **contratto pubblico
+  di brew-manager** (flag/selezione/exit-code/plist + **moduli congelati**),
+  `/lint-memory` +controllo 11 "inventari vs realtà", `make test-scripts` nei Comandi
+  rapidi. Provenance pin `.claude/framework-version` (retrofit, FUORI da memory/, baseline
+  certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
+  v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
+  [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
 - Test: `tests/` (zsh puro, zero-dip, `make test`, **132 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
@@ -151,6 +160,13 @@ tags: [state]
   9b7e874): la policy ora promette solo "as soon as reasonably possible". Il
   subject di quel commit è rimasto un placeholder, per scelta dell'utente:
   storia pushata, NON riscrivere.
+- **Contratto pubblico di brew-manager** (criterio del MAJOR, in `docs/04`, deciso
+  all'upgrade framework v1.0.0): flag CLI, grammatica di selezione, exit-code `0/1/2`,
+  formato plist/LaunchAgent, e **identificatori di modulo CONGELATI** (numeri `0–13`/`go`/
+  nomi speciali `bk/las/log/mas` — rinumerare/riassegnare/rinominare = MAJOR, nuovi moduli
+  solo in append). Motivo: i numeri sono persistiti nei plist LaunchAgent sui Mac utenti
+  (#12). L'exit-code runtime dei moduli (#4b) è FUORI dal contratto, in ingresso additivo
+  con BM-18. → [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]].
 
 ## Debito documentazione
 - ~~README vs realtà di v1.2.0~~ **SALDATO** in BM-19 ristretto (7f7f90d): rimossi
@@ -279,13 +295,16 @@ tags: [state]
   periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `44f3835` (checkpoint
-  post-v1.3.0 mergiato), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
+- **main** = integrazione + stabile (trunk-based); HEAD `5867137` (merge di BM-09
+  `feat/tui-foundation`), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
   pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
   `CHANGELOG [Unreleased]`: vuota.
-- **feat/tui-foundation** = **BM-09** (fondazione TUI), 3 commit HEAD `910d551`
-  (feat `bab07d0` + fix `b2d7b62` + docs `910d551`); gate passato, 132 test verdi.
-  In attesa di integrazione dell'utente (blocco `/integrate`).
+- **chore/framework-upgrade-v1.0.0** = **upgrade framework v0.5.1 → v1.0.0** (solo
+  processo), 4 commit (riconciliazione `41808f7` + contratto `c9b8284` + pin `2668a75`
+  + questo checkpoint); invariante memoria VUOTA, 132 test verdi. In attesa di
+  integrazione dell'utente (blocco `/integrate`, bump "nessun tag").
+- **feat/tui-foundation** (BM-09) = **INTEGRATO in main** (merge `5867137`), branch
+  eliminato.
 - **chore/checkpoint-post-v1.3.0**, **docs/readme-v1.3.0**,
   **fix/exit-code-propagation**, **chore/release-v1.3.0**, **fix/agent-selection**,
   **feat/positional-dispatch**, **chore/framework-upgrade-v0.2-to-v0.5.1** =

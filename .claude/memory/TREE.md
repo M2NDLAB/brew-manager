@@ -1,6 +1,6 @@
 ---
 type: tree
-updated: 2026-07-18
+updated: 2026-07-19
 generated-by: /checkpoint
 tags: [structure]
 ---
@@ -61,7 +61,7 @@ tags: [structure]
 ├── SECURITY.md
 └── VERSION
 
-5 directories, 37 files
+5 directories, 38 files
 ```
 
 ## Legenda directory chiave
@@ -80,7 +80,8 @@ tags: [structure]
 
 ## Note
 - `tree` non mostra i dotfile: esistono anche `.claude/`, `.gitignore`,
-  `.claude/settings.local.json` (locale, non versionato).
+  `.claude/settings.local.json` (locale, non versionato) e
+  `.claude/framework-version` (provenance pin dell'innesto framework, v1.0.0).
 - `logs/`, `backups/`, `agents/` sono directory RUNTIME create dai moduli:
   git-ignorate, mai committate.
 - Solo `brew_manager.sh` è eseguibile; `lib/` e `modules/` vengono sourcati.

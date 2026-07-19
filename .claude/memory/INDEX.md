@@ -91,6 +91,11 @@ tags: [moc]
   palette semantica, degradazione ASCII puro, primitivi box/clear); 0 moduli
   toccati; gate adversariale passato (1 LOW LC_ALL fixato + hardening echo-on-data);
   30 test nuovi, 132 totali; IMP-005 registrata
+- [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] — upgrade dell'innesto
+  framework v0.5.1 → v1.0.0 (solo processo, attraversa la 1.0): docs/04 (+criterio
+  MAJOR e **contratto pubblico di brew**, moduli CONGELATI), lint-memory (+controllo
+  11, caso-limite 7), CLAUDE.md (+test-scripts), scripts/README, retrofit del pin;
+  invariante memoria VUOTA; bump "nessun tag"
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -109,6 +114,7 @@ tags: [moc]
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
   **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
-  (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) completato su
-  `feat/tui-foundation`, gate passato, in attesa di integrazione; BM-10/11/12
-  da decidere. Prossimo: STOP, decisione utente.
+  (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) **INTEGRATO in main**
+  (merge `5867137`); BM-10/11/12 da decidere. Fuori roadmap: **upgrade framework
+  v0.5.1 → v1.0.0** (2026-07-19, solo processo, in attesa di integrazione).
+  Prossimo: STOP, decisione utente.
