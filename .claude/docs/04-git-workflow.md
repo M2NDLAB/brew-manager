@@ -121,19 +121,32 @@ nessun tag, è lavoro interno, non un rilascio).
 
 **Cosa è un «breaking change» — il criterio del MAJOR.** SemVer parla di compatibilità
 del *contratto pubblico* del progetto: è breaking ogni modifica che costringe un
-consumatore ad adattarsi per adottare la nuova versione. COSA sia quel contratto dipende
-dal progetto — [DA DEFINIRE AL SETUP] — ma il criterio è unico:
-- progetto **di codice**: firma pubblica di API/CLI, formato di dati o messaggi, schema
-  di persistenza, contratto di configurazione — romperli è MAJOR;
-- progetto **di metodo/tooling** (com'è questo framework): rimozione o rinomina di un
-  comando, un cambio incompatibile del formato della memoria o dei marcatori, o una
-  modifica della struttura che rompe gli innesti o gli upgrade già esistenti su un
-  progetto — è la stessa promessa, applicata al contratto di un metodo invece che di
-  un'API.
+consumatore ad adattarsi per adottare la nuova versione. brew-manager è un progetto **di
+codice**: il suo contratto pubblico — ciò che una release promette di NON rompere senza un
+MAJOR — è l'insieme di queste superfici:
+- **Flag CLI** — nomi e semantica di `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`,
+  `--upgrade=y|n`, `--only=`, `--skip=`, `--version|-V`: rimuoverne uno, rinominarlo o
+  cambiarne il significato è MAJOR;
+- **Grammatica di selezione** — il posizionale `[modules]` (lista di id, oppure `go`) più
+  `--only`/`--skip`: cambiarne il formato in modo incompatibile è MAJOR;
+- **Identificatori di modulo** — i NUMERI (`0`–`13`), la keyword `go` e i NOMI speciali
+  (`bk`/`las`/`log`/`mas`) sono CONGELATI: rinumerare, riassegnare un numero a un modulo
+  diverso o rinominare è MAJOR; i moduli nuovi si APPENDONO (numeri/nomi nuovi), mai
+  riorganizzando quelli esistenti. Motivo concreto: i numeri sono persistiti nei plist dei
+  LaunchAgent sui Mac degli utenti (`modules=3,5`), e riassegnarli cambierebbe in silenzio
+  ciò che un agente già installato esegue;
+- **Contratto di exit-code** — i codici fissati dai test end-to-end
+  (`tests/test_exit_codes.zsh`): `0` esecuzione riuscita, `1` selezione che risolve vuota,
+  `2` token di modulo o flag ignoto — cambiarli è MAJOR. *(Fuori dal contratto per ora, in
+  ingresso come estensione additiva con BM-18: la propagazione del fallimento a runtime di
+  un modulo, che oggi esce ancora `0` — #4b.)*;
+- **Formato del plist/LaunchAgent** — lo schema scritto dallo scheduler in
+  `~/Library/LaunchAgents` e il campo `modules=` letto dal restore: un cambio incompatibile
+  rompe gli agenti già installati, quindi è MAJOR.
 
-Aggiunte retrocompatibili (un comando in più, una regola nuova, un campo opzionale) sono
-MINOR; le correzioni che non toccano il contratto sono PATCH. Sotto `1.0.0` la promessa
-non è ancora attiva (vedi i regimi qui sotto).
+Aggiunte retrocompatibili (un modulo in più in append, un flag nuovo, un campo opzionale)
+sono MINOR; le correzioni che non toccano il contratto sono PATCH. Sotto `1.0.0` la
+promessa non è ancora attiva (vedi i regimi qui sotto).
 
 Il versioning ha **due regimi**, separati dalla release `1.0.0`, e determinano su QUALE
 BRANCH vive il tag:
