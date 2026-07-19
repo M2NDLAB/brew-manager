@@ -47,6 +47,7 @@ tags: [structure]
 │   ├── reset-task.sh
 │   └── test-hooks-install.sh
 ├── tests
+│   ├── test_capabilities.zsh
 │   ├── test_exit_codes.zsh
 │   ├── test_guardrails.zsh
 │   └── test_selection.zsh
@@ -72,7 +73,7 @@ tags: [structure]
 | lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) + registry/resolver di selezione ([[lib-selection]]) |
 | modules/ | i 18 moduli (funzioni sourcate): 14 numerici `mod_00`–`mod_13` (sequenza `go`) + 4 speciali per nome (`bk`, `las`, `log`, `mas`) |
 | scripts/ | script di processo del framework (hooks-install, reset-task, test-hooks-install self-test) — NON script applicativi |
-| tests/ | test del progetto (harness zsh, zero-dip, `make test`): `test_selection.zsh` (resolver, [[lib-selection]]), `test_guardrails.zsh` (consenso `_ask`/`_read_choice`), `test_exit_codes.zsh` (exit end-to-end via sandbox, [[core-brew-manager]]) |
+| tests/ | test del progetto (harness zsh, zero-dip, `make test`): `test_selection.zsh` (resolver, [[lib-selection]]), `test_guardrails.zsh` (consenso `_ask`/`_read_choice`), `test_exit_codes.zsh` (exit end-to-end via sandbox, [[core-brew-manager]]), `test_capabilities.zsh` (detection TUI + degradazione + e2e "pipato = zero ANSI", BM-09, [[lib-common]]) |
 | logs/ (ignorata) | log di sessione `brew_report_*.log` generati via script(1) |
 | backups/ (ignorata) | Brewfile e bundle agenti prodotti dal modulo `bk` |
 | agents/ (ignorata) | conf e activity log dei LaunchAgent del modulo `las` |

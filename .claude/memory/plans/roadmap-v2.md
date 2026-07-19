@@ -300,6 +300,19 @@ Design completo nella sezione 4. Qui l'atomizzazione.
 - Non-regressione: rendering ok su Terminal.app e con `NO_COLOR=1`; output pipato senza sequenze
   ANSI (coerente con lo stripping ANSI dei log); moduli esistenti ancora leggibili.
 - Commit: `feat(tui): capability detection, semantic palette, box/layout primitives`
+- **Status: COMPLETATO 2026-07-19** — branch `feat/tui-foundation` (feat `bab07d0`
+  + fix `b2d7b62` + docs `910d551`). Detection (`_tui_color_level`/`_tui_unicode`
+  pure), handoff parent→child `TUI_{LEVEL,UNICODE,TTY}` (come NON_INTERACTIVE),
+  palette semantica con degradazione L0=ASCII-puro-alla-fonte, primitivi
+  `_box`/`_repeat`/`_pad`/`_clear`. **0 moduli modificati** (usano le costanti);
+  escape grezzi → palette (NO_COLOR pulito). Guard-rail byte-identici.
+  **Gate adversariale PASSATO**: 1 LOW fixato (`_tui_unicode` doveva onorare la
+  precedenza POSIX `LC_ALL>LC_CTYPE>LANG` — il design §4.2 usava l'unione, era il
+  bug) + 1 hardening (echo-on-data in `_box`, IMP-003), 5 refutati; le lenti
+  consent-invariance e correctness-regression pulite. `tests/test_capabilities.zsh`
+  (30 check, e2e "pipato = zero ANSI"), suite 132 verde. Scoperta → IMP-005
+  (`clear` gata su `TUI_TTY`). In attesa di integrazione.
+  → [[sessions/2026-07-19-bm09-tui-foundation]].
 
 #### BM-10 · feat: badge di rischio e UX di conferma
 - Tipo · branch: feat · `feat/risk-badges`

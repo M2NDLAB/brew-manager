@@ -85,6 +85,13 @@ tags: [improvement]
   non un cambio di codice; va applicata al codice nuovo, gli istanze vecchie
   restano tracciate in #3b.
 - Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
+- **Rafforzata dal gate BM-09** (2026-07-19): il primitivo NUOVO `_box` rendeva
+  il suo TITLE via `echo -e` — la stessa trappola echo-on-data — in un componente
+  sensibile condiviso su cui BM-10/BM-11 costruiranno. Nessun impatto attuale (mai
+  chiamato con dati non fidati), ma la convenzione l'avrebbe prevenuto a monte;
+  fixato subito (border via `printf %s`) e pinnato da un test anti-echo-on-data.
+  Segnale forte: la trappola riappare anche nel codice di PRESENTAZIONE nuovo, non
+  solo nel parsing di input non fidato.
 
 ### IMP-004 — Chiudere una CLASSE di difetto = grep di TUTTI i siti + verifica adversariale
 - Data: 2026-07-17 | Origine: gate BM-08c e il suo re-gate. Due lezioni: (1) ho
@@ -109,6 +116,29 @@ tags: [improvement]
   come prassi dopo fix sensibili (qui ha trovato il gemello bk). Rischio: minimo —
   è disciplina di verifica, non codice.
 - Trigger di ripresa: decisione utente (prossima retro periodica, oppure ora).
+
+### IMP-005 — Convenzione: l'output di CONTROLLO terminale gata sulla tty reale, non solo sul colore
+- Data: 2026-07-19 | Origine: BM-09 (fondazione TUI). Implementando la
+  degradazione "output pipato senza ANSI", il comando `clear` emetteva comunque
+  una sequenza ANSI di controllo-schermo anche con output pipato/non-TTY — un
+  leak scoperto SOLO dal test end-to-end "zero ESC quando pipato". Il colore era
+  già gated (TUI_COLOR_LEVEL), il controllo-schermo no.
+- Problema osservato: la degradazione era pensata per il COLORE; le sequenze di
+  CONTROLLO terminale (clear, cursor-move, `\r`) sono un SECONDO canale che sfugge
+  se si gata solo il colore. In un re-exec sotto script(1) il figlio ha una pty
+  (`-t 1` vero), quindi il gate corretto è la tty-ness REALE handed-off dal parent
+  (`TUI_TTY`), non `-t 1` locale né il livello colore (un NO_COLOR interattivo può
+  ancora voler pulire lo schermo).
+- Proposta: riga nelle "Convenzioni di codice" di `CLAUDE.md`: *"Ogni emissione di
+  CONTROLLO terminale (clear, sequenze cursore, `\r`) passa per `_clear`/un gate su
+  `TUI_TTY`, come il colore passa per la palette gated su `TUI_COLOR_LEVEL`: un run
+  pipato/agente non emette né colore né controllo."* Corollario diretto per BM-12
+  (spinner/progress): lo spinner e ogni uso di `\r`/cursore gatano su `TUI_TTY`
+  (oggi lo spinner gata solo su `RECORDING`, che in pratica è sempre attivo).
+- Beneficio atteso / rischio: chiude la classe "sequenza di controllo che sporca
+  l'output pipato alla fonte"; guida pronta per BM-12. Rischio: minimo — è una
+  convenzione, e il meccanismo (`TUI_TTY` + `_clear`) è già in codice da BM-09.
+- Trigger di ripresa: decisione utente (retro periodica) o primo task BM-12.
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>

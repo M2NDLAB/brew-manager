@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-07-18
-branch: docs/readme-v1.3.0
+updated: 2026-07-19
+branch: feat/tui-foundation
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-18 | Ultimo: **v1.3.0 RILASCIATA** (merge `c6c80c0` in main, tag annotato `v1.3.0` pushato, `main == origin/main`, version-check verde — "the scheduler release": CLI posizionale, scheduling per-modulo, consenso fail-closed, exit code end-to-end) · Prossimo: M3 (TUI) o altro, decisione utente | Indice: [[INDEX]]
+> Aggiornato: 2026-07-19 | Ultimo: **BM-09 fondazione TUI** (M3, primo task) su `feat/tui-foundation` (3 commit, HEAD `910d551`) — rendering capability-aware in `lib/common.sh`: detection colore/Unicode, handoff parent→child, palette semantica con degradazione a ASCII puro (pipe/NO_COLOR), primitivi `_box`/`_clear`; guard-rail intatti; **gate adversariale PASSATO** (1 LOW fixato, 0 H/C/M); 132 test verdi. **In attesa di integrazione** (blocco `/integrate`) · Prossimo: STOP — decisione utente su BM-10/11/12 | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -83,6 +83,22 @@ tags: [state]
     clone pulito prima del rilascio (version-check + 102 test + `--version`).
     Merge/tag/push eseguiti dall'utente.
     → [[sessions/2026-07-18-release-v1.3.0]].
+  - [ ] **M3 — TUI bella + funzionale (BM-09…BM-12): AVVIATO.**
+    - [x] **BM-09** fondazione TUI in `lib/common.sh` — branch
+      `feat/tui-foundation` (feat `bab07d0` + fix `b2d7b62` + docs `910d551`).
+      Rendering capability-aware (detection colore/Unicode, handoff parent→child
+      come NON_INTERACTIVE, palette semantica, degradazione a ASCII puro alla
+      fonte, primitivi `_box`/`_repeat`/`_pad`/`_clear`); 0 moduli modificati;
+      escape grezzi → palette (NO_COLOR pulito ovunque). Guard-rail
+      byte-identici. **Gate adversariale PASSATO** (6 lenti + verifica
+      per-finding): 1 LOW fixato (precedenza `LC_ALL` in `_tui_unicode`) + 1
+      hardening (echo-on-data in `_box`, IMP-003), 5 refutati; consent-invariance
+      e correctness-regression puliti. `tests/test_capabilities.zsh` (30 check,
+      e2e "pipato = zero ANSI"); suite 132 verde. **In attesa di integrazione.**
+      → [[sessions/2026-07-19-bm09-tui-foundation]].
+    - [ ] BM-10 (badge rischio + UX conferma), BM-11 (banner+menu redesign),
+      BM-12 (progress+summary): decisione utente se procedere oggi o altra
+      sessione. BM-10/BM-11 costruiranno su `_box`/palette di BM-09.
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -90,7 +106,10 @@ tags: [state]
   sessione via script(1). Selezione da CLI (posizionale + `--only`/`--skip`,
   BM-08b) o dal menu interattivo. Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
-  (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Vedi [[lib-common]].
+  (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
+  capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
+  palette semantica (degrada a ASCII puro su pipe/NO_COLOR), primitivi
+  `_box`/`_clear`. Vedi [[lib-common]].
 - `lib/selection.sh` (BM-08a/b) — registry `MODULE_DESC`/`MODULE_IDS` +
   `_resolve_selection` (lenient) + `_resolve_cli`/`_collect_module_tokens`
   (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Vedi
@@ -106,12 +125,14 @@ tags: [state]
   (hook estranei/`core.hooksPath`/dangling). Vedi
   [[sessions/2026-07-11-innesto-note]] (innesto) e
   [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (upgrade).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **102 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **132 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
   `test_exit_codes.zsh` (6) fissa l'exit end-to-end del binario reale (sandbox
-  symlink-farm + mock brew con tripwire). Resto del codice non
+  symlink-farm + mock brew con tripwire); `test_capabilities.zsh` (30, BM-09) fissa
+  detection colore/Unicode, ladder di degradazione, purezza ASCII fallback e l'e2e
+  "pipato = zero ANSI" via il vero re-exec `script(1)`. Resto del codice non
   coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
@@ -251,19 +272,23 @@ tags: [state]
    nel label potrebbe iniettare struttura. → TRIGGER: hardening mod_las — validare
    il label anche sui path non-interattivi (stessa forma del suffisso).
 - [[LEARNINGS]]: IMP-001 APPLICATA; **IMP-002** (checklist superficie del
-  contratto per i test), **IMP-003** (mai echo su dati) e **IMP-004** (chiudi la
-  CLASSE: grep tutti i siti + verifica adversariale + re-gate) APERTE,
-  propose-only, in attesa di decisione (retro periodica o su richiesta).
+  contratto per i test), **IMP-003** (mai echo su dati — rafforzata dal gate BM-09),
+  **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate)
+  e **IMP-005** (output di controllo terminale gata su `TUI_TTY`, non solo sul
+  colore — origine BM-09) APERTE, propose-only, in attesa di decisione (retro
+  periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `c6c80c0` (merge di
-  release v1.3.0), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
+- **main** = integrazione + stabile (trunk-based); HEAD `44f3835` (checkpoint
+  post-v1.3.0 mergiato), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
   pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
   `CHANGELOG [Unreleased]`: vuota.
-- **chore/checkpoint-post-v1.3.0** = questo checkpoint di riconciliazione
-  (sola memoria). In attesa di merge dell'utente (blocco `/integrate`).
-- **docs/readme-v1.3.0**, **fix/exit-code-propagation**, **chore/release-v1.3.0**,
-  **fix/agent-selection**, **feat/positional-dispatch**,
-  **chore/framework-upgrade-v0.2-to-v0.5.1** = MERGIATI in main, branch eliminati.
+- **feat/tui-foundation** = **BM-09** (fondazione TUI), 3 commit HEAD `910d551`
+  (feat `bab07d0` + fix `b2d7b62` + docs `910d551`); gate passato, 132 test verdi.
+  In attesa di integrazione dell'utente (blocco `/integrate`).
+- **chore/checkpoint-post-v1.3.0**, **docs/readme-v1.3.0**,
+  **fix/exit-code-propagation**, **chore/release-v1.3.0**, **fix/agent-selection**,
+  **feat/positional-dispatch**, **chore/framework-upgrade-v0.2-to-v0.5.1** =
+  MERGIATI in main, branch eliminati.
 - **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
   usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

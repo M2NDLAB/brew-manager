@@ -1,21 +1,44 @@
 ---
 type: component
 component: lib-common
-updated: 2026-07-17
+updated: 2026-07-19
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
 
-Infrastruttura condivisa: palette/simboli TUI, utility di output, guard-rail dei
-prompt, gestione del log di fine sessione.
+Infrastruttura condivisa: rendering TUI **capability-aware** (palette/simboli),
+utility di output, guard-rail dei prompt, gestione del log di fine sessione.
 
 ## Stato attuale
-Stabile, piccola. Componente SENSIBILE (vedi docs/03): un difetto qui si propaga a
-tutti i moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo.
+Stabile, componente SENSIBILE (vedi docs/03): un difetto qui si propaga a tutti i
+moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
+**BM-09** il layer di rendering degrada per capacità del terminale (vedi
+[[sessions/2026-07-19-bm09-tui-foundation]]).
+
+## Capability detection & degradazione (BM-09)
+- `_tui_color_level <is_tty> <ncolors>` → 0/1/2/3 (no-ANSI / 16 / 256 / truecolor):
+  legge `NO_COLOR` e `COLORTERM`; funzione PURA (tty+ncolors come arg → testabile).
+- `_tui_unicode` → 1 se UTF-8, con **precedenza POSIX** `LC_ALL > LC_CTYPE > LANG`
+  (NON unione: `LC_ALL=C` forza l'ASCII anche con LANG UTF-8 — fix del gate BM-09).
+- `_detect_capabilities` popola `TUI_COLOR_LEVEL`/`TUI_UNICODE`/`TUI_TTY`. **Handoff
+  parent→child** via `BREW_MANAGER_TUI_{LEVEL,UNICODE,TTY}` (come NON_INTERACTIVE):
+  sotto `script(1)` il figlio ha una pty (`-t 1`/`tput` mentono) → detect UNA volta
+  nel parent, il figlio (RECORDING) si fida dell'handoff; run fresh ri-detecta e
+  ri-esporta sempre (nessun leak di valore stale). Default safe = no-color/ASCII.
+- `_init_palette`: **L0 → ogni costante colore VUOTA** (ANSI soppresso alla fonte
+  per pipe/NO_COLOR); L1 = palette storica invariata; 256/truecolor = tinte
+  semantiche. Alias `C_OK/C_WARN/C_DANGER/C_INFO/C_HEADING/C_BRAND/C_ACCENT`; i nomi
+  legacy `C_*` mappati sulla semantica (strutturali cyan/blue/purple intatti).
+- `_init_symbols`: `SYM_*` e `BOX_*` UTF-8 vs ASCII per `TUI_UNICODE`.
+- Primitivi: `_box` (blocco bordato — title/righe come DATI via `printf %s`, MAI
+  `echo -e`: chiusa la trappola echo-on-data IMP-003), `_repeat`, `_pad`,
+  `TUI_INDENT`, `_clear` (pulisce solo se `TUI_TTY`). `_hline` mappa i glifi
+  heavy/light in ASCII in locale non-UTF-8.
 
 ## Cosa espone / responsabilità
 - Output: `_hline`, `_header_main`, `_section`, `_ok/_warn/_err/_info/_item`,
-  `_stat_row`, `_spinner` (degrada a wait puro sotto recording).
+  `_stat_row`, `_spinner` (degrada a wait puro sotto recording — morto-in-pratica,
+  RECORDING sempre attivo; BM-12 lo riscrive gatando `\r`/cursore su `TUI_TTY`).
 - Guard-rail dei prompt (BM-08c) — due variabili ORTOGONALI
   ([[2026-07-17-consent-vs-noninteractive]]):
   - `BREW_MANAGER_YES` (solo `--yes`) = CONSENSO. `_ask` → prende il default;
@@ -46,10 +69,21 @@ tutti i moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo.
   a bash.
 - `_handle_log` legge SEMPRE da stdin (nessun bypass YES_MODE): in non-TTY la
   read fallisce e si applica il default keep — comportamento voluto ma implicito.
-- I colori sono hardcoded ANSI: qualunque output di modulo deve passare dalle
-  utility, mai printf con escape propri (il post-processing sed del log li
-  assume).
+- I colori NON sono più hardcoded fissi (BM-09): si risolvono per capacità
+  (`TUI_COLOR_LEVEL`). Ogni output DEVE passare per le costanti `${C_*}`/`${SYM_*}`
+  e le utility — mai `\033` propri (l'invariante è: zero `\033` grezzi fuori da
+  `lib/common.sh`; il post-processing sed del log resta come rete).
+- **Controllo terminale (clear/cursore/`\r`) gata su `TUI_TTY`, NON sul colore**
+  (BM-09, [[LEARNINGS]] IMP-005): un run pipato/agente non deve emettere né colore
+  né sequenze di controllo. Usa `_clear`; per lo spinner/progress di BM-12 gata
+  `\r`/cursore su `TUI_TTY` (oggi `_spinner` gata solo su RECORDING).
+- **`_box` e ogni futuro primitivo: DATI via `printf %s`, MAI `echo -e`** ([[LEARNINGS]]
+  IMP-003): un title/riga fornito dal chiamante (nome modulo, path) espanderebbe gli
+  escape se passato per echo. Il gate BM-09 ha ritrovato la trappola nel `_box`
+  nuovo → fixata; vale per BM-10/BM-11 che ci costruiranno sopra.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (guard-rail consenso vs non-interattivo)
+- [[sessions/2026-07-19-bm09-tui-foundation]] (rendering capability-aware: detection,
+  handoff, palette semantica, primitivi box/clear; gate passato)

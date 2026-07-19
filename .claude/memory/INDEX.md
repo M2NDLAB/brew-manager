@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-18
+updated: 2026-07-19
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,12 +15,15 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  3 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
-  dati), IMP-004 (chiudi la CLASSE: grep tutti i siti + verifica adversariale)
+  4 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
+  verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
+  colore — BM-09)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
-- [[lib-common]] — utility TUI + guard-rail condivisi `_ask`/`_read_choice` (sensibile)
+- [[lib-common]] — rendering TUI capability-aware + guard-rail condivisi
+  `_ask`/`_read_choice` (sensibile; layer detection/palette/box dal BM-09)
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; senza conferma né dry-run)
@@ -83,6 +86,11 @@ tags: [moc]
 - [[sessions/2026-07-18-release-v1.3.0]] — release v1.3.0 (VERSION + CHANGELOG
   "scheduler release"); verificata da clone pulito con tag simulato;
   **RILASCIATA 2026-07-18**: merge c6c80c0, tag annotato v1.3.0 pushato
+- [[sessions/2026-07-19-bm09-tui-foundation]] — BM-09 (M3, primo task): rendering
+  capability-aware in lib/common.sh (detection colore/Unicode, handoff parent→child,
+  palette semantica, degradazione ASCII puro, primitivi box/clear); 0 moduli
+  toccati; gate adversariale passato (1 LOW LC_ALL fixato + hardening echo-on-data);
+  30 test nuovi, 132 totali; IMP-005 registrata
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -101,5 +109,6 @@ tags: [moc]
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
   **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
-  (2026-07-18: CLI posizionale, scheduling per-modulo, consenso fail-closed,
-  exit code). Prossimo: M3 (TUI) o altro, decisione utente.
+  (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) completato su
+  `feat/tui-foundation`, gate passato, in attesa di integrazione; BM-10/11/12
+  da decidere. Prossimo: STOP, decisione utente.

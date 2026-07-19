@@ -489,6 +489,19 @@ To manage all session logs at once:
 
 ---
 
+## Terminal rendering
+
+brew-manager adapts its output to what your terminal can actually display, and degrades cleanly when it can't — no garbled escape codes, no unreadable glyphs.
+
+- **Color depth is detected automatically.** A truecolor terminal (`COLORTERM=truecolor`) gets the full 24-bit palette; a 256-color terminal gets 256-color hues; anything poorer falls back to the classic 16 colors. The palette is *semantic* — one tint per state (green = safe/read-only, yellow = writes metadata, red = destructive) — so the meaning of an action is legible at a glance rather than decorative.
+- **`NO_COLOR` is honored.** Set `NO_COLOR=1` (see [no-color.org](https://no-color.org)) and the output is plain text with no ANSI sequences at all.
+- **Piped or non-interactive output is clean at the source.** When standard output is not a terminal — a pipe, a redirect, a scheduled LaunchAgent — no color or cursor-control sequences are emitted in the first place. This complements the ANSI stripping of the saved log: a piped report is clean text you can `grep` or archive directly.
+- **Non-UTF-8 locales fall back to ASCII.** In a UTF-8 locale the interface uses rounded boxes and Unicode symbols (`✓ ⚠ ✗ → ─`); otherwise it uses ASCII equivalents (`+ ! x -> -`), so it stays readable in a `LANG=C` environment.
+
+All of this is driven from `lib/common.sh`, so every module inherits it — there is nothing to configure.
+
+---
+
 ## Adding a new module
 
 brew-manager's dispatch system is designed to make adding modules trivial.
