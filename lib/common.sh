@@ -258,18 +258,9 @@ _pad() { printf '%s%s\n' "$TUI_INDENT" "${1-}"; }
 # scheduled-agent run produces plain text a log/pipe can consume as-is.
 _clear() { (( TUI_TTY )) && clear; }
 
-_header_main() {
-    local title="$1" subtitle="$2" subline="$3"
-    echo ""
-    _hline "═" "$C_CYAN"
-    printf "${C_CYAN_B}  %-$((TERM_WIDTH-4))s  ${NC}\n" ""
-    printf "${C_CYAN_B}  %-$((TERM_WIDTH-4))s  ${NC}\n" "$title"
-    [[ -n "$subtitle" ]]  && printf "${C_CYAN}  %-$((TERM_WIDTH-4))s  ${NC}\n" "$subtitle"
-    [[ -n "$subline" ]]   && printf "${C_GRAY}  %-$((TERM_WIDTH-4))s  ${NC}\n" "$subline"
-    printf "${C_CYAN_B}  %-$((TERM_WIDTH-4))s  ${NC}\n" ""
-    _hline "═" "$C_CYAN"
-    echo ""
-}
+# NOTE: _header_main (the boxed ═══ main banner) was removed with BM-11 — its
+# only call-site, the brew_manager.sh startup banner, now renders a flat brand
+# line inline (the same dead-code hygiene as BM-07).
 
 _section() {
     local num="$1" title="$2"
