@@ -111,6 +111,52 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 7. _ask_danger — draws a danger box, then delegates consent to _ask UNCHANGED.
+#    The load-bearing invariant: the wrapper's exit status equals _ask's under
+#    every consent regime, so the danger frame is presentation only and never
+#    grants or withholds consent (BM-08c / BM-09 guard-rail preserved).
+# ─────────────────────────────────────────────────────────────────────────────
+TUI_COLOR_LEVEL=0; _init_palette; TUI_UNICODE=0; _init_symbols; TERM_WIDTH=60
+
+# --yes + default y → proceed (rc 0), same as _ask; capture output to inspect the box
+_ad_out="$(BREW_MANAGER_YES=1 BREW_MANAGER_NONINTERACTIVE=0 \
+    _ask_danger 'Cleanup' 'Proceed?' y 'brew autoremove - remove orphans' 2>&1)"
+BREW_MANAGER_YES=1 BREW_MANAGER_NONINTERACTIVE=0 \
+    _ask_danger 'Cleanup' 'Proceed?' y 'x' >/dev/null 2>&1
+[[ $? -eq 0 ]] && _pass "_ask_danger: --yes + default y → proceed (rc 0)" \
+              || _fail "_ask_danger: --yes + default y did not proceed"
+
+# --yes + default n → decline (rc 1), same as _ask
+BREW_MANAGER_YES=1 BREW_MANAGER_NONINTERACTIVE=0 \
+    _ask_danger 'Cleanup' 'Proceed?' n 'x' >/dev/null 2>&1
+[[ $? -eq 1 ]] && _pass "_ask_danger: --yes + default n → decline (rc 1)" \
+              || _fail "_ask_danger: --yes + default n did not decline"
+
+# non-interactive, NO --yes → decline even with default y (fail-closed), same as _ask
+BREW_MANAGER_YES=0 BREW_MANAGER_NONINTERACTIVE=1 \
+    _ask_danger 'Cleanup' 'Proceed?' y 'x' >/dev/null 2>&1
+[[ $? -eq 1 ]] && _pass "_ask_danger: non-interactive + no --yes → decline even default y (fail-closed)" \
+              || _fail "_ask_danger: fail-closed invariant broken"
+
+# the danger box IS drawn (marker + the caller's detail line), plain ASCII at L0
+if [[ "$_ad_out" == *'[!]'* && "$_ad_out" == *'remove orphans'* ]] && ! has_esc "$_ad_out"; then
+    _pass "_ask_danger: draws danger box (marker + detail), plain at L0"
+else
+    _fail "_ask_danger: danger box missing/leaky: '$_ad_out'"
+fi
+
+# no destructive _ask left un-framed in the danger modules: every _ask ("... ?")
+# guarding a mutation must now be _ask_danger. Scan the 6 wired modules.
+_bare=()
+for _m in mod_00_audit mod_04_updates mod_05_cleanup mod_10_greedy mod_bk_brewfile mod_mas_mas; do
+    _f="$_ROOT/modules/$_m.sh"
+    # a bare `_ask "` still present (not `_ask_danger`) at a mutation site is a miss
+    grep -nE '(^|[^_])_ask "' "$_f" >/dev/null 2>&1 && _bare+=("$_m")
+done
+(( ${#_bare[@]} == 0 )) && _pass "wiring: no bare _ask left in the wired danger modules" \
+                        || _fail "wiring: bare _ask remains in: ${_bare[*]}"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # verdict + anti-vacuity
 # ─────────────────────────────────────────────────────────────────────────────
 print -r -- ""

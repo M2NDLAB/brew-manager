@@ -401,9 +401,27 @@ _risk_badge() {
 # (_ask_danger), not here, so this caption cannot drift out of sync with behaviour.
 _risk_caption() {
     case "$1" in
-        ro)     printf '%s' 'Read-only — inspects and reports; changes nothing.' ;;
-        write)  printf '%s' 'Writes metadata/cache only — installs and removes nothing.' ;;
-        danger) printf '%s' 'Can change your system — removes, installs, adopts, or schedules.' ;;
+        ro)     printf '%s' 'Read-only: inspects and reports, changes nothing.' ;;
+        write)  printf '%s' 'Writes metadata/cache only; installs and removes nothing.' ;;
+        danger) printf '%s' 'Can change your system: removes, installs, adopts, or schedules.' ;;
         *)      printf '%s' 'Risk level unknown.' ;;
     esac
+}
+
+# _ask_danger <title> <question> <default> [detail ...]  → _ask's exit status.
+# The danger-styled confirmation for a DESTRUCTIVE action: it draws a red-framed
+# box (the C_DANGER tint) naming the action and spelling out exactly what it will
+# do (the [detail] lines), THEN delegates the actual consent to _ask, UNCHANGED.
+# That split is deliberate and load-bearing: the box is pure presentation; _ask
+# alone decides — interactive prompt, --yes auto-default, or non-interactive
+# fail-closed — so the consent semantics stay byte-for-byte identical to calling
+# _ask directly (the guard-rail invariant of BM-08c/BM-09 is preserved; the
+# danger box only makes the risk VISIBLE, it never grants or withholds consent).
+# Call it on the REAL execution path only: the per-module --dry-run branch shows
+# its own preview and must never reach a confirmation. Detail lines are rendered
+# by _box as literal DATA (printf %s), so a caller string cannot inject escapes.
+_ask_danger() {
+    local title="$1" question="$2" default="$3"; shift 3
+    _box "$C_DANGER" "[!] $title" "$@"
+    _ask "$question" "$default"
 }

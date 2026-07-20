@@ -77,7 +77,9 @@ _module_4() {
 
         if (( BREW_MANAGER_DRY_RUN )); then
             _info "Dry-run mode — skipping actual upgrade"
-        elif _ask "Proceed with upgrade now?" "${BREW_MANAGER_UPGRADE:-n}"; then
+        elif _ask_danger "Upgrade outdated packages" "Proceed with upgrade now?" "${BREW_MANAGER_UPGRADE:-n}" \
+            "brew upgrade - upgrade all ${OUTDATED_COUNT} outdated cask(s)/formula(e)" \
+            "Downloads and installs new versions (see the preview above)."; then
             echo ""
             _info "Updating packages"
             brew upgrade 2>&1 | while IFS= read -r line; do

@@ -55,9 +55,11 @@ sottostimare — un badge basso è un bug di sicurezza). Gate della verifica: ra
        allineamento verificato (badge 4-col fissa) — commit: (questo)
 - [x] 3. Riga `_about_risk "<id>"` nel blocco About dei 18 moduli (id verificati;
        +newline EOF normalizzato su 17 file) — commit: (questo)
-- [ ] 4. `_ask_danger` (common.sh) + cornice di pericolo ai siti distruttivi di
-       0,4,5,10,bk,las,mas + test (cornice rossa; consenso identico a `_ask` sotto
-       --yes/non-interactive: invariante byte-per-byte) — commit: —
+- [x] 4. `_ask_danger` (common.sh) + cornice ai 9 siti distruttivi di 0,4,5,10,bk(×3),
+       mas(×2); las ESCLUSO (nessun `_ask` di consenso — flusso a menu; incorniciarlo
+       sarebbe un cambio di consenso, fuori BM-10). +5 test (consenso == `_ask`;
+       nessun bare `_ask` residuo). Stringhe nuove ASCII (box locale-robusto,
+       no em-dash multibyte). 170 test — commit: (questo)
 - [ ] 5. README (badge nel menu/moduli) + `make test` (132+nuovi) e `make check` verdi — commit: —
 
 ## Dopo i task (ciclo di fine deliverable)

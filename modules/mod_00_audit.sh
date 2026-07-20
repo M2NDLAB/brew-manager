@@ -205,7 +205,9 @@ _module_0() {
                 # Echo the exact target and confirm BEFORE touching the system:
                 # adopting the wrong app is real damage. Default "y" keeps the
                 # documented automated flows (--adopt=all --yes) working as before
-                if ! _ask "Adopt ${app_name}.app → ${cask_name} now?" "y"; then
+                if ! _ask_danger "Adopt app into Homebrew" "Adopt ${app_name}.app → ${cask_name} now?" "y" \
+                    "brew install --cask ${cask_name} --adopt" \
+                    "Links the existing app to Homebrew; future updates via brew upgrade."; then
                     _warn "Skipped: $app_name"
                     continue
                 fi
