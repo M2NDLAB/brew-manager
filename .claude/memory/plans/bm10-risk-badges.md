@@ -3,7 +3,7 @@ type: plan
 prompt: BM-10 — badge di rischio + UX di conferma distruttiva
 branch: feat/risk-badges
 created: 2026-07-20
-status: in-progress
+status: completed
 tags: [plan, tui, bm10, m3, sensitive]
 ---
 # Piano: BM-10 — risk badges [RO]/[W]/[!] e cornici di conferma distruttiva
@@ -60,7 +60,8 @@ sottostimare — un badge basso è un bug di sicurezza). Gate della verifica: ra
        sarebbe un cambio di consenso, fuori BM-10). +5 test (consenso == `_ask`;
        nessun bare `_ask` residuo). Stringhe nuove ASCII (box locale-robusto,
        no em-dash multibyte). 170 test — commit: (questo)
-- [ ] 5. README (badge nel menu/moduli) + `make test` (132+nuovi) e `make check` verdi — commit: —
+- [x] 5. README (legenda badge + cornici di pericolo nella sezione Interactive TUI)
+       + `make test` **170 verdi** e `make check` puliti — commit: (questo)
 
 ## Dopo i task (ciclo di fine deliverable)
 - Security gate ADVERSARIALE (docs/03, componente sensibile: lib/common.sh + moduli
