@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-19
+updated: 2026-07-20
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,11 +15,12 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  5 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  6 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
   dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
   verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
   colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
-  vietali dal checkout — BM-10, Destinazione: framework)
+  vietali dal checkout — BM-10, Destinazione: framework), IMP-007 (smoke moduli =
+  selezione CLI, mai pipe sul prompt — BM-11)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -102,7 +103,13 @@ tags: [moc]
   verificata adversarialmente) + `_risk_badge`/`_about_risk` + `_ask_danger` (box →
   `_ask` INTATTO). Badge nel menu/18 About; 9 cornici (las escluso). Presentazione
   pura. Gate PASSATO (5 lenti, 0 finding); 170 test. Incidente git-thrashing del
-  gate → IMP-006. In attesa di integrazione
+  gate → IMP-006. INTEGRATO in main (merge `2dd1f7c`)
+- [[sessions/2026-07-20-bm11-menu-redesign]] — BM-11 (M3, 3° task): banner flat +
+  menu a card allineate (mockup A/B → decisione utente: flat + footer 3 righe).
+  `MODULE_NAME` + sottotitoli MODULE_DESC (chiavi congelate) + test_menu_registry
+  (layout 80-col = invariante di dati); `_header_main` rimossa. Gate PASSATO
+  (0 finding); 178 test. Lezione smoke-via-pipe → IMP-007. In attesa di
+  integrazione
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

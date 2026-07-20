@@ -261,12 +261,28 @@ fi
 
 _clear
 
-_header_main \
-    "🍺  BREW MANAGER v${BREW_MANAGER_VERSION} — Audit, Cleanup & Unmanaged App Report" \
-    "macOS · zsh · $(date '+%a %b %d %Y %H:%M') · Log: $LOG_FILE"
+# ── Banner (BM-11, flat variant approved 2026-07-20): brand + version on the
+# left, host context right-aligned, over one full-width rule, then the session
+# log path. The beer glyph and the middle-dot separator are Unicode-gated so a
+# C-locale terminal gets clean ASCII instead of mojibake bytes; _tui_dot is
+# reused by the menu footer below.
+if (( TUI_UNICODE )); then _tui_glyph="🍺  "; _tui_dot=" · "; else _tui_glyph=""; _tui_dot=" - "; fi
+_bm_left="${_tui_glyph}brew-manager v${BREW_MANAGER_VERSION}"
+_bm_right="macOS${_tui_dot}zsh${_tui_dot}$(date '+%a %b %d %Y %H:%M')"
+# ${#} counts characters, but the beer glyph occupies TWO terminal columns —
+# subtract one extra so the right edge lands exactly on TERM_WIDTH.
+_bm_pad=$(( TERM_WIDTH - 2 - ${#_bm_left} - ${#_bm_right} ))
+(( TUI_UNICODE )) && (( _bm_pad -= 1 ))
+(( _bm_pad < 2 )) && _bm_pad=2
+echo ""
+printf '  %b%s%b%*s%b%s%b\n' "$C_BRAND" "$_bm_left" "$NC" "$_bm_pad" "" "$C_INFO" "$_bm_right" "$NC"
+_hline "─" "$C_GRAY"
+# Home shortened to ~ so the usual log path fits an 80-column line (display
+# only — $LOG_FILE itself stays absolute for script(1) and the log manager).
+printf '  %bSession log: %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 
-# The module registry (MODULE_DESC / MODULE_IDS) now lives in lib/selection.sh,
-# sourced above — the menu, dispatcher and summary read it as before.
+# The module registry (MODULE_DESC / MODULE_NAME / MODULE_IDS) lives in
+# lib/selection.sh, sourced above — the menu, dispatcher and summary read it.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MODULE SELECTION — command line (non-interactive) OR interactive menu
@@ -289,58 +305,64 @@ if (( CLI_SELECTION )); then
         exit 1
     fi
 else
-# ── Interactive menu. Left un-indented so the diff shows the new control flow,
+# ── Interactive menu (BM-11 redesign — flat cards + 3-line footer, approved
+#    2026-07-20). Left un-indented so the diff shows the new control flow,
 #    not a wholesale re-indent; the branch ends at the matching 'fi' below. ──
-echo -e "  ${C_GRAY}CLI usage:  ./brew_manager.sh [modules] [--only=ids] [--skip=ids] [options]${NC}"
-echo -e "  ${C_GRAY}  go                   run all modules in sequence${NC}"
-echo -e "  ${C_GRAY}  go --yes             run all modules, skip all prompts${NC}"
-echo -e "  ${C_GRAY}  go --dry-run         read-only — no changes made${NC}"
-echo -e "  ${C_GRAY}  0,4 --adopt=all      run modules 0 and 4, adopt all${NC}"
-echo -e "  ${C_GRAY}  4 --upgrade=y        run module 4, upgrade without asking${NC}"
-echo -e "  ${C_GRAY}  go --skip=5,10       run every module except 5 and 10${NC}"
-echo -e "  ${C_GRAY}  log                  open log manager${NC}"
-echo ""
-echo -e "  ${C_CYAN_B}Available modules:${NC}"
-echo ""
-# Each row leads with a risk badge (BM-10): the module's blast radius is visible
-# before selection. The badge is a fixed 4-column glyph, so it prefixes the row
-# without disturbing the [id]/description column alignment. MODULE_RISK is the
-# single source of truth (lib/selection.sh); the numbered vs named split and the
-# selection grammar are untouched — this is presentation only.
-printf "  ${C_GRAY}%-4s  %-6s  %-45s${NC}\n" "Risk" "Module" "Description"
-printf "  ${C_GRAY}%-4s  %-6s  %-45s${NC}\n" "────" "──────" "─────────────────────────────────────────────"
-for mid in "${MODULE_IDS[@]}"; do
-    _mrow_badge="$(_risk_badge "${MODULE_RISK[$mid]}")"
-    if (( mid < 10 )); then
-        printf "  %s  ${C_CYAN_B}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$_mrow_badge" "$mid" "${MODULE_DESC[$mid]}"
-    else
-        printf "  %s  ${C_CYAN_B}[%s]${NC}  ${C_WHITE}%-45s${NC}\n" "$_mrow_badge" "$mid" "${MODULE_DESC[$mid]}"
-    fi
-done
 
-_hline "·" "$C_GRAY"
-printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[log]}")" "log" "${MODULE_DESC[log]}"
-printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[bk]}")"  "bk " "${MODULE_DESC[bk]}"
-printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[las]}")" "las" "${MODULE_DESC[las]}"
-printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[mas]}")" "mas" "${MODULE_DESC[mas]}"
+# _menu_section <title> <hint> — section heading with the hint right-aligned.
+# ${#} matches visible width for both arguments: they are ASCII except SYM_ARR,
+# whose char count equals its column count in both charsets (→ 1/1, -> 2/2).
+_menu_section() {
+    local _pad=$(( TERM_WIDTH - 2 - ${#1} - ${#2} ))
+    (( _pad < 2 )) && _pad=2
+    printf '  %b%s%b%*s%b%s%b\n' "$C_HEADING" "$1" "$NC" "$_pad" "" "$C_INFO" "$2" "$NC"
+}
+
+# _menu_row <id> — one aligned card row: badge(4) · id(3, right-aligned) ·
+# name(17) · description. That is 32 columns before the description; with the
+# 46-column description cap (pinned by tests/test_menu_registry.zsh) a row is
+# at most 78 columns — stable on an 80-column terminal (roadmap §4.4). The
+# badge keeps a constant 4-column width (BM-10), so colour on/off never moves
+# the columns. Registry values go through printf %s fields, never echo -e
+# (IMP-003: no echo on data).
+_menu_row() {
+    printf '  %s  %b%3s%b  %b%-17s%b  %b%s%b\n' \
+        "$(_risk_badge "${MODULE_RISK[$1]}")" \
+        "$C_CYAN_B" "$1" "$NC" \
+        "$C_WHITE" "${MODULE_NAME[$1]}" "$NC" \
+        "$C_GRAY" "${MODULE_DESC[$1]}" "$NC"
+}
+
 echo ""
-printf "  ${C_GRAY}Risk:${NC}  %s ${C_GRAY}read-only${NC}    %s ${C_GRAY}writes cache/metadata${NC}    %s ${C_GRAY}changes your system${NC}\n" \
-    "$(_risk_badge ro)" "$(_risk_badge write)" "$(_risk_badge danger)"
+_menu_section "AUDIT & MAINTENANCE" "go = run the full sequence 0${SYM_ARR}13"
 echo ""
-echo -e "  ${C_GRAY}Valid input examples:${NC}"
-echo -e "  ${C_GRAY}  go           → runs all modules in sequence (0→13)${NC}"
-echo -e "  ${C_GRAY}  0,1,5        → runs only modules 0, 1 and 5 in this order${NC}"
-echo -e "  ${C_GRAY}  5,2,0        → runs 5, then 2, then 0 (free order)${NC}"
-echo -e "  ${C_GRAY}  1,1,2,1      → modules can be repeated freely${NC}"
-echo -e "  ${C_GRAY}  log          → open log manager (never runs with go)${NC}"
-echo -e "  ${C_GRAY}  bk           → Brewfile backup/restore${NC}"
-echo -e "  ${C_GRAY}  las          → LaunchAgent scheduler${NC}"
-echo -e "  ${C_GRAY}  mas          → Mac App Store integration${NC}"
+for mid in "${MODULE_IDS[@]}"; do
+    _menu_row "$mid"
+done
 echo ""
-echo -e "  ${C_GRAY}Note: pressing Ctrl+C at any time exits the session. The log is always${NC}"
-echo -e "  ${C_GRAY}saved automatically — even if the run was interrupted.${NC}"
+_hline "─" "$C_GRAY"
 echo ""
-printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / comma-separated numbers, default: go]${NC}: "
+# The named tools live below their own rule: they are selected by NAME and
+# never run as part of the 'go' sequence — the visual split mirrors the
+# MODULE_IDS vs named-modules split in the registry.
+_menu_section "TOOLS" "select by name"
+echo ""
+for tid in log bk las mas; do
+    _menu_row "$tid"
+done
+echo ""
+_hline "─" "$C_GRAY"
+# Footer — 3 lines by design decision (2026-07-20): risk legend, input and
+# flag examples, interrupt note. The full CLI reference lives in the README.
+printf '  %bRisk%b   %s %bread-only%b   %s %bwrites cache/metadata%b   %s %bchanges your system%b\n' \
+    "$C_INFO" "$NC" "$(_risk_badge ro)"     "$C_INFO" "$NC" \
+                    "$(_risk_badge write)"  "$C_INFO" "$NC" \
+                    "$(_risk_badge danger)" "$C_INFO" "$NC"
+printf '  %bInput  go%s0,1,5%sgo --skip=5,10%sbk        Flags  --dry-run%s--yes%b\n' \
+    "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
+printf '  %bCtrl+C exits at any time; the session log is always saved%b\n' "$C_INFO" "$NC"
+echo ""
+printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / numbers / name, default: go]${NC}: "
 read -r module_choice
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -413,7 +435,8 @@ echo ""
 echo -e "  ${C_CYAN_B}Modules executed:${NC}"
 echo ""
 for _m in "${MODULES_TO_RUN[@]}"; do
-    printf "  ${C_GRAY}  ${SYM_ARR}${NC}  ${C_CYAN_B}%2s${NC}  ${C_WHITE}%s${NC}\n" "$_m" "${MODULE_DESC[$_m]}"
+    printf "  ${C_GRAY}  ${SYM_ARR}${NC}  ${C_CYAN_B}%3s${NC}  ${C_WHITE}%-17s${NC}  ${C_GRAY}%s${NC}\n" \
+        "$_m" "${MODULE_NAME[$_m]}" "${MODULE_DESC[$_m]}"
 done
 echo ""
 _hline "·" "$C_GRAY"

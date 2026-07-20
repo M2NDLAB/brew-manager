@@ -1,6 +1,6 @@
 ---
 type: tree
-updated: 2026-07-19
+updated: 2026-07-20
 generated-by: /checkpoint
 tags: [structure]
 ---
@@ -50,6 +50,7 @@ tags: [structure]
 │   ├── test_capabilities.zsh
 │   ├── test_exit_codes.zsh
 │   ├── test_guardrails.zsh
+│   ├── test_menu_registry.zsh
 │   ├── test_risk_badges.zsh
 │   └── test_selection.zsh
 ├── brew_manager.sh
@@ -62,7 +63,7 @@ tags: [structure]
 ├── SECURITY.md
 └── VERSION
 
-5 directories, 39 files
+5 directories, 40 files
 ```
 
 ## Legenda directory chiave
@@ -74,7 +75,7 @@ tags: [structure]
 | lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) + registry/resolver di selezione ([[lib-selection]]) |
 | modules/ | i 18 moduli (funzioni sourcate): 14 numerici `mod_00`–`mod_13` (sequenza `go`) + 4 speciali per nome (`bk`, `las`, `log`, `mas`) |
 | scripts/ | script di processo del framework (hooks-install, reset-task, test-hooks-install self-test) — NON script applicativi |
-| tests/ | test del progetto (harness zsh, zero-dip, `make test`, **170 check**): `test_selection.zsh` (resolver, [[lib-selection]]), `test_guardrails.zsh` (consenso `_ask`/`_read_choice`), `test_exit_codes.zsh` (exit end-to-end via sandbox, [[core-brew-manager]]), `test_capabilities.zsh` (detection TUI + degradazione + e2e "pipato = zero ANSI", BM-09, [[lib-common]]), `test_risk_badges.zsh` (registry `MODULE_RISK` + badge/degradazione + invarianza consenso di `_ask_danger`, BM-10) |
+| tests/ | test del progetto (harness zsh, zero-dip, `make test`, **178 check**): `test_selection.zsh` (resolver, [[lib-selection]]), `test_guardrails.zsh` (consenso `_ask`/`_read_choice`), `test_exit_codes.zsh` (exit end-to-end via sandbox, [[core-brew-manager]]), `test_capabilities.zsh` (detection TUI + degradazione + e2e "pipato = zero ANSI", BM-09, [[lib-common]]), `test_risk_badges.zsh` (registry `MODULE_RISK` + badge/degradazione + invarianza consenso di `_ask_danger`, BM-10), `test_menu_registry.zsh` (lockstep `MODULE_NAME`↔`MODULE_DESC` + cap di colonna del menu 80-col, BM-11) |
 | logs/ (ignorata) | log di sessione `brew_report_*.log` generati via script(1) |
 | backups/ (ignorata) | Brewfile e bundle agenti prodotti dal modulo `bk` |
 | agents/ (ignorata) | conf e activity log dei LaunchAgent del modulo `las` |
