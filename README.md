@@ -519,17 +519,17 @@ brew-manager's dispatch system is designed to make adding modules trivial.
 **Numbered module (included in `go`):**
 
 1. Create `modules/mod_NN_name.sh` containing a function named `_module_NN()`
-2. Add an entry to `MODULE_DESC` in `lib/selection.sh`: `[NN]="Description of module"`
+2. Register it in `lib/selection.sh` — three entries, one per registry: `MODULE_DESC` (one-line description, plain ASCII, max 46 chars), `MODULE_NAME` (short menu name, plain ASCII, max 17 chars) and `MODULE_RISK` (`ro`, `write` or `danger` — drives the risk badge). The test suite fails if any of the three is missing or over the column caps (`tests/test_menu_registry.zsh`, `tests/test_risk_badges.zsh`)
 3. Add `NN` to the `MODULE_IDS` array
-4. Done — the source glob, dispatch loop, and summary pick it up automatically
+4. Done — the source glob, menu, dispatch loop, and summary pick it up automatically
 
 **Named module (excluded from `go`, selected by name at the prompt):**
 
 1. Create `modules/mod_KEYNAME_*.sh` with a function (any number is fine internally)
-2. Add the key to `MODULE_DESC` in `lib/selection.sh`: `[keyname]="Description"`
+2. Register the key in `lib/selection.sh` — same three registry entries as above (`MODULE_DESC`, `MODULE_NAME`, `MODULE_RISK`)
 3. In `lib/selection.sh`, teach the resolver the new key: add a whole-token `case` arm to `_resolve_selection` (`keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`) and include `keyname` in the lowercase-special checks so it is also accepted inside comma lists and `--only`/`--skip`
 4. Add a `case` entry in the dispatch loop in `brew_manager.sh`: `keyname) _module_function ;;`
-5. Add a display line in the menu below the `·` separator
+5. Add the key to the TOOLS loop in the interactive menu in `brew_manager.sh` (`for tid in log bk las mas ...`)
 
 > The selection is parsed by `_resolve_selection` (`lib/selection.sh`) from **either** a command-line spec **or** what the user types at the `Choice` prompt — the same code path backs both. `--only` / `--skip` then filter the result.
 
