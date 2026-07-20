@@ -47,11 +47,12 @@ sottostimare — un badge basso è un bug di sicurezza). Gate della verifica: ra
 - 7 moduli `[!]`: `_ask_danger` ai siti distruttivi sopra.
 
 ## Task
-- [ ] 1. Registry `MODULE_RISK` + `_about_risk` (selection.sh) + `_risk_badge`/
+- [x] 1. Registry `MODULE_RISK` + `_about_risk` (selection.sh) + `_risk_badge`/
        `_risk_caption` (common.sh) + `tests/test_risk_badges.zsh` (completezza vs
        MODULE_DESC con anti-vacuità, livelli attesi, degradazione L0 = zero ANSI,
-       larghezza badge fissa) — commit: —
-- [ ] 2. Badge nel menu di `brew_manager.sh` (numerati + log/bk/las/mas), allineamento — commit: —
+       larghezza badge fissa) — commit: bb520a9 (33 test, 165 totali)
+- [x] 2. Badge nel menu di `brew_manager.sh` (numerati + log/bk/las/mas) + legenda,
+       allineamento verificato (badge 4-col fissa) — commit: (questo)
 - [ ] 3. Riga `_about_risk "<id>"` nel blocco About dei 18 moduli — commit: —
 - [ ] 4. `_ask_danger` (common.sh) + cornice di pericolo ai siti distruttivi di
        0,4,5,10,bk,las,mas + test (cornice rossa; consenso identico a `_ask` sotto

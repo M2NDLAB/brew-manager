@@ -302,21 +302,30 @@ echo -e "  ${C_GRAY}  log                  open log manager${NC}"
 echo ""
 echo -e "  ${C_CYAN_B}Available modules:${NC}"
 echo ""
-printf "  ${C_GRAY}%-6s  %-45s${NC}\n" "Module" "Description"
-printf "  ${C_GRAY}%-6s  %-45s${NC}\n" "──────" "─────────────────────────────────────────────"
+# Each row leads with a risk badge (BM-10): the module's blast radius is visible
+# before selection. The badge is a fixed 4-column glyph, so it prefixes the row
+# without disturbing the [id]/description column alignment. MODULE_RISK is the
+# single source of truth (lib/selection.sh); the numbered vs named split and the
+# selection grammar are untouched — this is presentation only.
+printf "  ${C_GRAY}%-4s  %-6s  %-45s${NC}\n" "Risk" "Module" "Description"
+printf "  ${C_GRAY}%-4s  %-6s  %-45s${NC}\n" "────" "──────" "─────────────────────────────────────────────"
 for mid in "${MODULE_IDS[@]}"; do
+    _mrow_badge="$(_risk_badge "${MODULE_RISK[$mid]}")"
     if (( mid < 10 )); then
-        printf "  ${C_CYAN_B}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$mid" "${MODULE_DESC[$mid]}"
+        printf "  %s  ${C_CYAN_B}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$_mrow_badge" "$mid" "${MODULE_DESC[$mid]}"
     else
-        printf "  ${C_CYAN_B}[%s]${NC}  ${C_WHITE}%-45s${NC}\n" "$mid" "${MODULE_DESC[$mid]}"
+        printf "  %s  ${C_CYAN_B}[%s]${NC}  ${C_WHITE}%-45s${NC}\n" "$_mrow_badge" "$mid" "${MODULE_DESC[$mid]}"
     fi
 done
 
 _hline "·" "$C_GRAY"
-printf "  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "log" "${MODULE_DESC[log]}"
-printf "  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "bk " "${MODULE_DESC[bk]}"
-printf "  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "las" "${MODULE_DESC[las]}"
-printf "  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "mas" "${MODULE_DESC[mas]}"
+printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[log]}")" "log" "${MODULE_DESC[log]}"
+printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[bk]}")"  "bk " "${MODULE_DESC[bk]}"
+printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[las]}")" "las" "${MODULE_DESC[las]}"
+printf "  %s  ${C_YELLOW}[%s]${NC}   ${C_WHITE}%-45s${NC}\n" "$(_risk_badge "${MODULE_RISK[mas]}")" "mas" "${MODULE_DESC[mas]}"
+echo ""
+printf "  ${C_GRAY}Risk:${NC}  %s ${C_GRAY}read-only${NC}    %s ${C_GRAY}writes cache/metadata${NC}    %s ${C_GRAY}changes your system${NC}\n" \
+    "$(_risk_badge ro)" "$(_risk_badge write)" "$(_risk_badge danger)"
 echo ""
 echo -e "  ${C_GRAY}Valid input examples:${NC}"
 echo -e "  ${C_GRAY}  go           → runs all modules in sequence (0→13)${NC}"
