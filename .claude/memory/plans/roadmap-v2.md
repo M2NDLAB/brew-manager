@@ -326,6 +326,17 @@ Design completo nella sezione 4. Qui l'atomizzazione.
 - Non-regressione: i moduli read-only mostrano `[RO]`; i sensibili mostrano `[!]`; nessun prompt
   distruttivo senza badge.
 - Commit: `feat(tui): risk badges and danger-styled confirmations`
+- **Status: COMPLETATO 2026-07-20** — branch `feat/risk-badges`, 6 commit
+  (`985ffd4` piano + `bb520a9`+`60a1969`+`03a4f33`+`5b52e02`+`baaf11b`). `MODULE_RISK`
+  (registry, single source of truth, verificato adversarialmente) + `_risk_badge`/
+  `_risk_caption`/`_about_risk` (renderer puri sulla palette BM-09) + `_ask_danger`
+  (box rosso → `_ask` INTATTO). Badge nel menu (+legenda) e nei 18 blocchi About;
+  cornici di pericolo ai 9 siti `_ask` distruttivi (00/04/05/10/bk×3/mas×2). `las`
+  escluso (flusso a menu, nessun `_ask` — incorniciarlo = cambio di consenso, fuori
+  scope). `mod_00`=`[!]` (adotta), non `[RO]` del mockup §4.7 (regola §4.5 +
+  non-regressione vincono). Presentazione pura: contratto pubblico intatto.
+  **Gate adversariale PASSATO** (5 lenti, 0 finding). 33+5 test nuovi → **170 verdi**.
+  In attesa di integrazione (bump MINOR). → [[sessions/2026-07-20-bm10-risk-badges]].
 
 #### BM-11 · feat: banner + redesign menu
 - Tipo · branch: feat · `feat/menu-redesign`

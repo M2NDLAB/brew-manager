@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-07-19
-branch: main
+updated: 2026-07-20
+branch: feat/risk-badges
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-19 | Ultimo: **Framework upgrade v0.5.1 → v1.0.0 INTEGRATO in main** (merge `126bc7d`, pushato; `main == origin/main`) — solo PROCESSO: `docs/04` col criterio del MAJOR + il **contratto pubblico di brew** (flag/selezione/exit-code/plist + **moduli CONGELATI**), `/lint-memory` +controllo 11, CLAUDE.md +`make test-scripts`, `scripts/README`, retrofit pin `.claude/framework-version`; bump "nessun tag"; 132 test verdi. Prima: **BM-09 INTEGRATO in main** (merge `5867137`). Prossimo: **BM-10** (badge di rischio, M3) su `feat/risk-badges` — poi STOP, giudizio estetico dell'utente su BM-11/12 | Indice: [[INDEX]]
+> Aggiornato: 2026-07-20 | Ultimo: **BM-10 — risk badge `[RO]`/`[W]`/`[!]` + cornici di conferma distruttiva** (M3, 2° task) su `feat/risk-badges` (6 commit sopra main): `MODULE_RISK` registry (verificato adversarialmente) + `_risk_badge`/`_risk_caption`/`_about_risk` + `_ask_danger` (box rosso → `_ask` INTATTO); badge nel menu (+legenda) e nei 18 blocchi About; cornici ai 9 siti `_ask` distruttivi (00/04/05/10/bk×3/mas×2); `las` escluso (flusso a menu). **Presentazione pura, contratto pubblico intatto.** **Gate adversariale PASSATO** (5 lenti, 0 finding); **170 test verdi**. **In attesa di integrazione** (bump MINOR, merge/push = utente). Prima: framework upgrade v1.0.0 + riconciliazione memoria INTEGRATI in main (merge `765bad4`). Prossimo: STOP — decisione utente su BM-11/BM-12 (giudizio estetico). | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -97,9 +97,21 @@ tags: [state]
       e2e "pipato = zero ANSI"); suite 132 verde. **INTEGRATO in main** (merge
       `5867137`, branch `feat/tui-foundation` eliminato).
       → [[sessions/2026-07-19-bm09-tui-foundation]].
-    - [ ] BM-10 (badge rischio + UX conferma), BM-11 (banner+menu redesign),
-      BM-12 (progress+summary): decisione utente se procedere oggi o altra
-      sessione. BM-10/BM-11 costruiranno su `_box`/palette di BM-09.
+    - [x] **BM-10** badge di rischio `[RO]`/`[W]`/`[!]` + cornici di conferma
+      distruttiva — branch `feat/risk-badges` (6 commit: `985ffd4` piano +
+      `bb520a9`+`60a1969`+`03a4f33`+`5b52e02`+`baaf11b`). `MODULE_RISK` (single
+      source of truth, classificazione verificata adversarialmente: raise=0) +
+      `_risk_badge`/`_risk_caption`/`_about_risk` (renderer puri, palette BM-09) +
+      `_ask_danger` (box `C_DANGER` → `_ask` INTATTO, consenso byte-identico). Badge
+      nel menu (+legenda) e nei 18 About; 9 cornici distruttive (00/04/05/10/bk×3/
+      mas×2); `las` escluso (nessun `_ask` — flusso a menu; sarebbe cambio di
+      consenso). `mod_00`=`[!]` (adotta), non `[RO]` del mockup. Presentazione pura,
+      contratto pubblico intatto. **Gate adversariale PASSATO** (5 lenti, 0 finding).
+      33+5 test → 170 verdi. **In attesa di integrazione** (bump MINOR).
+      → [[sessions/2026-07-20-bm10-risk-badges]].
+    - [ ] BM-11 (banner+menu redesign), BM-12 (progress+summary): decisione utente
+      (giudizio estetico) se procedere. Costruiranno su `_box`/palette/badge di
+      BM-09/BM-10.
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -116,10 +128,14 @@ tags: [state]
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
   capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
   palette semantica (degrada a ASCII puro su pipe/NO_COLOR), primitivi
-  `_box`/`_clear`. Vedi [[lib-common]].
+  `_box`/`_clear`. Dal **BM-10** i renderer di rischio `_risk_badge`/`_risk_caption`
+  (puri) e `_ask_danger` (box `C_DANGER` → `_ask` INTATTO — presentazione, consenso
+  invariato). Vedi [[lib-common]].
 - `lib/selection.sh` (BM-08a/b) — registry `MODULE_DESC`/`MODULE_IDS` +
   `_resolve_selection` (lenient) + `_resolve_cli`/`_collect_module_tokens`
-  (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Vedi
+  (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Dal
+  **BM-10** anche `MODULE_RISK` (id→ro/write/danger, single source of truth del
+  badge, presentazione — NON alimenta il resolver) + `_about_risk`. Vedi
   [[lib-selection]].
 - 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
   `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
@@ -134,14 +150,17 @@ tags: [state]
   certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
   v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **132 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **170 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
   `test_exit_codes.zsh` (6) fissa l'exit end-to-end del binario reale (sandbox
   symlink-farm + mock brew con tripwire); `test_capabilities.zsh` (30, BM-09) fissa
   detection colore/Unicode, ladder di degradazione, purezza ASCII fallback e l'e2e
-  "pipato = zero ANSI" via il vero re-exec `script(1)`. Resto del codice non
+  "pipato = zero ANSI" via il vero re-exec `script(1)`; `test_risk_badges.zsh` (38,
+  BM-10) fissa la completezza di `MODULE_RISK` vs `MODULE_DESC`, la classificazione,
+  la degradazione L0/larghezza del badge e l'**invarianza del consenso** di
+  `_ask_danger` (== `_ask` sotto --yes/non-interactive). Resto del codice non
   coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
@@ -289,19 +308,22 @@ tags: [state]
    il label anche sui path non-interattivi (stessa forma del suffisso).
 - [[LEARNINGS]]: IMP-001 APPLICATA; **IMP-002** (checklist superficie del
   contratto per i test), **IMP-003** (mai echo su dati — rafforzata dal gate BM-09),
-  **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate)
-  e **IMP-005** (output di controllo terminale gata su `TUI_TTY`, non solo sul
-  colore — origine BM-09) APERTE, propose-only, in attesa di decisione (retro
-  periodica o su richiesta).
+  **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate),
+  **IMP-005** (output di controllo terminale gata su `TUI_TTY`, non solo sul
+  colore — origine BM-09) e **IMP-006** (review-workflow su un git-range: isola gli
+  agenti o vietali dal `checkout` — origine gate BM-10, `Destinazione: framework`)
+  APERTE, propose-only, in attesa di decisione (retro periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `126bc7d` (merge del framework
-  upgrade v1.0.0; sotto: BM-09 `5867137`), allineato a `origin/main`; tag **`v1.3.0`**
-  (annotato, pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
-  `CHANGELOG [Unreleased]`: vuota.
-- **chore/lint-mem-fw-v1.0.0** = questo lint: riconciliazione memoria post-merge del
-  framework v1.0.0 (STATE/INDEX allineati a HEAD `126bc7d`). Base di `feat/risk-badges`
-  (così la sync sopravvive anche se BM-10 viene scartato).
+- **main** = integrazione + stabile (trunk-based); HEAD `765bad4` (merge della
+  riconciliazione memoria; sotto: framework upgrade v1.0.0 `126bc7d`, BM-09 `5867137`),
+  allineato a `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0`
+  (annotato) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota.
+- **feat/risk-badges** (BM-10) = badge di rischio + cornici di conferma distruttiva,
+  6 commit sopra main (HEAD `baaf11b`), gate adversariale passato, 170 test verdi.
+  **In attesa di integrazione dell'utente** (blocco `/integrate`, bump MINOR).
+- **chore/lint-mem-fw-v1.0.0** (riconciliazione memoria post-fw-v1.0.0) = **INTEGRATO
+  in main** (merge `765bad4`), branch eliminato.
 - **chore/framework-upgrade-v1.0.0** (upgrade v0.5.1 → v1.0.0, solo processo) =
   **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag"), branch eliminato.
 - **feat/tui-foundation** (BM-09) = **INTEGRATO in main** (merge `5867137`), branch
