@@ -13,8 +13,10 @@
 # in brew_manager.sh and could not be reused or tested.
 #
 # Provides:
-#   MODULE_DESC          — id/name → human description; its keys are also the
+#   MODULE_DESC          — id/name → one-line description; its keys are also the
 #                          single source of truth for which numbered ids exist
+#   MODULE_NAME          — id/name → short display name for the menu card (BM-11,
+#                          presentation-only: never feeds the resolver)
 #   MODULE_IDS           — the numbered modules, in the 'go' sequence order
 #   _resolve_selection   — parse a selection spec into MODULES_TO_RUN
 #   _resolve_cli         — strict non-interactive selection (spec + --only/--skip),
@@ -31,25 +33,48 @@
 # brew_manager.sh all read them, and so does _resolve_selection below. The named
 # modules (log/bk/las/mas) live in MODULE_DESC but NOT in MODULE_IDS: they are
 # reachable by name but never part of the 'go' sequence.
+# Description TEXTS are presentation (the menu card's subtitle, the summary):
+# they can be reworded freely, but the KEYS are the public selection contract
+# (frozen — docs/04). Layout invariant, pinned by tests/test_menu_registry.zsh:
+# every description is ASCII-only and at most 46 columns, so the menu row
+# (indent+badge+id+name+description) never exceeds 78 columns and the layout
+# holds on an 80-column terminal (roadmap §4.4). ASCII because a multibyte
+# glyph would break printf %-*s column math in a non-UTF-8 locale.
 typeset -gA MODULE_DESC=(
-    [0]="Audit unmanaged apps (not in Homebrew)"
-    [1]="Homebrew system health"
-    [2]="Formula database update"
-    [3]="Installed packages report"
-    [4]="Available updates"
-    [5]="Cache and orphan dependency cleanup"
-    [6]="Shared dependency analysis"
-    [7]="Homebrew services"
-    [8]="Untracked binaries in /usr/local/bin"
-    [9]="Brew-tracked binaries in /usr/local/bin"
-    [10]="Auto-update casks (skipped by brew upgrade)"
-    [11]="Duplicate and conflicting formulae"
-    [12]="Security audit"
-    [13]="Disk usage breakdown"
-    [log]="Log file manager (not in go sequence)"
-    [bk]="Brewfile backup and restore"
-    [las]="LaunchAgent scheduler (auto-run)"
-    [mas]="Mac App Store (MAS) integration"
+    [0]="audit /Applications, adopt into Homebrew"
+    [1]="brew doctor and environment diagnostics"
+    [2]="brew update (metadata only, no upgrades)"
+    [3]="installed casks and formulae"
+    [4]="upgrade outdated casks and formulae"
+    [5]="autoremove orphans and prune old cache"
+    [6]="shared dependency analysis"
+    [7]="Homebrew services status"
+    [8]="/usr/local/bin not owned by brew"
+    [9]="/usr/local/bin owned by brew"
+    [10]="casks with auto_updates (--greedy)"
+    [11]="duplicate and conflicting formulae"
+    [12]="broken deps, pinned, non-HTTPS, deprecated"
+    [13]="per-package disk usage, sorted by size"
+    [log]="browse and prune session logs"
+    [bk]="backup / restore packages and agents"
+    [las]="LaunchAgent auto-run setup"
+    [mas]="Mac App Store integration (mas)"
+)
+
+# MODULE_NAME — short display name for the menu card and the summary (BM-11).
+# One entry for EVERY MODULE_DESC key, presentation-only like MODULE_RISK: the
+# resolver never reads it, so renaming here can never change what a selection
+# runs. Names are ASCII-only and at most 17 columns — the menu's fixed name
+# column — pinned by tests/test_menu_registry.zsh together with the 46-column
+# description cap above.
+typeset -gA MODULE_NAME=(
+    [0]="Unmanaged apps"    [1]="System health"     [2]="Database update"
+    [3]="Package report"    [4]="Available updates" [5]="Cleanup"
+    [6]="Dependency map"    [7]="Services"          [8]="Untracked bins"
+    [9]="Brew-owned bins"   [10]="Greedy upgrades"  [11]="Conflicts"
+    [12]="Security audit"   [13]="Disk usage"
+    [log]="Log manager"     [bk]="Brewfile backup"  [las]="Scheduler"
+    [mas]="App Store"
 )
 
 typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
