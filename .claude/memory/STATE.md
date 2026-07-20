@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-07-19
-branch: chore/framework-upgrade-v1.0.0
+branch: main
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-19 | Ultimo: **Upgrade framework v0.5.1 → v1.0.0** su `chore/framework-upgrade-v1.0.0` (4 commit: riconciliazione `41808f7` + contratto `c9b8284` + pin `2668a75` + checkpoint) — solo PROCESSO: `docs/04` con il criterio del MAJOR + il **contratto pubblico di brew** (flag/selezione/exit-code/plist + **moduli CONGELATI**), `/lint-memory` +controllo 11 (caso-limite 7: file personalizzato), CLAUDE.md +`make test-scripts`, `scripts/README`, retrofit pin `.claude/framework-version`; **invariante memoria = diff VUOTO**; 132 test verdi. **In attesa di integrazione** (blocco `/integrate`, bump "nessun tag"). Prima: **BM-09 INTEGRATO in main** (merge `5867137`). Prossimo: STOP — decisione utente su BM-10/11/12; riportare la sorgente framework su main | Indice: [[INDEX]]
+> Aggiornato: 2026-07-19 | Ultimo: **Framework upgrade v0.5.1 → v1.0.0 INTEGRATO in main** (merge `126bc7d`, pushato; `main == origin/main`) — solo PROCESSO: `docs/04` col criterio del MAJOR + il **contratto pubblico di brew** (flag/selezione/exit-code/plist + **moduli CONGELATI**), `/lint-memory` +controllo 11, CLAUDE.md +`make test-scripts`, `scripts/README`, retrofit pin `.claude/framework-version`; bump "nessun tag"; 132 test verdi. Prima: **BM-09 INTEGRATO in main** (merge `5867137`). Prossimo: **BM-10** (badge di rischio, M3) su `feat/risk-badges` — poi STOP, giudizio estetico dell'utente su BM-11/12 | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -104,7 +104,7 @@ tags: [state]
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
   compilato in docs/04 (moduli CONGELATI, decisione utente); invariante memoria VUOTA;
-  132 test verdi. In attesa di integrazione (bump "nessun tag", merge/push = utente).
+  132 test verdi. **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag").
   → [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]].
 
 ## Cosa esiste adesso
@@ -295,14 +295,15 @@ tags: [state]
   periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `5867137` (merge di BM-09
-  `feat/tui-foundation`), allineato a `origin/main`; tag **`v1.3.0`** (annotato,
-  pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
+- **main** = integrazione + stabile (trunk-based); HEAD `126bc7d` (merge del framework
+  upgrade v1.0.0; sotto: BM-09 `5867137`), allineato a `origin/main`; tag **`v1.3.0`**
+  (annotato, pushato) + `v1.2.0` (annotato) + `v1.1.2-baseline` (helper).
   `CHANGELOG [Unreleased]`: vuota.
-- **chore/framework-upgrade-v1.0.0** = **upgrade framework v0.5.1 → v1.0.0** (solo
-  processo), 4 commit (riconciliazione `41808f7` + contratto `c9b8284` + pin `2668a75`
-  + questo checkpoint); invariante memoria VUOTA, 132 test verdi. In attesa di
-  integrazione dell'utente (blocco `/integrate`, bump "nessun tag").
+- **chore/lint-mem-fw-v1.0.0** = questo lint: riconciliazione memoria post-merge del
+  framework v1.0.0 (STATE/INDEX allineati a HEAD `126bc7d`). Base di `feat/risk-badges`
+  (così la sync sopravvive anche se BM-10 viene scartato).
+- **chore/framework-upgrade-v1.0.0** (upgrade v0.5.1 → v1.0.0, solo processo) =
+  **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag"), branch eliminato.
 - **feat/tui-foundation** (BM-09) = **INTEGRATO in main** (merge `5867137`), branch
   eliminato.
 - **chore/checkpoint-post-v1.3.0**, **docs/readme-v1.3.0**,

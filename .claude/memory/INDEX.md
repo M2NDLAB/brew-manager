@@ -115,6 +115,7 @@ tags: [moc]
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
   **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
   (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) **INTEGRATO in main**
-  (merge `5867137`); BM-10/11/12 da decidere. Fuori roadmap: **upgrade framework
-  v0.5.1 → v1.0.0** (2026-07-19, solo processo, in attesa di integrazione).
-  Prossimo: STOP, decisione utente.
+  (merge `5867137`); **BM-10** (badge di rischio) in corso su `feat/risk-badges`.
+  Fuori roadmap: **upgrade framework v0.5.1 → v1.0.0** (2026-07-19, solo processo)
+  **INTEGRATO in main** (merge `126bc7d`). Prossimo dopo BM-10: STOP, decisione
+  utente su BM-11/12.
