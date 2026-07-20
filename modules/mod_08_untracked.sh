@@ -7,6 +7,7 @@ _module_8() {
     _section "8" "Untracked Binaries in /usr/local/bin"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "8"
     echo ""
     echo -e "  ${C_GRAY}Scans /usr/local/bin for executables that are NOT managed by Homebrew.${NC}"
     echo -e "  ${C_GRAY}These are binaries placed there manually, by installers, or by SDKs${NC}"

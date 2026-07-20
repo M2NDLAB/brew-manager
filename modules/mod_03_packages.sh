@@ -7,6 +7,7 @@ _module_3() {
     _section "3" "Installed Packages Report"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "3"
     echo ""
     echo -e "  ${C_GRAY}Lists all packages currently installed by Homebrew, split into:${NC}"
     echo ""

@@ -7,6 +7,7 @@ _module_5() {
     _section "5" "Cache and Orphan Dependency Cleanup"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "5"
     echo ""
     echo -e "  ${C_GRAY}Frees disk space by removing two categories of unnecessary files:${NC}"
     echo ""

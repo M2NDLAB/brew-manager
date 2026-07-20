@@ -11,6 +11,7 @@ _module_16() {
     # ── What this module does ──
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "mas"
     echo ""
     echo -e "  ${C_GRAY}mas (Mac App Store CLI) is an open-source command-line tool that lets${NC}"
     echo -e "  ${C_GRAY}you manage App Store apps from the terminal — the same apps you installed${NC}"

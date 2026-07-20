@@ -8,6 +8,7 @@ _module_13() {
     _section "13" "Disk Usage Breakdown"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "13"
     echo ""
     echo -e "  ${C_GRAY}Measures how much disk space each installed formula and cask occupies,${NC}"
     echo -e "  ${C_GRAY}sorted from largest to smallest. Useful before running module 5 cleanup${NC}"

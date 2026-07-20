@@ -20,6 +20,7 @@ _module_14() {
     # ── About ──
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "bk"
     echo ""
     echo -e "  ${C_GRAY}Creates and manages portable snapshots of your entire setup:${NC}"
     echo ""

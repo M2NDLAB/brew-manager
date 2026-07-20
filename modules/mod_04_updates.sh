@@ -7,6 +7,7 @@ _module_4() {
     _section "4" "Available Updates"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "4"
     echo ""
     echo -e "  ${C_GRAY}Checks every installed cask and formula against the latest available${NC}"
     echo -e "  ${C_GRAY}version using brew outdated. Outdated packages are highlighted in yellow.${NC}"

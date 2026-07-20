@@ -9,6 +9,7 @@ _module_12() {
     _section "12" "Security Audit"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "12"
     echo ""
     echo -e "  ${C_GRAY}Runs security-focused checks on your Homebrew installation:${NC}"
     echo ""

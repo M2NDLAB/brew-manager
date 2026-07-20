@@ -7,6 +7,7 @@ _module_1() {
     _section "1" "Homebrew System Health"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "1"
     echo ""
     echo -e "  ${C_GRAY}Runs a full diagnostic of your Homebrew installation. Checks:${NC}"
     echo ""
