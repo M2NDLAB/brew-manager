@@ -364,3 +364,46 @@ _stat_row() {
     local label="$1" value="$2" color="${3:-$C_WHITE}"
     printf "  ${C_GRAY}%-30s${NC} ${color}%s${NC}\n" "$label" "$value"
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RISK BADGES (BM-10) — one glyph = one risk level, sharing the semantic palette
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# The badge makes a module's blast radius visible BEFORE the action: [RO] reads
+# only, [W] writes metadata/cache, [!] can change the system (remove/install/
+# adopt/schedule). The level classification lives in MODULE_RISK (lib/selection.sh),
+# adversarially audited so it never UNDERSTATES risk (a low badge is a security
+# bug, docs/03). These renderers are PURE (level in → string out) and colour
+# through the BM-09 palette, so a piped / NO_COLOR run degrades them to plain
+# ASCII at the source like every other glyph. _ask_danger (below) reuses the same
+# C_DANGER tint for the destructive-confirmation frame.
+
+# _risk_badge <level> → a colour-coded badge of CONSTANT visible width (4 columns:
+# "[RO]" / "[W] " / "[!] "), so menu columns stay aligned whether or not colour is
+# on. An unrecognised level renders a neutral "[?] " rather than misleading the
+# reader. The colour is a trusted palette constant (rendered with %b); the bracket
+# text is a fixed literal and no caller data reaches it, so there is no
+# echo-on-data risk (IMP-003) here.
+_risk_badge() {
+    local color text
+    case "$1" in
+        ro)     color="$C_OK";     text='[RO]' ;;
+        write)  color="$C_WARN";   text='[W] ' ;;
+        danger) color="$C_DANGER"; text='[!] ' ;;
+        *)      color="$C_GRAY";   text='[?] ' ;;
+    esac
+    printf '%b%s%b' "$color" "$text" "$NC"
+}
+
+# _risk_caption <level> → one plain-English line explaining the badge, for the
+# "About this module" block. Generic by level ON PURPOSE: the SPECIFIC actions a
+# destructive module will take are spelt out in its danger box at action time
+# (_ask_danger), not here, so this caption cannot drift out of sync with behaviour.
+_risk_caption() {
+    case "$1" in
+        ro)     printf '%s' 'Read-only — inspects and reports; changes nothing.' ;;
+        write)  printf '%s' 'Writes metadata/cache only — installs and removes nothing.' ;;
+        danger) printf '%s' 'Can change your system — removes, installs, adopts, or schedules.' ;;
+        *)      printf '%s' 'Risk level unknown.' ;;
+    esac
+}
