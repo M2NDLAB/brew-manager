@@ -35,6 +35,23 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   `TUI_INDENT`, `_clear` (pulisce solo se `TUI_TTY`). `_hline` mappa i glifi
   heavy/light in ASCII in locale non-UTF-8.
 
+## Risk badges (BM-10) — presentazione del rischio
+- `_risk_badge <level>` / `_risk_caption <level>`: renderer PURI (level-driven) per
+  il badge `[RO]`/`[W]`/`[!]` e la sua caption. Colore dalla palette semantica
+  (`C_OK/C_WARN/C_DANGER`) → **vuoti a L0** (badge in ASCII puro se pipato/NO_COLOR).
+  Badge a **larghezza visibile fissa (4 col)** → colonne del menu allineate. Il
+  livello per-modulo vive in `MODULE_RISK` ([[lib-selection]]), non qui (renderer
+  registry-agnostici). Un badge che SOTTOSTIMA il rischio è un bug (docs/03).
+- `_ask_danger <title> <question> <default> [detail…]`: conferma di un'azione
+  DISTRUTTIVA. Disegna un `_box "$C_DANGER"` che nomina l'azione + i dettagli, POI
+  **delega a `_ask` INVARIATO** e ne ritorna lo status. Il box è SOLO presentazione:
+  il consenso resta in `_ask` (invariante byte-per-byte sotto --yes/non-interactive;
+  guard-rail BM-08c/BM-09 preservato). Va chiamato solo sul path REALE (il dry-run
+  per-modulo ha la sua preview e non conferma). Dettagli in ASCII puro (no em-dash
+  multibyte: sballerebbe il border-math di `_box` in locale C). Pinnato da
+  `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei 6
+  moduli cablati).
+
 ## Cosa espone / responsabilità
 - Output: `_hline`, `_header_main`, `_section`, `_ok/_warn/_err/_info/_item`,
   `_stat_row`, `_spinner` (degrada a wait puro sotto recording — morto-in-pratica,

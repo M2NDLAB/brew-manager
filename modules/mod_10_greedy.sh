@@ -9,6 +9,7 @@ _module_10() {
     _section "10" "Auto-update Casks (skipped by brew upgrade)"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "10"
     echo ""
     echo -e "  ${C_GRAY}Some casks (Docker, Firefox, Discord, VS Code...) are marked auto_updates=true${NC}"
     echo -e "  ${C_GRAY}because they have their own built-in updater. Homebrew intentionally skips${NC}"
@@ -115,7 +116,9 @@ _module_10() {
         fi
 
         echo ""
-        if _ask "Force-upgrade the ${#outdated_greedy[@]} cask(s) listed above?"; then
+        if _ask_danger "Force-upgrade auto-updating casks" "Force-upgrade the ${#outdated_greedy[@]} cask(s) listed above?" "n" \
+            "brew upgrade --cask --greedy - force new versions even for self-updating casks" \
+            "Runs one cask at a time (only the casks listed above)."; then
             echo ""
             local _ok_count=0 _noop_count=0
             declare -a _failed=()

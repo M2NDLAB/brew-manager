@@ -7,6 +7,7 @@ _module_6() {
     _section "6" "Most Shared Dependencies"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "6"
     echo ""
     echo -e "  ${C_GRAY}Analyzes which formulae are depended upon by the most other installed${NC}"
     echo -e "  ${C_GRAY}packages. Useful for understanding the core of your dependency graph${NC}"

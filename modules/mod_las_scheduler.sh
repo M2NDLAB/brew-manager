@@ -25,6 +25,7 @@ _module_15() {
     # ── Explanation ──
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "las"
     echo ""
     echo -e "  ${C_GRAY}A LaunchAgent is a macOS-native scheduler built into the OS (launchd).${NC}"
     echo -e "  ${C_GRAY}It runs programs automatically on your schedule, as YOUR user — no sudo,${NC}"

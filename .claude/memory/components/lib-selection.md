@@ -20,6 +20,13 @@ del tokenizer trovati e fixati).
 - `MODULE_DESC` (assoc, `typeset -gA`; chiavi 0–13 + log/bk/las/mas): descrizioni
   E insieme di validità — una chiave assente = modulo non selezionabile.
 - `MODULE_IDS=(0..13)` (`typeset -ga`): sequenza `go`; gli speciali ne restano fuori.
+- `MODULE_RISK` (assoc, BM-10): id → `ro|write|danger`, 1 voce per chiave di
+  `MODULE_DESC` = single source of truth del **badge di rischio**. **Presentazione
+  pura**: NON alimenta il resolver (nessun impatto sul contratto di selezione).
+  Livelli da audit adversariale (mai sottostimare, docs/03): `ro` 1,3,6,7,8,9,11,12,13
+  · `write` 2,log · `danger` 0,4,5,10,bk,las,mas. `_about_risk <id>` compone
+  badge+caption (renderer puri in [[lib-common]]) per il blocco About dei moduli.
+  Pinnato da `tests/test_risk_badges.zsh` (completezza vs MODULE_DESC, sensibili=danger).
 - `_resolve_selection <spec> [invalid_mode]`: popola il GLOBALE `MODULES_TO_RUN`
   (reset) + `RESOLVE_INVALID` (i token ignoti); ritorna 0 non-vuoto / 1 vuoto.
   `invalid_mode`: `warn` (default, interattivo — stampa `_warn`) | `collect`
@@ -65,3 +72,4 @@ del tokenizer trovati e fixati).
 - [[sessions/2026-07-17-bm08a-selection-resolver]] (nascita)
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (API CLI stretta + hardening gate)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (`_selection_is_valid` per gli agenti)
+- [[sessions/2026-07-20-bm10-risk-badges]] (`MODULE_RISK` + `_about_risk`, presentazione)

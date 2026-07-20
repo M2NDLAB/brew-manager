@@ -11,6 +11,7 @@ _module_16() {
     # ── What this module does ──
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "mas"
     echo ""
     echo -e "  ${C_GRAY}mas (Mac App Store CLI) is an open-source command-line tool that lets${NC}"
     echo -e "  ${C_GRAY}you manage App Store apps from the terminal — the same apps you installed${NC}"
@@ -33,7 +34,8 @@ _module_16() {
         echo ""
         printf "  ${C_GRAY}Install with:${NC}  ${C_CYAN}brew install mas${NC}\n"
         echo ""
-        if _ask "Install mas now?"; then
+        if _ask_danger "Install the mas CLI" "Install mas now?" "n" \
+            "brew install mas - install the Mac App Store command-line tool"; then
             echo ""
             _info "Installing mas"
             brew install mas 2>&1 | while IFS= read -r line; do
@@ -111,7 +113,8 @@ _module_16() {
 
         if (( BREW_MANAGER_DRY_RUN )); then
             _info "Dry-run mode — skipping upgrade"
-        elif _ask "Update all MAS apps now?"; then
+        elif _ask_danger "Update Mac App Store apps" "Update all MAS apps now?" "n" \
+            "mas upgrade - download and install updates for all ${_outdated_count} app(s)"; then
             echo ""
             _info "Running mas upgrade"
             mas upgrade 2>&1 | while IFS= read -r line; do

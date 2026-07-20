@@ -9,6 +9,7 @@ _module_11() {
     _section "11" "Duplicate and Conflicting Formulae"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "11"
     echo ""
     echo -e "  ${C_GRAY}Detects three categories of potential conflicts in your install:${NC}"
     echo ""

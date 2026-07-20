@@ -140,6 +140,34 @@ tags: [improvement]
   convenzione, e il meccanismo (`TUI_TTY` + `_clear`) è già in codice da BM-09.
 - Trigger di ripresa: decisione utente (retro periodica) o primo task BM-12.
 
+### IMP-006 — Workflow di review su un git-range: isola gli agenti (worktree) o vietali dal checkout
+- Data: 2026-07-20 | Origine: security gate BM-10 (workflow a 5 lenti sul diff
+  `765bad4..baaf11b`). Il gate è PASSATO pulito (0 finding), ma il MODO in cui l'ho
+  eseguito ha lasciato il repo in uno stato inatteso.
+- Problema osservato: ho istruito gli agenti a ispezionare il diff con
+  `git -C <root> diff/show <sha>` (Bash), NON isolati → condividevano la working
+  dir principale. Almeno un agente ha eseguito `git checkout` per leggere i file, e
+  il thrashing `main↔baaf11b` ha lasciato a fine run HEAD su `main`: il branch
+  `feat/risk-badges` è rimasto intatto (nessun lavoro perso) ma non checked-out, e
+  la harness ha segnalato i file come "modified by user — intentional", generando
+  confusione (sembrava che l'utente avesse scartato BM-10). IMP-001 (già
+  APPLICATA) prescriveva per i review-agent "diff INLINE + solo Read/Grep/Glob,
+  niente Bash" — ma quella prassi non scala su un diff grande (~20 file) dove gli
+  agenti traggono valore dal leggere i file interi, e NON l'ho seguita.
+- Proposta: estendere la prassi review-workflow (docs/03 / IMP-001): un workflow
+  di review su un git-range con più file (a) usa `isolation: 'worktree'` — ogni
+  agente ispeziona una copia isolata, i suoi comandi git non toccano la working dir
+  principale; OPPURE (b) se non isolato, il prompt VIETA esplicitamente
+  `git checkout/switch/reset/restore` (solo `git show <sha>:<path>` e
+  `git diff <sha> <sha>`, che non muovono HEAD); e comunque (c) dopo un workflow che
+  ha eseguito git in una working dir condivisa, RIVERIFICA `git rev-parse HEAD` e il
+  branch PRIMA di proseguire (checkpoint/integrate).
+- Beneficio atteso / rischio: i review-workflow non lasciano il repo in uno stato
+  inatteso; scala su diff grandi senza un inline gigante. Rischio: `worktree` costa
+  un po' (setup per agente); (b)/(c) sono a costo zero.
+- Trigger di ripresa: decisione utente (retro periodica) o prossimo workflow di review.
+- Destinazione: framework
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>

@@ -15,10 +15,11 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  4 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  5 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
   dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
   verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
-  colore — BM-09)
+  colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
+  vietali dal checkout — BM-10, Destinazione: framework)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -96,6 +97,12 @@ tags: [moc]
   MAJOR e **contratto pubblico di brew**, moduli CONGELATI), lint-memory (+controllo
   11, caso-limite 7), CLAUDE.md (+test-scripts), scripts/README, retrofit del pin;
   invariante memoria VUOTA; bump "nessun tag"
+- [[sessions/2026-07-20-bm10-risk-badges]] — BM-10 (M3, 2° task): risk badge
+  `[RO]`/`[W]`/`[!]` + cornici di conferma distruttiva. `MODULE_RISK` (classificazione
+  verificata adversarialmente) + `_risk_badge`/`_about_risk` + `_ask_danger` (box →
+  `_ask` INTATTO). Badge nel menu/18 About; 9 cornici (las escluso). Presentazione
+  pura. Gate PASSATO (5 lenti, 0 finding); 170 test. Incidente git-thrashing del
+  gate → IMP-006. In attesa di integrazione
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -115,7 +122,8 @@ tags: [moc]
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
   **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
   (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) **INTEGRATO in main**
-  (merge `5867137`); **BM-10** (badge di rischio) in corso su `feat/risk-badges`.
-  Fuori roadmap: **upgrade framework v0.5.1 → v1.0.0** (2026-07-19, solo processo)
-  **INTEGRATO in main** (merge `126bc7d`). Prossimo dopo BM-10: STOP, decisione
-  utente su BM-11/12.
+  (merge `5867137`); **BM-10** (badge di rischio) **COMPLETATO** su `feat/risk-badges`
+  (gate passato, 170 test), in attesa di integrazione. Fuori roadmap: **upgrade
+  framework v0.5.1 → v1.0.0** + riconciliazione memoria **INTEGRATI in main** (merge
+  `765bad4`). Prossimo: STOP, decisione utente su BM-11/12 (giudizio estetico).
+- [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.

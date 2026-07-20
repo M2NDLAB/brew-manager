@@ -7,6 +7,7 @@ _module_7() {
     _section "7" "Homebrew Services"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "7"
     echo ""
     echo -e "  ${C_GRAY}Shows all Homebrew-managed background services (daemons) and their${NC}"
     echo -e "  ${C_GRAY}current status. Services are LaunchAgents/LaunchDaemons installed by${NC}"

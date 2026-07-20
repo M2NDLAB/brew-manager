@@ -7,6 +7,7 @@ _module_4() {
     _section "4" "Available Updates"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "4"
     echo ""
     echo -e "  ${C_GRAY}Checks every installed cask and formula against the latest available${NC}"
     echo -e "  ${C_GRAY}version using brew outdated. Outdated packages are highlighted in yellow.${NC}"
@@ -76,7 +77,9 @@ _module_4() {
 
         if (( BREW_MANAGER_DRY_RUN )); then
             _info "Dry-run mode — skipping actual upgrade"
-        elif _ask "Proceed with upgrade now?" "${BREW_MANAGER_UPGRADE:-n}"; then
+        elif _ask_danger "Upgrade outdated packages" "Proceed with upgrade now?" "${BREW_MANAGER_UPGRADE:-n}" \
+            "brew upgrade - upgrade all ${OUTDATED_COUNT} outdated cask(s)/formula(e)" \
+            "Downloads and installs new versions (see the preview above)."; then
             echo ""
             _info "Updating packages"
             brew upgrade 2>&1 | while IFS= read -r line; do

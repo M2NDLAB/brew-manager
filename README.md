@@ -80,6 +80,16 @@ Launches a full-screen terminal interface showing all available modules. Type `g
 
 At the top of each module you will see an **About this module** section explaining in plain language what the module does, what it checks, and what actions it can take — before anything runs.
 
+Every module also carries a **risk badge** that makes its blast radius visible at a glance — shown beside the module in the menu and in its About section:
+
+| Badge | Meaning |
+|-------|---------|
+| `[RO]` | **Read-only** — inspects and reports, changes nothing. |
+| `[W]`  | **Writes metadata/cache only** — refreshes Homebrew's index or the tool's own files; installs and removes nothing on your system. |
+| `[!]`  | **Can change your system** — removes packages/cache, installs, adopts apps, or schedules a LaunchAgent. |
+
+Before a `[!]` action actually runs, brew-manager draws a **framed danger box** that names the exact command and spells out what it will do, then asks you to confirm. Under `--dry-run` you get a preview instead and are never asked; in an unattended run consent still comes only from `--yes` (see [Available flags](#available-flags)).
+
 ### Choosing what to run
 
 You can choose the modules **on the command line** or **interactively** — whichever fits.

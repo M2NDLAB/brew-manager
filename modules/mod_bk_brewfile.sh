@@ -20,6 +20,7 @@ _module_14() {
     # ── About ──
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "bk"
     echo ""
     echo -e "  ${C_GRAY}Creates and manages portable snapshots of your entire setup:${NC}"
     echo ""
@@ -437,8 +438,9 @@ EOF
                     _preview_restore_agents
                     break
                 fi
-                _warn "This will install all packages from Brewfile AND reload agents"
-                if _ask "Proceed with full restore?" "n"; then
+                if _ask_danger "Full restore (packages + agents)" "Proceed with full restore?" "n" \
+                    "brew bundle install - install every package listed in the Brewfile" \
+                    "Reload agents - write plists to ~/Library/LaunchAgents + launchctl load"; then
                     echo ""
                     if [[ -f "$brewfile_path" ]]; then
                         _info "Restoring Homebrew packages"
@@ -464,7 +466,8 @@ EOF
                     _info "Dry-run — preview of a packages restore, nothing will be executed"
                     echo ""
                     _preview_restore_brew
-                elif _ask "Restore Homebrew packages from Brewfile?" "n"; then
+                elif _ask_danger "Restore Homebrew packages" "Restore Homebrew packages from Brewfile?" "n" \
+                    "brew bundle install - install every package listed in the Brewfile"; then
                     echo ""
                     _info "Restoring Homebrew packages"
                     brew bundle install --file="$brewfile_path" 2>&1 | \
@@ -482,7 +485,8 @@ EOF
                     _preview_restore_agents
                 # Confirmation added for consistency with [3]/[3b]: writing
                 # plists + launchctl load is a side effect like installing
-                elif _ask "Reload agents from bundle into ~/Library/LaunchAgents?" "n"; then
+                elif _ask_danger "Reload LaunchAgents" "Reload agents from bundle into ~/Library/LaunchAgents?" "n" \
+                    "Writes agent plists to ~/Library/LaunchAgents and runs launchctl load"; then
                     _restore_agents
                 fi
                 ;;

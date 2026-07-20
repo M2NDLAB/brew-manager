@@ -7,6 +7,7 @@ _module_2() {
     _section "2" "Formula Database Update"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "2"
     echo ""
     echo -e "  ${C_GRAY}Runs brew update, which fetches the latest package definitions (formulae${NC}"
     echo -e "  ${C_GRAY}and casks) from Homebrew's JSON API. This is NOT the same as upgrading${NC}"

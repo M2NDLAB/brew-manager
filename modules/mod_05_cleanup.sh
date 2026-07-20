@@ -7,6 +7,7 @@ _module_5() {
     _section "5" "Cache and Orphan Dependency Cleanup"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "5"
     echo ""
     echo -e "  ${C_GRAY}Frees disk space by removing two categories of unnecessary files:${NC}"
     echo ""
@@ -61,7 +62,9 @@ _module_5() {
 
     # Default "y" keeps automated runs (--yes / LaunchAgents) behaving as before;
     # interactively _ask still requires an explicit y — Enter aborts
-    if ! _ask "Proceed with autoremove and cleanup now?" "y"; then
+    if ! _ask_danger "Cache & orphan cleanup" "Proceed with autoremove and cleanup now?" "y" \
+        "brew autoremove  - remove orphaned dependencies" \
+        "brew cleanup -s  - remove old versions and the download cache"; then
         _warn "Cleanup skipped — nothing was removed"
         DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
         _stat_row "Cache after (unchanged)" "$DU_AFTER" "$C_GREEN_B"

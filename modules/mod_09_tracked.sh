@@ -7,6 +7,7 @@ _module_9() {
     _section "9" "Brew-tracked Binaries in /usr/local/bin"
     echo ""
     echo -e "  ${C_CYAN_B}About this module:${NC}"
+    _about_risk "9"
     echo ""
     echo -e "  ${C_GRAY}Companion to module 8 — lists binaries in /usr/local/bin that ARE${NC}"
     echo -e "  ${C_GRAY}managed by Homebrew, either as formula symlinks or as binaries exposed${NC}"

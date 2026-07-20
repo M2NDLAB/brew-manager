@@ -54,6 +54,36 @@ typeset -gA MODULE_DESC=(
 
 typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 
+# MODULE_RISK — id → risk level, one entry for EVERY MODULE_DESC key. It is the
+# single source of truth for the risk BADGE the menu and each module's "About"
+# block show (BM-10). A module's level is the HIGHEST any of its code paths can
+# reach — a badge that understates risk is a security bug (docs/03) — so it was
+# set from an adversarially-verified per-module audit (workflow, 2026-07-20):
+#   ro     — only reads/reports, changes nothing.
+#   write  — mutates only metadata/cache or the tool's OWN files (logs/, backups/,
+#            agents/); installs/removes nothing on the system.
+#   danger — can remove/install/adopt packages, or persist/load a LaunchAgent.
+# Kept in lockstep with MODULE_DESC: tests/test_risk_badges.zsh fails if any id is
+# missing, carries a level outside {ro,write,danger}, or the sensitive modules
+# (docs/03: 0,5,bk,las) are not 'danger'. A gate on the SELECTION contract, not
+# the risk one, so this array is presentation-only: it never feeds the resolver.
+typeset -gA MODULE_RISK=(
+    [0]=danger  [1]=ro      [2]=write   [3]=ro      [4]=danger
+    [5]=danger  [6]=ro      [7]=ro      [8]=ro      [9]=ro
+    [10]=danger [11]=ro     [12]=ro     [13]=ro
+    [log]=write [bk]=danger [las]=danger [mas]=danger
+)
+
+# _about_risk <id> — print, at the standard indent, the risk badge followed by its
+# caption, for a module's "About this module" block. An unknown id degrades to the
+# neutral badge/caption instead of crashing a module's intro. Uses the pure
+# renderers and TUI_INDENT from lib/common.sh (sourced before this file); resolved
+# at call time, so the registry above is already populated.
+_about_risk() {
+    local level="${MODULE_RISK[$1]:-unknown}"
+    printf '%s%s  %s\n' "$TUI_INDENT" "$(_risk_badge "$level")" "$(_risk_caption "$level")"
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SELECTION RESOLVER
 # ─────────────────────────────────────────────────────────────────────────────
