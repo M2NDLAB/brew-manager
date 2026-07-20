@@ -1,7 +1,7 @@
 ---
 type: component
 component: core-brew-manager
-updated: 2026-07-18
+updated: 2026-07-20
 tags: [component]
 ---
 # core-brew-manager (brew_manager.sh)
@@ -28,6 +28,15 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
     `_resolve_cli` STRETTO (token ignoto → errore + exit 2) e SALTA il menu.
   - **Interattiva**: nessuna selezione da CLI → menu + `read` + `_resolve_selection`
     (lenient: warn+skip). Policy "vuoto = fatale" (`_err` + `exit 1`) nel core.
+- **Banner + menu (BM-11, flat variant)**: banner = brand line (glifo/middle-dot
+  gated su `TUI_UNICODE`, contesto right-aligned a TERM_WIDTH — il glifo 🍺 conta
+  1 char ma 2 colonne: pad corretto di −1) + rule + log path (`~` al posto di
+  $HOME, display-only). Menu = card `badge(4)·id(3)·nome(17)·desc(≤46)` ≤78 col
+  via helper LOCALI `_menu_row`/`_menu_section` (printf %s sui dati, IMP-003);
+  rule tra sequenza numerata e TOOLS; footer 3 righe. I cap di colonna sono
+  invarianti di dati ([[lib-selection]], `tests/test_menu_registry.zsh`). Il
+  summary elenca i moduli con `MODULE_NAME`. Il `read` della Choice e la
+  grammatica sono INTATTI (presentazione pura).
 - Dispatch: numerico → `_module_N` dinamica; speciali → case esplicito
   (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`).
 - **Consenso vs non-interattivo (BM-08c)**: `NON_INTERACTIVE` (da `! -t 0`, o
@@ -67,3 +76,4 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (cattura posizionali + branch CLI)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (NON_INTERACTIVE vs YES_MODE)
 - [[sessions/2026-07-18-exit-code-propagation]] (rc del figlio propagato dal parent)
+- [[sessions/2026-07-20-bm11-menu-redesign]] (banner flat + menu a card allineate)

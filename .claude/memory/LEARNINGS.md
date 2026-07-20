@@ -168,6 +168,26 @@ tags: [improvement]
 - Trigger di ripresa: decisione utente (retro periodica) o prossimo workflow di review.
 - Destinazione: framework
 
+### IMP-007 — Smoke del menu interattivo: selezione via CLI, mai pipe sul prompt Choice
+- Data: 2026-07-20 | Origine: BM-11 (redesign menu) — smoke di verifica del layout.
+- Problema osservato: per lo smoke ho pipato la selezione al prompt
+  (`printf '13\n' | ./brew_manager.sh --dry-run`): sotto script(1) il recorder
+  possiede lo stdin, il `read` del menu riceve EOF e scatta il default `go` — la
+  run "veloce da un modulo" è diventata una run completa di 14 moduli, andata in
+  timeout e uccisa a mano. Il README lo dichiara già ("Piping input to drive the
+  interactive prompt is not supported"), ma la regola operativa di CLAUDE.md
+  ("smoke run `./brew_manager.sh --dry-run` del modulo interessato") non dice COME
+  selezionare il modulo in uno smoke non-interattivo.
+- Proposta: precisare la riga "Verifica minima" di CLAUDE.md (Regole tecniche →
+  Test): lo smoke di un modulo si esegue con la selezione CLI posizionale
+  (`./brew_manager.sh <id> --dry-run`), mai pipando input al prompt interattivo;
+  il rendering del menu si verifica accettando che la pipe produca il default
+  `go` (e interrompendo subito), o da un terminale reale.
+- Beneficio atteso / rischio: niente run complete accidentali negli smoke, meno
+  tempo perso nei task TUI a venire (BM-12 è il prossimo). Rischio: nessuno, è
+  una precisazione di una riga.
+- Trigger di ripresa: decisione utente (retro periodica, o all'avvio di BM-12).
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>

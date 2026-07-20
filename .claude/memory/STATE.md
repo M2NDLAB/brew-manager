@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-07-20
-branch: feat/risk-badges
+branch: feat/menu-redesign
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-20 | Ultimo: **BM-10 — risk badge `[RO]`/`[W]`/`[!]` + cornici di conferma distruttiva** (M3, 2° task) su `feat/risk-badges` (6 commit sopra main): `MODULE_RISK` registry (verificato adversarialmente) + `_risk_badge`/`_risk_caption`/`_about_risk` + `_ask_danger` (box rosso → `_ask` INTATTO); badge nel menu (+legenda) e nei 18 blocchi About; cornici ai 9 siti `_ask` distruttivi (00/04/05/10/bk×3/mas×2); `las` escluso (flusso a menu). **Presentazione pura, contratto pubblico intatto.** **Gate adversariale PASSATO** (5 lenti, 0 finding); **170 test verdi**. **In attesa di integrazione** (bump MINOR, merge/push = utente). Prima: framework upgrade v1.0.0 + riconciliazione memoria INTEGRATI in main (merge `765bad4`). Prossimo: STOP — decisione utente su BM-11/BM-12 (giudizio estetico). | Indice: [[INDEX]]
+> Aggiornato: 2026-07-20 | Ultimo: **BM-11 — banner flat + menu a card allineate** (M3, 3° task) su `feat/menu-redesign` (3 commit di lavoro + checkpoint sopra main): mockup A/B proposti all'utente → decisione **variante flat + footer 3 righe**; `MODULE_NAME` (presentation-only) + testi `MODULE_DESC` riscritti da sottotitolo (CHIAVI congelate intatte) + `tests/test_menu_registry.zsh` (layout 80-col come invariante di DATI: cap 17/46 col, ASCII-only, lockstep); banner brand-line right-aligned (glifo/dot Unicode-gated, log path con `~`) + card `badge(4)·id(3)·nome(17)·desc(≤46)` + rule numerati/TOOLS; help 18→3 righe (README = riferimento completo); summary con MODULE_NAME; `_header_main` RIMOSSA (orfana, igiene BM-07). **Presentazione pura, contratto pubblico intatto.** **Gate PASSATO** (autore-che-verifica: zero righe guard-rail/resolver nel diff, 0 finding); **178 test verdi**. **In attesa di integrazione** (bump MINOR, merge/push = utente). Prima: BM-10 INTEGRATO in main (merge `2dd1f7c`). Prossimo: BM-12 (progress+summary) su decisione utente. | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -107,11 +107,20 @@ tags: [state]
       mas×2); `las` escluso (nessun `_ask` — flusso a menu; sarebbe cambio di
       consenso). `mod_00`=`[!]` (adotta), non `[RO]` del mockup. Presentazione pura,
       contratto pubblico intatto. **Gate adversariale PASSATO** (5 lenti, 0 finding).
-      33+5 test → 170 verdi. **In attesa di integrazione** (bump MINOR).
-      → [[sessions/2026-07-20-bm10-risk-badges]].
-    - [ ] BM-11 (banner+menu redesign), BM-12 (progress+summary): decisione utente
-      (giudizio estetico) se procedere. Costruiranno su `_box`/palette/badge di
-      BM-09/BM-10.
+      33+5 test → 170 verdi. **INTEGRATO in main** (merge `2dd1f7c`, branch
+      eliminato). → [[sessions/2026-07-20-bm10-risk-badges]].
+    - [x] **BM-11** banner + redesign menu — branch `feat/menu-redesign` (3 commit:
+      `597281e` registry `MODULE_NAME`+test, `27acf1e` banner+menu, `6b7df8b`
+      README). Mockup a 2 varianti proposti PRIMA del codice (richiesta utente) →
+      decisione: **flat + footer 3 righe**. Card `badge(4)·id(3)·nome(17)·
+      desc(≤46)` ≤78 col, cap pinnati da `tests/test_menu_registry.zsh` (8 check);
+      `_header_main` rimossa da common.sh (solo-rimozione). Presentazione pura,
+      contratto intatto. **Gate PASSATO** (0 finding). **178 test verdi**.
+      **In attesa di integrazione** (bump MINOR).
+      → [[sessions/2026-07-20-bm11-menu-redesign]].
+    - [ ] BM-12 (progress+summary): decisione utente (giudizio estetico) se
+      procedere. Costruirà su `_box`/palette/badge di BM-09/BM-10 e sul layout
+      BM-11 (lo spinner va gated su `TUI_TTY`, IMP-005).
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -123,19 +132,25 @@ tags: [state]
 - Albero directory: vedi [[TREE]].
 - `brew_manager.sh` — entry point TUI, stabile; dispatch, parsing flag, recording
   sessione via script(1). Selezione da CLI (posizionale + `--only`/`--skip`,
-  BM-08b) o dal menu interattivo. Vedi [[core-brew-manager]].
+  BM-08b) o dal menu interattivo. Dal **BM-11** banner flat (brand line
+  right-aligned, Unicode-gated) e menu a card allineate con helper LOCALI
+  `_menu_row`/`_menu_section`; summary con `MODULE_NAME`; help del menu compresso
+  in footer 3 righe. Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
   capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
   palette semantica (degrada a ASCII puro su pipe/NO_COLOR), primitivi
   `_box`/`_clear`. Dal **BM-10** i renderer di rischio `_risk_badge`/`_risk_caption`
   (puri) e `_ask_danger` (box `C_DANGER` → `_ask` INTATTO — presentazione, consenso
-  invariato). Vedi [[lib-common]].
+  invariato). Dal **BM-11** `_header_main` RIMOSSA (orfana dopo il banner flat del
+  core — igiene codice morto). Vedi [[lib-common]].
 - `lib/selection.sh` (BM-08a/b) — registry `MODULE_DESC`/`MODULE_IDS` +
   `_resolve_selection` (lenient) + `_resolve_cli`/`_collect_module_tokens`
   (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Dal
   **BM-10** anche `MODULE_RISK` (id→ro/write/danger, single source of truth del
-  badge, presentazione — NON alimenta il resolver) + `_about_risk`. Vedi
+  badge, presentazione — NON alimenta il resolver) + `_about_risk`. Dal **BM-11**
+  `MODULE_NAME` (nome breve da menu, presentation-only) e testi `MODULE_DESC` da
+  sottotitolo (≤46 col ASCII; le CHIAVI restano il contratto congelato). Vedi
   [[lib-selection]].
 - 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
   `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
@@ -150,7 +165,7 @@ tags: [state]
   certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
   v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **170 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **178 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
@@ -160,8 +175,10 @@ tags: [state]
   "pipato = zero ANSI" via il vero re-exec `script(1)`; `test_risk_badges.zsh` (38,
   BM-10) fissa la completezza di `MODULE_RISK` vs `MODULE_DESC`, la classificazione,
   la degradazione L0/larghezza del badge e l'**invarianza del consenso** di
-  `_ask_danger` (== `_ask` sotto --yes/non-interactive). Resto del codice non
-  coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
+  `_ask_danger` (== `_ask` sotto --yes/non-interactive); `test_menu_registry.zsh`
+  (8, BM-11) fissa il layout 80-col del menu come invariante di DATI (lockstep
+  `MODULE_NAME`↔`MODULE_DESC`, cap 17/46 colonne, ASCII-only, chiavi congelate).
+  Resto del codice non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
 ## Decisioni prese (non ovvie dal codice)
@@ -287,7 +304,8 @@ tags: [state]
    task dedicato.
 10. `_ask` mostra sempre "(y/N)" anche con default y, e "Runs only after
    confirmation" vale solo interattivamente (LOW, lib condivisa). → TRIGGER:
-   UX conferme in BM-10/BM-16.
+   BM-16 (conferme a tier; BM-10 e BM-11 chiusi SENZA toccare `_ask`, per scelta
+   di scope: presentazione intorno al prompt, mai il prompt).
 11. **Path /tmp fissi e prevedibili** (`/tmp/brew_*.log`, INFO gate BM-04):
    O_TRUNC segue i symlink — su Mac multi-utente un altro utente locale può
    pre-piazzare un symlink. Pre-esistente in più moduli. → TRIGGER: BM-07
@@ -310,18 +328,23 @@ tags: [state]
   contratto per i test), **IMP-003** (mai echo su dati — rafforzata dal gate BM-09),
   **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate),
   **IMP-005** (output di controllo terminale gata su `TUI_TTY`, non solo sul
-  colore — origine BM-09) e **IMP-006** (review-workflow su un git-range: isola gli
+  colore — origine BM-09), **IMP-006** (review-workflow su un git-range: isola gli
   agenti o vietali dal `checkout` — origine gate BM-10, `Destinazione: framework`)
-  APERTE, propose-only, in attesa di decisione (retro periodica o su richiesta).
+  e **IMP-007** (smoke moduli = selezione CLI posizionale, mai pipe sul prompt
+  Choice — origine BM-11) APERTE, propose-only, in attesa di decisione (retro
+  periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `765bad4` (merge della
-  riconciliazione memoria; sotto: framework upgrade v1.0.0 `126bc7d`, BM-09 `5867137`),
+- **main** = integrazione + stabile (trunk-based); HEAD `2dd1f7c` (merge BM-10;
+  sotto: checkpoint memoria BM-10 `b30150d`, riconciliazione memoria `765bad4`),
   allineato a `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0`
-  (annotato) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota.
-- **feat/risk-badges** (BM-10) = badge di rischio + cornici di conferma distruttiva,
-  6 commit sopra main (HEAD `baaf11b`), gate adversariale passato, 170 test verdi.
+  (annotato) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (si
+  compila alla release, prassi v1.3.0).
+- **feat/menu-redesign** (BM-11) = banner flat + menu a card allineate, 3 commit
+  di lavoro + checkpoint sopra main, gate passato (0 finding), 178 test verdi.
   **In attesa di integrazione dell'utente** (blocco `/integrate`, bump MINOR).
+- **feat/risk-badges** (BM-10) = **INTEGRATO in main** (merge `2dd1f7c`), branch
+  eliminato.
 - **chore/lint-mem-fw-v1.0.0** (riconciliazione memoria post-fw-v1.0.0) = **INTEGRATO
   in main** (merge `765bad4`), branch eliminato.
 - **chore/framework-upgrade-v1.0.0** (upgrade v0.5.1 → v1.0.0, solo processo) =

@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-common
-updated: 2026-07-19
+updated: 2026-07-20
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
@@ -53,9 +53,11 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   moduli cablati).
 
 ## Cosa espone / responsabilità
-- Output: `_hline`, `_header_main`, `_section`, `_ok/_warn/_err/_info/_item`,
-  `_stat_row`, `_spinner` (degrada a wait puro sotto recording — morto-in-pratica,
+- Output: `_hline`, `_section`, `_ok/_warn/_err/_info/_item`, `_stat_row`,
+  `_spinner` (degrada a wait puro sotto recording — morto-in-pratica,
   RECORDING sempre attivo; BM-12 lo riscrive gatando `\r`/cursore su `TUI_TTY`).
+  `_header_main` RIMOSSA in BM-11 (orfana: l'unico call-site era il banner del
+  core, ora una brand line flat inline — igiene codice morto come BM-07).
 - Guard-rail dei prompt (BM-08c) — due variabili ORTOGONALI
   ([[2026-07-17-consent-vs-noninteractive]]):
   - `BREW_MANAGER_YES` (solo `--yes`) = CONSENSO. `_ask` → prende il default;
@@ -104,3 +106,4 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 - [[sessions/2026-07-17-bm08c-agent-selection]] (guard-rail consenso vs non-interattivo)
 - [[sessions/2026-07-19-bm09-tui-foundation]] (rendering capability-aware: detection,
   handoff, palette semantica, primitivi box/clear; gate passato)
+- [[sessions/2026-07-20-bm11-menu-redesign]] (rimozione `_header_main`, solo-rimozione)

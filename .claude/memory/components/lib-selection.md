@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-selection
-updated: 2026-07-17
+updated: 2026-07-20
 tags: [component]
 ---
 # lib-selection (lib/selection.sh)
@@ -18,7 +18,13 @@ del tokenizer trovati e fixati).
 
 ## Cosa espone / responsabilità
 - `MODULE_DESC` (assoc, `typeset -gA`; chiavi 0–13 + log/bk/las/mas): descrizioni
-  E insieme di validità — una chiave assente = modulo non selezionabile.
+  E insieme di validità — una chiave assente = modulo non selezionabile. Dal
+  **BM-11** i TESTI sono sottotitoli one-line del menu (≤46 col, ASCII-only,
+  riscrivibili liberamente); le CHIAVI restano il contratto congelato.
+- `MODULE_NAME` (assoc, BM-11): id → nome breve da menu/summary (≤17 col,
+  ASCII-only). **Presentazione pura** come MODULE_RISK: il resolver non lo legge
+  mai. Lockstep + cap di colonna pinnati da `tests/test_menu_registry.zsh`
+  (8 check): il layout 80-col del menu è un'invariante di DATI.
 - `MODULE_IDS=(0..13)` (`typeset -ga`): sequenza `go`; gli speciali ne restano fuori.
 - `MODULE_RISK` (assoc, BM-10): id → `ro|write|danger`, 1 voce per chiave di
   `MODULE_DESC` = single source of truth del **badge di rischio**. **Presentazione
@@ -73,3 +79,4 @@ del tokenizer trovati e fixati).
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (API CLI stretta + hardening gate)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (`_selection_is_valid` per gli agenti)
 - [[sessions/2026-07-20-bm10-risk-badges]] (`MODULE_RISK` + `_about_risk`, presentazione)
+- [[sessions/2026-07-20-bm11-menu-redesign]] (`MODULE_NAME` + testi MODULE_DESC da menu)
