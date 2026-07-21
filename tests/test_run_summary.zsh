@@ -53,6 +53,33 @@ _du_missing="$(_du_kb "$_ROOT/does-not-exist-$$")"
 [[ -z "$_du_missing" ]] && _pass "du_kb: missing path -> empty (not 0)" \
                         || _fail "du_kb: missing path -> '$_du_missing'"
 
+[[ "$(_fmt_kb_or_na 1536)" == "1.5M" ]] && _pass "fmt_kb_or_na: value -> human" \
+                                        || _fail "fmt_kb_or_na: 1536 -> $(_fmt_kb_or_na 1536)"
+[[ "$(_fmt_kb_or_na "")"   == "n/a"  ]] && _pass "fmt_kb_or_na: empty -> n/a" \
+                                        || _fail "fmt_kb_or_na: empty -> $(_fmt_kb_or_na "")"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1b. Wiring invariant — the summary's disk line reads DU_BEFORE_KB/DU_AFTER_KB,
+#     which ONLY mod_05 populates. A future edit that sets the human string
+#     without its KB twin would silently drop the line (the exact gap this
+#     check was written after finding). Enforced by construction over the
+#     source, in the spirit of IMP-004: close the class, not one instance.
+# ─────────────────────────────────────────────────────────────────────────────
+_M05="$_ROOT/modules/mod_05_cleanup.sh"
+_n_after=$(grep -c '^[[:space:]]*DU_AFTER=' "$_M05")
+_n_after_kb=$(grep -c '^[[:space:]]*DU_AFTER_KB=' "$_M05")
+(( _n_after > 0 )) && _pass "wiring: mod_05 sets DU_AFTER ($_n_after sites)" \
+                   || _fail "wiring: no DU_AFTER assignment found in mod_05"
+(( _n_after == _n_after_kb )) && _pass "wiring: every DU_AFTER site has its KB twin" \
+                              || _fail "wiring: DU_AFTER x$_n_after vs DU_AFTER_KB x$_n_after_kb"
+grep -q '^[[:space:]]*DU_BEFORE_KB=' "$_M05" && _pass "wiring: mod_05 sets DU_BEFORE_KB" \
+                                             || _fail "wiring: DU_BEFORE_KB never set in mod_05"
+grep -q 'du -sh' "$_M05" && _fail "wiring: mod_05 still runs a second du -sh pass" \
+                         || _pass "wiring: cache measured once (no du -sh left)"
+# The core must still declare both twins (empty = not measured this run)
+grep -q '^DU_BEFORE_KB=""' "$_ROOT/brew_manager.sh" && _pass "wiring: core declares DU_BEFORE_KB empty" \
+                                                    || _fail "wiring: core lost the DU_BEFORE_KB declaration"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. _run_glyph — constant visible width, level-0 purity, Unicode variants
 # ─────────────────────────────────────────────────────────────────────────────

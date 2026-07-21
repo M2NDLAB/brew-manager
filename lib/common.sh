@@ -369,6 +369,12 @@ _fmt_kb() {
     fi
 }
 
+# _fmt_kb_or_na <kb> → _fmt_kb of the value, or "n/a" when the measurement is
+# missing. Lets a caller keep ONE measurement (the KB twin the summary
+# subtracts) and still print a human string, instead of running `du` twice over
+# a cache that can hold thousands of files.
+_fmt_kb_or_na() { [[ -n "${1-}" ]] && _fmt_kb "$1" || printf 'n/a'; }
+
 # _du_kb <path> → the path's disk usage in KB, or the empty string when it
 # cannot be measured (missing path, permissions): the caller must treat "" as
 # "no measurement", never as zero — a 0 would render as a fake "freed" delta.

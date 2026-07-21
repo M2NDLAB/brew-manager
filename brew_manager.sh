@@ -284,6 +284,17 @@ printf '  %bSession log: %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 # The module registry (MODULE_DESC / MODULE_NAME / MODULE_IDS) lives in
 # lib/selection.sh, sourced above — the menu, dispatcher and summary read it.
 
+# _menu_section <title> <hint> — section heading with the hint right-aligned.
+# Used by the interactive menu sections AND the final summary header, so it is
+# defined outside the interactive branch (a CLI run skips that branch entirely).
+# ${#} matches visible width for both arguments: they are ASCII except SYM_ARR,
+# whose char count equals its column count in both charsets (→ 1/1, -> 2/2).
+_menu_section() {
+    local _pad=$(( TERM_WIDTH - 2 - ${#1} - ${#2} ))
+    (( _pad < 2 )) && _pad=2
+    printf '  %b%s%b%*s%b%s%b\n' "$C_HEADING" "$1" "$NC" "$_pad" "" "$C_INFO" "$2" "$NC"
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # MODULE SELECTION — command line (non-interactive) OR interactive menu
 # ─────────────────────────────────────────────────────────────────────────────
@@ -308,15 +319,6 @@ else
 # ── Interactive menu (BM-11 redesign — flat cards + 3-line footer, approved
 #    2026-07-20). Left un-indented so the diff shows the new control flow,
 #    not a wholesale re-indent; the branch ends at the matching 'fi' below. ──
-
-# _menu_section <title> <hint> — section heading with the hint right-aligned.
-# ${#} matches visible width for both arguments: they are ASCII except SYM_ARR,
-# whose char count equals its column count in both charsets (→ 1/1, -> 2/2).
-_menu_section() {
-    local _pad=$(( TERM_WIDTH - 2 - ${#1} - ${#2} ))
-    (( _pad < 2 )) && _pad=2
-    printf '  %b%s%b%*s%b%s%b\n' "$C_HEADING" "$1" "$NC" "$_pad" "" "$C_INFO" "$2" "$NC"
-}
 
 # _menu_row <id> — one aligned card row: badge(4) · id(3, right-aligned) ·
 # name(17) · description. That is 32 columns before the description; with the
@@ -404,6 +406,11 @@ CASK_COUNT=0
 FORMULA_COUNT=0
 OUTDATED_COUNT=0
 DU_AFTER="n/a"
+# KB twins of mod_05's cache measurements (BM-12): human du strings ("1.2G")
+# don't subtract, so the summary's disk-delta line needs numeric values.
+# Empty = "not measured this run" — the summary then omits the line entirely.
+DU_BEFORE_KB=""
+DU_AFTER_KB=""
 typeset -a UNMANAGED_WITH_CASK=()
 typeset -a UNMANAGED_NO_CASK=()
 typeset -a UNMANAGED_APPLE=()
@@ -412,7 +419,18 @@ typeset -a UNMANAGED_APPLE=()
 # DISPATCH
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Per-position outcome tracking for the final summary (BM-12): status and
+# duration of every dispatched module. Indexed by RUN position, not by id —
+# the selection grammar allows repeats (1,1,2). 'preview' is derived from the
+# DRY_RUN contract via MODULE_RISK: read-only modules do their real work even
+# in a dry run (-> done), mutating ones only preview their actions. (mod_02's
+# unconditional brew update is a known breach of that contract — STATE #3 —
+# the row becomes exact the day mod_02 is fixed, not by weakening the label.)
+# 'failed' is never assigned here: module return codes are noise until BM-18
+# gives them a contract (STATE #4b) — a fake red X would be worse than none.
+typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
+    _mod_t0=$SECONDS
     case "$_mod" in
         log) _module_log  ;;
         bk)  _module_14   ;;
@@ -420,46 +438,86 @@ for _mod in "${MODULES_TO_RUN[@]}"; do
         mas) _module_16   ;;
         *)   "_module_${_mod}" ;;
     esac
+    RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
+    if (( DRY_RUN )) && [[ "${MODULE_RISK[$_mod]:-write}" != "ro" ]]; then
+        RUN_STATUS+=("preview")
+    else
+        RUN_STATUS+=("done")
+    fi
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FINAL SUMMARY
 # ─────────────────────────────────────────────────────────────────────────────
 
+# BM-12 session summary (variant B approved 2026-07-20): per-module outcome
+# rows (glyph + id + short name + duration), then the stats the modules
+# collected, a disk-delta line when mod_05 measured the cache, and a compact
+# dim identity footer. Everything renders through the capability-aware
+# primitives, so a piped/agent log gets the same summary in plain ASCII.
 echo ""
-_hline "═" "$C_CYAN"
-echo -e "${C_CYAN_B}  SUMMARY${NC}"
-_hline "═" "$C_CYAN"
+_hline "─" "$C_GRAY"
+_menu_section "SESSION SUMMARY" "total time $(_fmt_secs $SECONDS)"
+_hline "─" "$C_GRAY"
 echo ""
 
-echo -e "  ${C_CYAN_B}Modules executed:${NC}"
-echo ""
-for _m in "${MODULES_TO_RUN[@]}"; do
-    printf "  ${C_GRAY}  ${SYM_ARR}${NC}  ${C_CYAN_B}%3s${NC}  ${C_WHITE}%-17s${NC}  ${C_GRAY}%s${NC}\n" \
-        "$_m" "${MODULE_NAME[$_m]}" "${MODULE_DESC[$_m]}"
+# One row per dispatched module, in run order (repeats included). zsh arrays
+# are 1-based: the loop index starts at 1 by design, not off by one.
+_run_dry=0
+for (( _i=1; _i <= ${#MODULES_TO_RUN[@]}; _i++ )); do
+    _m="${MODULES_TO_RUN[$_i]}"
+    _st="${RUN_STATUS[$_i]:-done}"
+    _note=""
+    [[ "$_st" == "preview" ]] && { _note="preview (--dry-run)"; _run_dry=1; }
+    printf '  %s %b%3s%b  %b%-17s%b %b%7s%b   %b%s%b\n' \
+        "$(_run_glyph "$_st")" \
+        "$C_CYAN_B" "$_m" "$NC" \
+        "$C_WHITE" "${MODULE_NAME[$_m]}" "$NC" \
+        "$C_GRAY" "$(_fmt_secs "${RUN_SECS[$_i]:-0}")" "$NC" \
+        "$C_GRAY" "$_note" "$NC"
 done
 echo ""
-_hline "·" "$C_GRAY"
-echo ""
+# Legend limited to the glyphs that can actually appear in THIS run — the
+# reserved 'failed' glyph is not advertised until BM-18 makes it assignable.
+if (( _run_dry )); then
+    printf '  %s %bcompleted%b    %s %bpreview (--dry-run)%b\n' \
+        "$(_run_glyph done)" "$C_INFO" "$NC" "$(_run_glyph preview)" "$C_INFO" "$NC"
+else
+    printf '  %s %bcompleted%b\n' "$(_run_glyph done)" "$C_INFO" "$NC"
+fi
+_hline "┄" "$C_GRAY"
 
 _stat_row "Installed casks"             "$CASK_COUNT"                   "$C_CYAN_B"
 _stat_row "Installed formulae"          "$FORMULA_COUNT"                "$C_YELLOW"
 _stat_row "Apps adoptable via --adopt"  "${#UNMANAGED_WITH_CASK[@]}"    "$C_YELLOW"
 _stat_row "Apps without brew cask"      "${#UNMANAGED_NO_CASK[@]}"      "$C_GRAY"
 _stat_row "Available updates"           "${OUTDATED_COUNT}"             "${OUTDATED_COUNT:+$C_YELLOW}"
-_stat_row "Homebrew cache"              "$DU_AFTER"                     "$C_GREEN_B"
-_stat_row "Homebrew prefix"             "$(brew --prefix)"              "$C_GRAY"
-_stat_row "Total time"                  "${SECONDS}s"                   "$C_GRAY"
+
+# Disk-delta line — only when mod_05 measured the cache this run. "" from
+# _du_kb means "no measurement" and omits the line: a fabricated 0 would
+# render a fake freed-delta. The cache can legitimately GROW (a download
+# landed mid-run): say so rather than clamping to zero.
+if [[ -n "$DU_BEFORE_KB" && -n "$DU_AFTER_KB" ]]; then
+    _dsk_delta=$(( DU_BEFORE_KB - DU_AFTER_KB ))
+    if (( _dsk_delta > 0 )); then
+        _dsk_note="(freed ~$(_fmt_kb $_dsk_delta))"
+    elif (( _dsk_delta < 0 )); then
+        _dsk_note="(grew ~$(_fmt_kb $(( -_dsk_delta ))))"
+    else
+        _dsk_note="(unchanged)"
+    fi
+    printf '  %bDisk%b   cache %s %s %s  %b%s%b\n' \
+        "$C_INFO" "$NC" "$(_fmt_kb "$DU_BEFORE_KB")" "$SYM_ARR" "$(_fmt_kb "$DU_AFTER_KB")" \
+        "$C_INFO" "$_dsk_note" "$NC"
+fi
 
 echo ""
-_hline "═" "$C_CYAN"
-printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%s${NC}\n" "BREW MANAGER" "$(date '+%a %d %b %Y %H:%M:%S %Z')"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Host"         "$(hostname)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "User"         "$(whoami)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "macOS"        "$(sw_vers -productVersion 2>/dev/null)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Arch"         "$(uname -m)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Log"          "$LOG_FILE"
-_hline "═" "$C_CYAN"
+_hline "─" "$C_GRAY"
+printf '  %b%s%b\n' "$C_INFO" \
+    "brew-manager v${BREW_MANAGER_VERSION}${_tui_dot}$(date '+%a %b %d %Y %H:%M')" "$NC"
+printf '  %b%s%b\n' "$C_INFO" \
+    "$(hostname)${_tui_dot}$(whoami)${_tui_dot}$(uname -m)${_tui_dot}macOS $(sw_vers -productVersion 2>/dev/null)${_tui_dot}$(brew --prefix)" "$NC"
+printf '  %bLog    %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
