@@ -41,6 +41,17 @@ _SANDBOX="$(mktemp -d)" || { print -r -- "FAIL: mktemp"; exit 1; }
 # sandbox.
 _M02LOG="/tmp/brew_update.log"
 _M02SAVE="$_SANDBOX/brew_update.log.saved"
+# Refuse to run if that path is a symlink: `>` truncates through it (O_TRUNC
+# follows symlinks), so on a multi-user Mac a pre-planted link would have the
+# suite quietly truncate someone's file — and the cleanup below would then
+# delete the link, leaving the damage. The wet branch is the only reason this
+# path is reachable from `make test` at all; refusing is the honest response
+# until mod_02 stops using a fixed /tmp name (STATE #11).
+if [[ -L "$_M02LOG" ]]; then
+    print -r -- "FAIL: $_M02LOG is a symlink — refusing to run the wet check"
+    rm -rf "$_SANDBOX"
+    exit 1
+fi
 [[ -f "$_M02LOG" ]] && cp -p "$_M02LOG" "$_M02SAVE" 2>/dev/null
 cleanup() {
     if [[ -f "$_M02SAVE" ]]; then
@@ -171,7 +182,59 @@ _saw install && _pass "mas wet: brew install mas invoked (dry-run check has teet
              || _fail "mas wet: install NOT invoked — the dry-run check proves nothing"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. Verdict + anti-vacuity
+# 3. Homebrew's IMPLICIT update must be off under --dry-run.
+#    brew runs `brew update --auto-update` on its own before install/outdated/
+#    upgrade/bundle, so modules that only LIST packages still rewrote the index
+#    in a preview session (gate finding). The switch is HOMEBREW_NO_AUTO_UPDATE,
+#    exported by brew_manager.sh — and it has to survive the script(1) re-exec,
+#    which is why this runs the REAL binary end-to-end and asks the mock brew
+#    what it actually received, rather than grepping the source.
+# ─────────────────────────────────────────────────────────────────────────────
+_FARM="$_SANDBOX/farm"
+mkdir -p "$_FARM"
+for _f in brew_manager.sh VERSION lib modules; do
+    ln -s "$_ROOT/$_f" "$_FARM/$_f" || { print -r -- "FAIL: farm link $_f"; exit 1; }
+done
+
+# A second mock that records the INHERITED value of the switch, one line per
+# call ("unset" when empty), so a run can be asked what brew would have seen.
+_ENVDIR="$_SANDBOX/envmock"
+mkdir -p "$_ENVDIR"
+cat > "$_ENVDIR/brew" <<EOF
+#!/bin/zsh
+print -r -- "\${HOMEBREW_NO_AUTO_UPDATE:-unset}" >> "$_ENVDIR/seen"
+case "\$1" in
+    --prefix) print -r -- "/usr/local" ;;
+    --cache)  print -r -- "$_SANDBOX/cache" ;;
+esac
+exit 0
+EOF
+chmod +x "$_ENVDIR/brew"
+
+# _seen_env <args...> → run the real binary on module 8 (read-only) and echo the
+# distinct values the mock brew saw. Stdin closed: no --yes, so every prompt is
+# declined (fail-closed) and nothing can act.
+_seen_env() {
+    : > "$_ENVDIR/seen"
+    PATH="$_ENVDIR:$PATH" zsh "$_FARM/brew_manager.sh" "$@" </dev/null >/dev/null 2>&1
+    sort -u "$_ENVDIR/seen" 2>/dev/null | tr '\n' ' '
+}
+
+_env_dry="$(_seen_env 8 --dry-run)"
+_env_wet="$(_seen_env 8)"
+
+[[ -n "$_env_dry" ]] && _pass "auto-update: mock brew was reached under --dry-run ($_env_dry)" \
+                     || _fail "auto-update: mock brew never called — check is vacuous"
+[[ "$_env_dry" == "1 " ]] && _pass "auto-update: disabled under --dry-run (survives script(1))" \
+                          || _fail "auto-update: brew saw HOMEBREW_NO_AUTO_UPDATE='$_env_dry' under --dry-run"
+# A normal run must keep Homebrew's usual behaviour: the switch is a dry-run
+# concession, not a permanent change to how the tool drives brew.
+[[ "$_env_wet" == "unset "* || "$_env_wet" == "unset" ]] \
+    && _pass "auto-update: untouched in a normal run" \
+    || _fail "auto-update: normal run saw '$_env_wet' (expected unset)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Verdict + anti-vacuity
 # ─────────────────────────────────────────────────────────────────────────────
 print -r -- ""
 if (( TESTS_RUN == 0 )); then

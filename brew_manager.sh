@@ -149,6 +149,15 @@ CLI_SELECTION=0
 [[ -n "$SELECTION_SPEC" || -n "$ONLY_ANSWER" || -n "$SKIP_ANSWER" ]] && CLI_SELECTION=1
 
 export BREW_MANAGER_DRY_RUN=$DRY_RUN
+# A dry run must also suppress Homebrew's IMPLICIT update. brew runs
+# `brew update --auto-update` by itself before install/outdated/upgrade/bundle/
+# release (Homebrew's brew.sh, AUTO_UPDATE_COMMANDS), so a preview session that
+# merely LISTS outdated packages (modules 4, 10, bk) still refetched the API and
+# rewrote the local index — the exact mutation module 2 is gated against. brew's
+# own --dry-run does not stop it: the decision is taken before the arguments are
+# read. HOMEBREW_NO_AUTO_UPDATE is the documented off switch (gate finding).
+# Only under --dry-run: a normal run should keep Homebrew's usual behaviour.
+(( DRY_RUN )) && export HOMEBREW_NO_AUTO_UPDATE=1
 # Overwrite any inherited value: ONLY an explicit --yes on THIS invocation sets it,
 # so a stale BREW_MANAGER_YES in the environment can never auto-confirm prompts.
 export BREW_MANAGER_YES=$YES_MODE
