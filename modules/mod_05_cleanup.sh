@@ -20,7 +20,12 @@ _module_5() {
     echo -e "  ${C_GRAY}Runs only after confirmation (auto-confirmed in --yes runs).${NC}"
     echo -e "  ${C_GRAY}With --dry-run you get a preview only.${NC}"
     _hline "·" "$C_GRAY"
-    du_before=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+    # Measure ONCE in KB and derive the human string from it (BM-12): the
+    # summary subtracts the KB twins for its disk-delta line, and "1.2G" does
+    # not subtract. An unmeasurable cache leaves the twin empty, never 0, so
+    # the summary omits the line instead of claiming a fabricated delta.
+    DU_BEFORE_KB="$(_du_kb "$(brew --cache)")"
+    du_before="$(_fmt_kb_or_na "$DU_BEFORE_KB")"
     _stat_row "Cache before cleanup" "$du_before" "$C_YELLOW"
 
     # --dry-run: preview via brew's own --dry-run flags — the real autoremove
@@ -55,7 +60,8 @@ _module_5() {
         else
             _warn "Dry-run finished with preview errors — nothing was removed"
         fi
-        DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+        DU_AFTER_KB="$(_du_kb "$(brew --cache)")"
+        DU_AFTER="$(_fmt_kb_or_na "$DU_AFTER_KB")"
         _stat_row "Cache after (unchanged)" "$DU_AFTER" "$C_GREEN_B"
         return 0
     fi
@@ -66,7 +72,8 @@ _module_5() {
         "brew autoremove  - remove orphaned dependencies" \
         "brew cleanup -s  - remove old versions and the download cache"; then
         _warn "Cleanup skipped — nothing was removed"
-        DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+        DU_AFTER_KB="$(_du_kb "$(brew --cache)")"
+        DU_AFTER="$(_fmt_kb_or_na "$DU_AFTER_KB")"
         _stat_row "Cache after (unchanged)" "$DU_AFTER" "$C_GREEN_B"
         return 0
     fi
@@ -88,6 +95,7 @@ _module_5() {
     done
     _ok "Cleanup completed"
 
-    DU_AFTER=$(du -sh "$(brew --cache)" 2>/dev/null | cut -f1 || echo "n/a")
+    DU_AFTER_KB="$(_du_kb "$(brew --cache)")"
+    DU_AFTER="$(_fmt_kb_or_na "$DU_AFTER_KB")"
     _stat_row "Cache after cleanup" "$DU_AFTER" "$C_GREEN_B"
 }

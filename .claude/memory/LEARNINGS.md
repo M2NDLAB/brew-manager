@@ -187,6 +187,39 @@ tags: [improvement]
   tempo perso nei task TUI a venire (BM-12 è il prossimo). Rischio: nessuno, è
   una precisazione di una riga.
 - Trigger di ripresa: decisione utente (retro periodica, o all'avvio di BM-12).
+- **Estesa dal BM-12** (2026-07-21): oltre a non pipare l'INPUT, non troncare
+  l'OUTPUT. `./brew_manager.sh … | head -20` uccide la run con SIGPIPE a metà e
+  lascia un log di sessione a **0 byte**: sembra una regressione del prodotto (ci
+  ho perso due diagnosi) e invece è l'artefatto dello smoke. Regola completa:
+  smoke = selezione CLI posizionale + output REDIRETTO SU FILE, poi si filtra il
+  file. Vale per qualsiasi TUI che salvi un artefatto a fine run.
+
+### IMP-008 — Un gate che verifica solo "cosa esegue" non vede le affermazioni FALSE
+- Data: 2026-07-21 | Origine: security gate BM-12 (2 lenti adversariali).
+- Problema osservato: il diff era, per comportamento, davvero "presentazione
+  pura" — entrambe le lenti hanno verificato e confermato che consenso, rami
+  dry-run, dispatch ed exit-code erano intatti. Eppure conteneva **4 difetti di
+  verità**: il summary ATTESTAVA nel log di sessione che moduli senza gate
+  `--dry-run` avevano "previewed, changed nothing" (falso per mod_02 e mas), e la
+  riga del disco poteva dichiarare spazio liberato su una cache cresciuta. Il mio
+  ragionamento da autore era "l'etichetta deriva dal contratto, il bug è altrove
+  (Attenzione #3)" — ma il contratto non era rispettato dalla realtà, e la doc
+  utente appena scritta trasformava l'etichetta in una promessa.
+- Proposta: aggiungere a `docs/03-security-gate.md` una lente esplicita
+  **"affermazioni, non solo azioni"**: quando un deliverable di presentazione
+  produce ASSERZIONI su proprietà di sicurezza (badge, stati, riepiloghi,
+  messaggi "nothing was changed") — specie se finiscono in un artefatto
+  persistente (log, report, export) — ogni asserzione va verificata contro il
+  comportamento REALE del codice che descrive, non contro il contratto che
+  quel codice dovrebbe rispettare. Criterio operativo: se una stringa afferma
+  che qualcosa NON è successo, deve esistere un dato che lo dimostra (qui:
+  `MODULE_DRYRUN`, separato dal rischio), non un'inferenza.
+- Beneficio atteso / rischio: impedisce che un debito noto e accettato (#3)
+  diventi silenziosamente una promessa scritta all'utente. Rischio: nessuno —
+  è una lente in più, applicabile solo dove ci sono asserzioni.
+- Trigger di ripresa: decisione utente (retro periodica) o prossimo deliverable
+  che produce report/summary/badge.
+- Destinazione: framework
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>

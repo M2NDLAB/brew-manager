@@ -90,6 +90,33 @@ Every module also carries a **risk badge** that makes its blast radius visible a
 
 Before a `[!]` action actually runs, brew-manager draws a **framed danger box** that names the exact command and spells out what it will do, then asks you to confirm. Under `--dry-run` you get a preview instead and are never asked; in an unattended run consent still comes only from `--yes` (see [Available flags](#available-flags)).
 
+While a long operation is in flight (`brew doctor`, `brew update`) a **spinner** shows it is still working, with the seconds elapsed. It only animates on a real terminal: piped output and scheduled runs get a single static line per operation instead, so the log stays clean.
+
+### The session summary
+
+Every run ends with a **session summary**: one row per module in the order it ran, with the time it took, then the totals the modules collected, the Homebrew cache before and after, and the path of the session log.
+
+```
+  ✓      7  Services               5s
+  ↷      5  Cleanup                4s   preview (--dry-run)
+  ⚠      2  Database update        3s   ran anyway (no --dry-run gate)
+
+  ✓ completed    ↷ previewed, nothing changed    ⚠ acted despite --dry-run
+  Disk   cache 3.8G → 2.1G  (freed ~1.7G)
+```
+
+| Mark | Meaning |
+|------|---------|
+| `✓` (`[OK]`) | The module ran to completion. |
+| `↷` (`[--]`) | `--dry-run`: the module previewed its actions and changed nothing. |
+| `⚠` (`[!]`) | `--dry-run` was requested, but this module has no dry-run gate and acted anyway. |
+
+Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work.
+
+The `⚠` mark is deliberately blunt: two modules do not yet honour `--dry-run` — module `2` always runs `brew update`, and the `mas` module can install the `mas` tool itself if you confirm — so the summary flags them rather than claiming a preview that did not happen. Everything else stops at a preview.
+
+Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]` / `[!]`. The disk line appears only when a module measured the cache (today, module `5`); the "after" figure is taken at the end of the run, so later modules that download into the cache are reflected in it.
+
 ### Choosing what to run
 
 You can choose the modules **on the command line** or **interactively** — whichever fits.
@@ -505,7 +532,7 @@ brew-manager adapts its output to what your terminal can actually display, and d
 
 - **Color depth is detected automatically.** A truecolor terminal (`COLORTERM=truecolor`) gets the full 24-bit palette; a 256-color terminal gets 256-color hues; anything poorer falls back to the classic 16 colors. The palette is *semantic* — one tint per state (green = safe/read-only, yellow = writes metadata, red = destructive) — so the meaning of an action is legible at a glance rather than decorative.
 - **`NO_COLOR` is honored.** Set `NO_COLOR=1` (see [no-color.org](https://no-color.org)) and the output is plain text with no ANSI sequences at all.
-- **Piped or non-interactive output is clean at the source.** When standard output is not a terminal — a pipe, a redirect, a scheduled LaunchAgent — no color or cursor-control sequences are emitted in the first place. This complements the ANSI stripping of the saved log: a piped report is clean text you can `grep` or archive directly.
+- **Piped or non-interactive output is clean at the source.** When standard output is not a terminal — a pipe, a redirect, a scheduled LaunchAgent — no color or cursor-control sequences are emitted in the first place, and the progress spinner is replaced by one static line per operation. This complements the ANSI stripping of the saved log: a piped report is clean text you can `grep` or archive directly.
 - **Non-UTF-8 locales fall back to ASCII.** In a UTF-8 locale the interface uses rounded boxes and Unicode symbols (`✓ ⚠ ✗ → ─`); otherwise it uses ASCII equivalents (`+ ! x -> -`), so it stays readable in a `LANG=C` environment.
 
 All of this is driven from `lib/common.sh`, so every module inherits it — there is nothing to configure.

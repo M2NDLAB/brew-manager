@@ -276,20 +276,147 @@ _err()  { local msg="$1"; echo -e "  ${C_RED}${SYM_ERR}${NC}  ${msg}"; }
 _info() { local msg="$1"; echo -e "  ${C_BLUE}${SYM_INFO}${NC}  ${msg}"; }
 _item() { local msg="$1"; echo -e "  ${C_GRAY}${SYM_DOT}${NC}  ${msg}"; }
 
+# _spinner <pid> <label> — progress indicator for a long-running background
+# command (BM-12, roadmap §4.6). Returns the child's exit status via wait, so a
+# caller CAN branch on it (today's callers read a log file instead — that stays
+# valid).
+#
+# Gated on TUI_TTY, not on RECORDING (IMP-005): the recorded child inherits the
+# parent's real tty-ness through the BM-09 handoff, so an interactive session
+# finally SEES the spinner, while a piped/agent run emits no \r and no cursor
+# control — one static status line says what is running, then we just wait.
+# The saved log stays clean because the end-of-session strip in brew_manager.sh
+# applies CARRIAGE-RETURN SEMANTICS (keep only what survives the last \r), not a
+# plain `s/\r//g` — deleting the CRs alone would concatenate every frame into
+# one enormous line (found by the BM-12 gate; the animated branch had never run
+# in production before, so the flaw could not surface earlier).
+# Frames degrade to ASCII | / - \ without UTF-8. Elapsed seconds come from
+# $SECONDS, not from the frame count: each iteration costs sleep 0.1 PLUS the
+# printf and kill, so counting frames drifts low (~10% — a 60s operation would
+# have displayed 54s). The label is caller DATA: printf %s only (IMP-003).
 _spinner() {
     local pid=$1 msg="$2"
-    if [[ -n "$BREW_MANAGER_RECORDING" ]]; then
+    if (( ! TUI_TTY )); then
+        printf '%s%s  %s... (running)\n' "$TUI_INDENT" "$SYM_INFO" "$msg"
         wait "$pid" 2>/dev/null
-        return
+        return $?
     fi
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local i=0
+    local -a frames
+    if (( TUI_UNICODE )); then
+        frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    else
+        frames=('|' '/' '-' '\')
+    fi
+    # zsh arrays are 1-based: the +1 keeps index 0 from selecting an empty
+    # frame (an off-by-one the old spinner carried, invisible only because it
+    # never ran under the always-on recorder).
+    local i=0 t0=$SECONDS
     while kill -0 "$pid" 2>/dev/null; do
-        printf "\r  ${C_CYAN}${frames[$((i % ${#frames[@]}))]}${NC}  ${msg}..."
+        printf '\r%s%b%s%b  %s... %ss' "$TUI_INDENT" "$C_ACCENT" \
+            "${frames[$(( i % ${#frames[@]} + 1 ))]}" "$NC" "$msg" "$(( SECONDS - t0 ))"
         (( i++ ))
         sleep 0.1
     done
-    printf "\r%-${TERM_WIDTH}s\r" " "
+    printf '\r%-*s\r' "$TERM_WIDTH" " "
+    wait "$pid" 2>/dev/null
+    return $?
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RUN-SUMMARY RENDERERS (BM-12) — pure, level-driven, no global state mutated.
+# The per-module status itself is assigned by the dispatch loop in
+# brew_manager.sh; these only render it.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# _run_glyph <status> → the per-module outcome glyph at a CONSTANT visible
+# width (4 columns), same discipline as _risk_badge so the summary columns
+# never move when colour or Unicode is off:
+#   done     ✓ / [OK]  (green)   — module ran to completion
+#   preview  ↷ / [--]  (yellow)  — dry-run: it previewed and changed NOTHING
+#   ran      ⚠ / [!]   (yellow)  — dry-run was requested but this module acts
+#                                  anyway (it has no dry-run gate): the run was
+#                                  NOT a no-op, and the summary must say so
+#   failed   ✗ / [!!]  (red)     — RESERVED: no caller assigns it until module
+#                                  return codes get a contract (BM-18 — today's
+#                                  returns are noise, see STATE #4b)
+_run_glyph() {
+    local color text text_u text_a
+    case "$1" in
+        done)    color="$C_OK"     ; text_u='✓   ' ; text_a='[OK]' ;;
+        preview) color="$C_WARN"   ; text_u='↷   ' ; text_a='[--]' ;;
+        ran)     color="$C_WARN"   ; text_u='⚠   ' ; text_a='[!] ' ;;
+        failed)  color="$C_DANGER" ; text_u='✗   ' ; text_a='[!!]' ;;
+        *)       color="$C_INFO"   ; text_u='?   ' ; text_a='[??]' ;;
+    esac
+    (( TUI_UNICODE )) && text="$text_u" || text="$text_a"
+    printf '%b%s%b' "$color" "$text" "$NC"
+}
+
+# _run_status <dry_run> <risk> <dryrun_capable> → the outcome status for one
+# dispatched module. Pure (no globals, no side effects) so the truth table can
+# be tested directly — the gate found that this decision, made inline, was the
+# one line of BM-12 with no test and a wrong answer.
+#
+# The rule the summary must never break: only claim "preview / changed nothing"
+# when that is PROVABLY true.
+#   not a dry run                → done     (it did its normal work)
+#   dry run + read-only module   → done     (a dry run IS its normal work)
+#   dry run + gated mutator      → preview  (every acting path was skipped)
+#   dry run + UNGATED mutator    → ran      (it acted despite --dry-run)
+# Deriving this from MODULE_RISK alone is what produced the false claim: risk
+# says how much a module COULD change, not whether --dry-run stops it.
+_run_status() {
+    local dry="${1:-0}" risk="${2:-write}" capable="${3:-0}"
+    if (( ! dry ));            then printf 'done'
+    elif [[ "$risk" == ro ]];  then printf 'done'
+    elif (( capable ));        then printf 'preview'
+    else                            printf 'ran'
+    fi
+}
+
+# _fmt_secs <n> → compact human duration: "42s", "1m 12s". Minutes never roll
+# over into hours — a brew session measured in hours is a problem the summary
+# should show loudly, not compress.
+_fmt_secs() {
+    local s="${1:-0}"
+    if (( s < 60 )); then
+        printf '%ss' "$s"
+    else
+        printf '%sm %ss' "$(( s / 60 ))" "$(( s % 60 ))"
+    fi
+}
+
+# _fmt_kb <kb> → human size from kilobytes, ASCII only: "512K", "1.5M", "1.2G".
+# One decimal above the unit boundary — enough for a cache-size delta, and the
+# output stays short for a fixed summary column.
+_fmt_kb() {
+    local kb="${1:-0}"
+    if (( kb < 1024 )); then
+        printf '%sK' "$kb"
+    elif (( kb < 1048576 )); then
+        printf '%d.%dM' "$(( kb / 1024 ))" "$(( (kb % 1024) * 10 / 1024 ))"
+    else
+        printf '%d.%dG' "$(( kb / 1048576 ))" "$(( (kb % 1048576) * 10 / 1048576 ))"
+    fi
+}
+
+# _fmt_kb_or_na <kb> → _fmt_kb of the value, or "n/a" when the measurement is
+# missing. Lets a caller keep ONE measurement (the KB twin the summary
+# subtracts) and still print a human string, instead of running `du` twice over
+# a cache that can hold thousands of files.
+# if/else, not `A && B || C`: the short-circuit form would print BOTH branches
+# if a future _fmt_kb ever returned non-zero.
+_fmt_kb_or_na() {
+    if [[ -n "${1-}" ]]; then _fmt_kb "$1"; else printf 'n/a'; fi
+}
+
+# _du_kb <path> → the path's disk usage in KB, or the empty string when it
+# cannot be measured (missing path, permissions): the caller must treat "" as
+# "no measurement", never as zero — a 0 would render as a fake "freed" delta.
+_du_kb() {
+    local kb
+    kb=$(du -sk "$1" 2>/dev/null | cut -f1)
+    [[ "$kb" == <-> ]] && printf '%s' "$kb"
 }
 
 _ask() {

@@ -247,15 +247,31 @@ if [[ -z "$BREW_MANAGER_RECORDING" ]]; then
     # it, but sed/mv would overwrite $? — and automation (launchd agents,
     # shell scripts) reads THIS process's exit code, not the child's.
     _run_rc=$?
-    # Strip ANSI escape codes and carriage returns from the saved log. A failed
-    # strip must not replace the run's rc (the contract with callers) — but it
-    # must not be silent either: say why the log was left raw.
+    # Strip ANSI escape codes from the saved log and resolve carriage returns to
+    # what the terminal actually showed. The CR pass is TWO substitutions in a
+    # fixed order and both are required:
+    #   s/\r$//   drops the CR of script(1)'s CRLF line endings FIRST — without
+    #             it the next rule would treat every ordinary line as
+    #             overwritten and delete its text.
+    #   s/.*\r//  keeps only what survives the last CR on the line: the visible
+    #             result of an in-place redraw.
+    # The old `s/\r//g` deleted the CRs but kept every frame, so one spinner
+    # animation landed in the log as a single enormous line (~14 KB for a 60s
+    # operation). That was invisible until BM-12 made the animated branch
+    # reachable — before it, the spinner never ran under the recorder.
+    # A failed strip must not replace the run's rc (the contract with callers) —
+    # but it must not be silent either: say why the log was left raw. The
+    # emptiness guard is deliberate: this rewrite is the only step that can
+    # destroy the session's audit artefact, so a strip that turns a non-empty
+    # log into an empty one is treated as failure and the RAW log is kept.
     _tmp="$(mktemp)"
-    sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g; s/\x1b[()][AB012]//g; s/\x1b[DMEH]//g; s/\r//g; s/^[[:space:]]*$//g' \
-        "$LOG_FILE" > "$_tmp" && mv "$_tmp" "$LOG_FILE" || {
-        echo "WARNING: log cleanup failed — raw log kept at $LOG_FILE" >&2
+    if sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g; s/\x1b[()][AB012]//g; s/\x1b[DMEH]//g; s/\r$//; s/.*\r//; s/^[[:space:]]*$//g' \
+           "$LOG_FILE" > "$_tmp" && { [[ -s "$_tmp" ]] || [[ ! -s "$LOG_FILE" ]]; }; then
+        mv "$_tmp" "$LOG_FILE"
+    else
+        echo "WARNING: log cleanup failed or emptied the log — raw log kept at $LOG_FILE" >&2
         rm -f "$_tmp"
-    }
+    fi
     exit $_run_rc
 fi
 
@@ -284,6 +300,17 @@ printf '  %bSession log: %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 # The module registry (MODULE_DESC / MODULE_NAME / MODULE_IDS) lives in
 # lib/selection.sh, sourced above — the menu, dispatcher and summary read it.
 
+# _menu_section <title> <hint> — section heading with the hint right-aligned.
+# Used by the interactive menu sections AND the final summary header, so it is
+# defined outside the interactive branch (a CLI run skips that branch entirely).
+# ${#} matches visible width for both arguments: they are ASCII except SYM_ARR,
+# whose char count equals its column count in both charsets (→ 1/1, -> 2/2).
+_menu_section() {
+    local _pad=$(( TERM_WIDTH - 2 - ${#1} - ${#2} ))
+    (( _pad < 2 )) && _pad=2
+    printf '  %b%s%b%*s%b%s%b\n' "$C_HEADING" "$1" "$NC" "$_pad" "" "$C_INFO" "$2" "$NC"
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # MODULE SELECTION — command line (non-interactive) OR interactive menu
 # ─────────────────────────────────────────────────────────────────────────────
@@ -308,15 +335,6 @@ else
 # ── Interactive menu (BM-11 redesign — flat cards + 3-line footer, approved
 #    2026-07-20). Left un-indented so the diff shows the new control flow,
 #    not a wholesale re-indent; the branch ends at the matching 'fi' below. ──
-
-# _menu_section <title> <hint> — section heading with the hint right-aligned.
-# ${#} matches visible width for both arguments: they are ASCII except SYM_ARR,
-# whose char count equals its column count in both charsets (→ 1/1, -> 2/2).
-_menu_section() {
-    local _pad=$(( TERM_WIDTH - 2 - ${#1} - ${#2} ))
-    (( _pad < 2 )) && _pad=2
-    printf '  %b%s%b%*s%b%s%b\n' "$C_HEADING" "$1" "$NC" "$_pad" "" "$C_INFO" "$2" "$NC"
-}
 
 # _menu_row <id> — one aligned card row: badge(4) · id(3, right-aligned) ·
 # name(17) · description. That is 32 columns before the description; with the
@@ -403,7 +421,12 @@ echo ""
 CASK_COUNT=0
 FORMULA_COUNT=0
 OUTDATED_COUNT=0
-DU_AFTER="n/a"
+# Cache measurements (BM-12). The human string lives in mod_05, which prints
+# it; the core keeps only the KB twins the summary subtracts, because "1.2G"
+# does not subtract. Empty = "not measured this run" → the summary omits the
+# disk line rather than reporting a fabricated delta.
+DU_BEFORE_KB=""
+DU_AFTER_KB=""
 typeset -a UNMANAGED_WITH_CASK=()
 typeset -a UNMANAGED_NO_CASK=()
 typeset -a UNMANAGED_APPLE=()
@@ -412,7 +435,16 @@ typeset -a UNMANAGED_APPLE=()
 # DISPATCH
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Per-position outcome tracking for the final summary (BM-12): status and
+# duration of every dispatched module. Indexed by RUN position, not by id —
+# the selection grammar allows repeats (1,1,2). The status itself is decided by
+# _run_status (lib/common.sh), which needs BOTH registries: MODULE_RISK says
+# how much the module could change, MODULE_DRYRUN whether --dry-run actually
+# stops it. 'failed' is never assigned: module return codes are noise until
+# BM-18 gives them a contract (STATE #4b) — a fake red X is worse than none.
+typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
+    _mod_t0=$SECONDS
     case "$_mod" in
         log) _module_log  ;;
         bk)  _module_14   ;;
@@ -420,46 +452,94 @@ for _mod in "${MODULES_TO_RUN[@]}"; do
         mas) _module_16   ;;
         *)   "_module_${_mod}" ;;
     esac
+    RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
+    RUN_STATUS+=( "$(_run_status "$DRY_RUN" "${MODULE_RISK[$_mod]:-write}" "${MODULE_DRYRUN[$_mod]:-0}")" )
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FINAL SUMMARY
 # ─────────────────────────────────────────────────────────────────────────────
 
+# BM-12 session summary (variant B approved 2026-07-20): per-module outcome
+# rows (glyph + id + short name + duration), then the stats the modules
+# collected, a disk-delta line when mod_05 measured the cache, and a compact
+# dim identity footer. Everything renders through the capability-aware
+# primitives, so a piped/agent log gets the same summary in plain ASCII.
 echo ""
-_hline "═" "$C_CYAN"
-echo -e "${C_CYAN_B}  SUMMARY${NC}"
-_hline "═" "$C_CYAN"
+_hline "─" "$C_GRAY"
+_menu_section "SESSION SUMMARY" "total time $(_fmt_secs $SECONDS)"
+_hline "─" "$C_GRAY"
 echo ""
 
-echo -e "  ${C_CYAN_B}Modules executed:${NC}"
-echo ""
-for _m in "${MODULES_TO_RUN[@]}"; do
-    printf "  ${C_GRAY}  ${SYM_ARR}${NC}  ${C_CYAN_B}%3s${NC}  ${C_WHITE}%-17s${NC}  ${C_GRAY}%s${NC}\n" \
-        "$_m" "${MODULE_NAME[$_m]}" "${MODULE_DESC[$_m]}"
+# One row per dispatched module, in run order (repeats included). zsh arrays
+# are 1-based: the loop index starts at 1 by design, not off by one.
+_seen_preview=0 _seen_ran=0
+for (( _i=1; _i <= ${#MODULES_TO_RUN[@]}; _i++ )); do
+    _m="${MODULES_TO_RUN[$_i]}"
+    _st="${RUN_STATUS[$_i]:-done}"
+    _note=""
+    case "$_st" in
+        preview) _note="preview (--dry-run)"            ; _seen_preview=1 ;;
+        ran)     _note="ran anyway (no --dry-run gate)" ; _seen_ran=1     ;;
+    esac
+    printf '  %s %b%3s%b  %b%-17s%b %b%7s%b   %b%s%b\n' \
+        "$(_run_glyph "$_st")" \
+        "$C_CYAN_B" "$_m" "$NC" \
+        "$C_WHITE" "${MODULE_NAME[$_m]}" "$NC" \
+        "$C_GRAY" "$(_fmt_secs "${RUN_SECS[$_i]:-0}")" "$NC" \
+        "$C_GRAY" "$_note" "$NC"
 done
 echo ""
-_hline "·" "$C_GRAY"
-echo ""
+# Legend limited to the glyphs that can actually appear in THIS run — the
+# reserved 'failed' glyph is not advertised until BM-18 makes it assignable.
+printf '  %s %bcompleted%b' "$(_run_glyph done)" "$C_INFO" "$NC"
+(( _seen_preview )) && printf '    %s %bpreviewed, nothing changed%b' \
+    "$(_run_glyph preview)" "$C_INFO" "$NC"
+(( _seen_ran )) && printf '    %s %bacted despite --dry-run%b' \
+    "$(_run_glyph ran)" "$C_INFO" "$NC"
+printf '\n'
+_hline "┄" "$C_GRAY"
 
 _stat_row "Installed casks"             "$CASK_COUNT"                   "$C_CYAN_B"
 _stat_row "Installed formulae"          "$FORMULA_COUNT"                "$C_YELLOW"
 _stat_row "Apps adoptable via --adopt"  "${#UNMANAGED_WITH_CASK[@]}"    "$C_YELLOW"
 _stat_row "Apps without brew cask"      "${#UNMANAGED_NO_CASK[@]}"      "$C_GRAY"
 _stat_row "Available updates"           "${OUTDATED_COUNT}"             "${OUTDATED_COUNT:+$C_YELLOW}"
-_stat_row "Homebrew cache"              "$DU_AFTER"                     "$C_GREEN_B"
-_stat_row "Homebrew prefix"             "$(brew --prefix)"              "$C_GRAY"
-_stat_row "Total time"                  "${SECONDS}s"                   "$C_GRAY"
+
+# Disk-delta line — only when a module measured the cache this run (today only
+# mod_05 does). "" from _du_kb means "no measurement" and omits the line: a
+# fabricated 0 would render a fake freed-delta.
+#
+# The "after" side is re-measured HERE, not reused from mod_05: in the `go`
+# sequence module 10 (greedy upgrades) runs AFTER 5 and downloads into the same
+# cache, so mod_05's own end-of-module figure would report "freed ~1.6G" for a
+# cache that ended the session larger (gate finding). Measured at render time,
+# the line describes the session, which is what it claims to be. The cache can
+# legitimately GROW: say so rather than clamping to zero.
+if [[ -n "$DU_BEFORE_KB" ]]; then
+    DU_AFTER_KB="$(_du_kb "$(brew --cache)")"
+fi
+if [[ -n "$DU_BEFORE_KB" && -n "$DU_AFTER_KB" ]]; then
+    _dsk_delta=$(( DU_BEFORE_KB - DU_AFTER_KB ))
+    if (( _dsk_delta > 0 )); then
+        _dsk_note="(freed ~$(_fmt_kb $_dsk_delta))"
+    elif (( _dsk_delta < 0 )); then
+        _dsk_note="(grew ~$(_fmt_kb $(( -_dsk_delta ))))"
+    else
+        _dsk_note="(unchanged)"
+    fi
+    printf '  %bDisk%b   cache %s %s %s  %b%s%b\n' \
+        "$C_INFO" "$NC" "$(_fmt_kb "$DU_BEFORE_KB")" "$SYM_ARR" "$(_fmt_kb "$DU_AFTER_KB")" \
+        "$C_INFO" "$_dsk_note" "$NC"
+fi
 
 echo ""
-_hline "═" "$C_CYAN"
-printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%s${NC}\n" "BREW MANAGER" "$(date '+%a %d %b %Y %H:%M:%S %Z')"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Host"         "$(hostname)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "User"         "$(whoami)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "macOS"        "$(sw_vers -productVersion 2>/dev/null)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Arch"         "$(uname -m)"
-printf "  ${C_GRAY}%-26s${NC}  ${C_WHITE}%s${NC}\n"   "Log"          "$LOG_FILE"
-_hline "═" "$C_CYAN"
+_hline "─" "$C_GRAY"
+printf '  %b%s%b\n' "$C_INFO" \
+    "brew-manager v${BREW_MANAGER_VERSION}${_tui_dot}$(date '+%a %b %d %Y %H:%M')" "$NC"
+printf '  %b%s%b\n' "$C_INFO" \
+    "$(hostname)${_tui_dot}$(whoami)${_tui_dot}$(uname -m)${_tui_dot}macOS $(sw_vers -productVersion 2>/dev/null)${_tui_dot}$(brew --prefix)" "$NC"
+printf '  %bLog    %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-20
+updated: 2026-07-21
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,12 +15,13 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  6 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  7 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
   dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
   verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
   colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
   vietali dal checkout — BM-10, Destinazione: framework), IMP-007 (smoke moduli =
-  selezione CLI, mai pipe sul prompt — BM-11)
+  selezione CLI, mai pipe sul prompt né head sull'output — BM-11/BM-12), IMP-008
+  (lente di gate "affermazioni, non solo azioni" — BM-12, Destinazione: framework)
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -28,7 +29,8 @@ tags: [moc]
   `_ask`/`_read_choice` (sensibile; layer detection/palette/box dal BM-09)
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
-- [[mod-05-cleanup]] — autoremove+cleanup (sensibile; senza conferma né dry-run)
+- [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
+  `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
 - [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; bug weekday)
 - [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; dipende dal bug CLI)
 - Gli altri 12 moduli (read-only o a rischio basso/medio) non hanno ancora una
@@ -108,8 +110,15 @@ tags: [moc]
   menu a card allineate (mockup A/B → decisione utente: flat + footer 3 righe).
   `MODULE_NAME` + sottotitoli MODULE_DESC (chiavi congelate) + test_menu_registry
   (layout 80-col = invariante di dati); `_header_main` rimossa. Gate PASSATO
-  (0 finding); 178 test. Lezione smoke-via-pipe → IMP-007. In attesa di
-  integrazione
+  (0 finding); 178 test. Lezione smoke-via-pipe → IMP-007. INTEGRATO in main
+  (merge `2e61180`)
+- [[sessions/2026-07-21-bm12-progress-summary]] — BM-12 (M3, 4° e ULTIMO task):
+  spinner gated su TUI_TTY (era morto in pratica) + summary di sessione. Gate a 2
+  lenti: comportamento pulito ma **4 difetti di verità** — attestava "preview,
+  nothing changed" per moduli senza gate dry-run → `MODULE_DRYRUN` + `_run_status`
+  + stato `⚠ ran anyway`; spinner che inondava il log → strip a semantica CR;
+  secondi sotto-riportati; riga disco che poteva mentire. 247 test. → IMP-008.
+  **M3 COMPLETA**; in attesa di integrazione, poi release v1.4.0
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

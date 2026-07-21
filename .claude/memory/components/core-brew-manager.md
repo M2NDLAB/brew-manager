@@ -1,7 +1,7 @@
 ---
 type: component
 component: core-brew-manager
-updated: 2026-07-20
+updated: 2026-07-21
 tags: [component]
 ---
 # core-brew-manager (brew_manager.sh)
@@ -37,6 +37,14 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
   invarianti di dati ([[lib-selection]], `tests/test_menu_registry.zsh`). Il
   summary elenca i moduli con `MODULE_NAME`. Il `read` della Choice e la
   grammatica sono INTATTI (presentazione pura).
+- **Summary di sessione (BM-12)**: il loop di dispatch registra per ogni
+  POSIZIONE della run (non per id — la grammatica ammette `1,1,2`) lo stato in
+  `RUN_STATUS` e la durata in `RUN_SECS`. Stato = `preview` se `DRY_RUN` e il
+  modulo NON è `ro` (un `ro` fa il suo lavoro vero anche in dry-run), altrimenti
+  `done`; **`failed` non è mai assegnato** (#4b). Il summary rende righe di esito
+  + stat + riga "Disk" (solo se `DU_*_KB` sono stati misurati da mod_05) + footer
+  identità. `_menu_section` è definita FUORI dal ramo interattivo perché la usa
+  anche l'header del summary (una run CLI quel ramo non lo attraversa).
 - Dispatch: numerico → `_module_N` dinamica; speciali → case esplicito
   (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`).
 - **Consenso vs non-interattivo (BM-08c)**: `NON_INTERACTIVE` (da `! -t 0`, o
@@ -77,3 +85,4 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
 - [[sessions/2026-07-17-bm08c-agent-selection]] (NON_INTERACTIVE vs YES_MODE)
 - [[sessions/2026-07-18-exit-code-propagation]] (rc del figlio propagato dal parent)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (banner flat + menu a card allineate)
+- [[sessions/2026-07-21-bm12-progress-summary]] (tracking per-posizione + summary di sessione)

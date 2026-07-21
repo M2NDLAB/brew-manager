@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-common
-updated: 2026-07-20
+updated: 2026-07-21
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
@@ -52,10 +52,25 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei 6
   moduli cablati).
 
+## Renderer del summary (BM-12) — presentazione del risultato
+- `_run_glyph <done|preview|failed>`: glifo di esito a **larghezza visibile fissa
+  (4 col)**, `✓`/`↷`/`✗` → `[OK]`/`[--]`/`[!!]` in ASCII (stessa disciplina di
+  `_risk_badge`). **`failed` è DEFINITO ma nessuno lo assegna**: i return dei
+  moduli sono rumore finché BM-18 non dà loro un contratto (STATE #4b) — un ✗
+  falso sarebbe peggio di nessun ✗.
+- `_fmt_secs` / `_fmt_kb` / `_fmt_kb_or_na` / `_du_kb`: formatter puri ASCII per
+  durate e dimensioni. `_du_kb` è il BORDO di validazione (`[[ $kb == <-> ]]`):
+  ritorna **stringa vuota, mai 0**, quando la misura fallisce — uno 0 renderebbe
+  un delta "liberato" inventato. `_fmt_kb_or_na` evita la seconda passata `du`
+  (misura in KB una volta, la stringa human si deriva).
+
 ## Cosa espone / responsabilità
 - Output: `_hline`, `_section`, `_ok/_warn/_err/_info/_item`, `_stat_row`,
-  `_spinner` (degrada a wait puro sotto recording — morto-in-pratica,
-  RECORDING sempre attivo; BM-12 lo riscrive gatando `\r`/cursore su `TUI_TTY`).
+  `_spinner` — dal **BM-12** gata su `TUI_TTY` (non più su RECORDING, dov'era
+  morto-in-pratica: la TUI gira SEMPRE sotto script(1)); anima con frame
+  Unicode/ASCII + secondi trascorsi, in non-TTY stampa UNA riga statica, e
+  **ritorna l'rc del figlio** via `wait` (prima lo inghiottiva; innocuo: nessun
+  `set -e`, mai ultima istruzione, il core ignora comunque i return #4b).
   `_header_main` RIMOSSA in BM-11 (orfana: l'unico call-site era il banner del
   core, ora una brand line flat inline — igiene codice morto come BM-07).
 - Guard-rail dei prompt (BM-08c) — due variabili ORTOGONALI
@@ -95,7 +110,7 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 - **Controllo terminale (clear/cursore/`\r`) gata su `TUI_TTY`, NON sul colore**
   (BM-09, [[LEARNINGS]] IMP-005): un run pipato/agente non deve emettere né colore
   né sequenze di controllo. Usa `_clear`; per lo spinner/progress di BM-12 gata
-  `\r`/cursore su `TUI_TTY` (oggi `_spinner` gata solo su RECORDING).
+  `\r`/cursore su `TUI_TTY` — **fatto in BM-12** per `_spinner`.
 - **`_box` e ogni futuro primitivo: DATI via `printf %s`, MAI `echo -e`** ([[LEARNINGS]]
   IMP-003): un title/riga fornito dal chiamante (nome modulo, path) espanderebbe gli
   escape se passato per echo. Il gate BM-09 ha ritrovato la trappola nel `_box`
@@ -107,3 +122,4 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 - [[sessions/2026-07-19-bm09-tui-foundation]] (rendering capability-aware: detection,
   handoff, palette semantica, primitivi box/clear; gate passato)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (rimozione `_header_main`, solo-rimozione)
+- [[sessions/2026-07-21-bm12-progress-summary]] (`_spinner` su TUI_TTY + renderer del summary)
