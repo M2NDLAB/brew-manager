@@ -165,10 +165,14 @@ for _k in "${(k)MODULE_DESC[@]}"; do
 done
 (( ${#_dr_lying[@]} == 0 )) && _pass "dryrun: every gated mutator really has the gate" \
                             || _fail "dryrun: claims a gate it does not have: ${_dr_lying[*]}"
-# Pin the two known-ungated modules: flipping either to 1 without fixing the
-# module would re-introduce the false "preview" claim the gate caught.
-[[ "${MODULE_DRYRUN[2]}"   == "0" ]] && _pass "dryrun: mod_02 declared ungated (STATE #3)" \
-                                     || _fail "dryrun: mod_02 must stay 0 until it honours --dry-run"
+# mod_02 now skips `brew update` under --dry-run: flipping it back to 0 would
+# re-introduce the "ran anyway" row for a module that no longer acts. That the
+# gate really stops the command (not just mentions it) is proven end-to-end
+# against a mock brew by tests/test_dryrun_gates.zsh.
+[[ "${MODULE_DRYRUN[2]}"   == "1" ]] && _pass "dryrun: mod_02 gated (brew update skipped)" \
+                                     || _fail "dryrun: mod_02 honours --dry-run — registry must say 1"
+# Pin the remaining ungated module: flipping it to 1 without fixing the module
+# would re-introduce the false "preview" claim the gate caught.
 [[ "${MODULE_DRYRUN[mas]}" == "0" ]] && _pass "dryrun: mas declared ungated (install path)" \
                                      || _fail "dryrun: mas must stay 0 until install is gated"
 
