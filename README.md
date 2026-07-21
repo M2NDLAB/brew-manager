@@ -99,8 +99,9 @@ Every run ends with a **session summary**: one row per module in the order it ra
 ```
   ✓      7  Services               5s
   ↷      5  Cleanup                4s   preview (--dry-run)
+  ⚠      2  Database update        3s   ran anyway (no --dry-run gate)
 
-  ✓    completed    ↷    preview (--dry-run)
+  ✓ completed    ↷ previewed, nothing changed    ⚠ acted despite --dry-run
   Disk   cache 3.8G → 2.1G  (freed ~1.7G)
 ```
 
@@ -108,8 +109,13 @@ Every run ends with a **session summary**: one row per module in the order it ra
 |------|---------|
 | `✓` (`[OK]`) | The module ran to completion. |
 | `↷` (`[--]`) | `--dry-run`: the module previewed its actions and changed nothing. |
+| `⚠` (`[!]`) | `--dry-run` was requested, but this module has no dry-run gate and acted anyway. |
 
-Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work. Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]`, and the disk line appears only when a module actually measured the cache.
+Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work.
+
+The `⚠` mark is deliberately blunt: two modules do not yet honour `--dry-run` — module `2` always runs `brew update`, and the `mas` module can install the `mas` tool itself if you confirm — so the summary flags them rather than claiming a preview that did not happen. Everything else stops at a preview.
+
+Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]` / `[!]`. The disk line appears only when a module measured the cache (today, module `5`); the "after" figure is taken at the end of the run, so later modules that download into the cache are reflected in it.
 
 ### Choosing what to run
 

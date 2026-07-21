@@ -17,7 +17,8 @@
 # =============================================================================
 
 _ROOT="${0:A:h:h}"
-source "$_ROOT/lib/common.sh" || { print -r -- "cannot source lib/common.sh"; exit 1; }
+source "$_ROOT/lib/common.sh"    || { print -r -- "cannot source lib/common.sh"; exit 1; }
+source "$_ROOT/lib/selection.sh" || { print -r -- "cannot source lib/selection.sh"; exit 1; }
 
 typeset -i TESTS_RUN=0 TESTS_FAILED=0
 _pass() { (( TESTS_RUN += 1 ));                          print -r -- "  ok    $1"; }
@@ -84,17 +85,18 @@ grep -q '^DU_BEFORE_KB=""' "$_ROOT/brew_manager.sh" && _pass "wiring: core decla
 # 2. _run_glyph — constant visible width, level-0 purity, Unicode variants
 # ─────────────────────────────────────────────────────────────────────────────
 TUI_COLOR_LEVEL=0; _init_palette; TUI_UNICODE=0; _init_symbols
-for _st in done preview failed unknown; do
+for _st in done preview ran failed unknown; do
     _g="$(_run_glyph "$_st")"
     has_esc "$_g" && _fail "glyph($_st) L0: contains ANSI" || _pass "glyph($_st) L0: no ANSI"
     (( ${#_g} == 4 )) && _pass "glyph($_st) L0: width 4" || _fail "glyph($_st) L0: width ${#_g}"
 done
 [[ "$(_run_glyph done)"    == "[OK]" ]] && _pass "glyph ascii: done -> [OK]"    || _fail "glyph ascii: done -> $(_run_glyph done)"
 [[ "$(_run_glyph preview)" == "[--]" ]] && _pass "glyph ascii: preview -> [--]" || _fail "glyph ascii: preview -> $(_run_glyph preview)"
+[[ "$(_run_glyph ran)"     == "[!] " ]] && _pass "glyph ascii: ran -> [!]"      || _fail "glyph ascii: ran -> $(_run_glyph ran)"
 [[ "$(_run_glyph failed)"  == "[!!]" ]] && _pass "glyph ascii: failed -> [!!]"  || _fail "glyph ascii: failed -> $(_run_glyph failed)"
 
 TUI_COLOR_LEVEL=2; _init_palette; TUI_UNICODE=1; _init_symbols
-for _st in done preview failed; do
+for _st in done preview ran failed; do
     _plain="$(strip_ansi "$(_run_glyph "$_st")")"
     (( ${#_plain} == 4 )) && _pass "glyph($_st) unicode: visible width 4" \
                           || _fail "glyph($_st) unicode: visible width ${#_plain}"
@@ -103,9 +105,84 @@ done
 [[ "$(strip_ansi "$(_run_glyph preview)")" == "↷   " ]] && _pass "glyph unicode: preview -> arrow"   || _fail "glyph unicode: preview wrong"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. _spinner — non-TTY: static line, no \r, no ANSI, child rc returned
+# 2b. _run_status — the truth table the summary's honesty rests on. The rule:
+#     only claim "preview" when a dry run provably changed nothing. Deriving it
+#     from risk alone labelled ungated mutators (mod_02) as "preview" — a false
+#     safety claim in the session log, which is what these cases pin.
 # ─────────────────────────────────────────────────────────────────────────────
-TUI_COLOR_LEVEL=0; _init_palette; TUI_UNICODE=0; _init_symbols; TUI_TTY=0
+_expect_status() {
+    local got="$(_run_status "$1" "$2" "$3")"
+    [[ "$got" == "$4" ]] && _pass "status: dry=$1 risk=$2 gated=$3 -> $4" \
+                         || _fail "status: dry=$1 risk=$2 gated=$3 -> $got (expected $4)"
+}
+# not a dry run: always 'done', whatever the module is
+_expect_status 0 ro     1 done
+_expect_status 0 danger 1 done
+_expect_status 0 danger 0 done
+# dry run: read-only modules do their normal work
+_expect_status 1 ro     1 done
+# dry run: a mutator that honours the gate previewed and changed nothing
+_expect_status 1 danger 1 preview
+_expect_status 1 write  1 preview
+# dry run: a mutator WITHOUT the gate acted anyway — never claim 'preview'
+_expect_status 1 write  0 ran
+_expect_status 1 danger 0 ran
+# defensive defaults: unknown inputs must not fabricate a 'preview' claim
+[[ "$(_run_status 1 write)" == "ran" ]] && _pass "status: missing capability -> ran (fail-safe)" \
+                                        || _fail "status: missing capability -> $(_run_status 1 write)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2c. MODULE_DRYRUN registry — complete, binary, and HONEST: every module
+#     marked 'gated' must really contain the dry-run gate in its source. This
+#     is the invariant that stops the summary from claiming "nothing changed"
+#     for a module that acts (IMP-004: close the class, not the instance).
+# ─────────────────────────────────────────────────────────────────────────────
+typeset -a _dr_missing=() _dr_bad=() _dr_lying=()
+for _k in "${(k)MODULE_DESC[@]}"; do
+    _v="${MODULE_DRYRUN[$_k]}"
+    if [[ -z "$_v" ]]; then
+        _dr_missing+=("$_k")
+    elif [[ "$_v" != (0|1) ]]; then
+        _dr_bad+=("$_v")
+    fi
+done
+(( ${#MODULE_DESC[@]} >= 18 )) && _pass "dryrun: registry has ${#MODULE_DESC[@]} modules to check" \
+                               || _fail "dryrun: registry too small"
+(( ${#_dr_missing[@]} == 0 )) && _pass "dryrun: every module declares dry-run capability" \
+                              || _fail "dryrun: undeclared: ${_dr_missing[*]}"
+(( ${#_dr_bad[@]} == 0 ))     && _pass "dryrun: every value is 0 or 1" \
+                              || _fail "dryrun: invalid values: ${_dr_bad[*]}"
+# A MUTATING module marked gated must reference BREW_MANAGER_DRY_RUN in its file
+for _k in "${(k)MODULE_DESC[@]}"; do
+    [[ "${MODULE_RISK[$_k]}" == "ro" ]] && continue
+    (( ${MODULE_DRYRUN[$_k]:-0} )) || continue
+    _f=("$_ROOT"/modules/mod_${(l:2::0:)_k}_*.sh(N) "$_ROOT"/modules/mod_${_k}_*.sh(N))
+    if (( ${#_f[@]} == 0 )); then
+        _dr_lying+=("$_k:nofile")
+    elif ! grep -q 'BREW_MANAGER_DRY_RUN' "${_f[1]}"; then
+        _dr_lying+=("$_k")
+    fi
+done
+(( ${#_dr_lying[@]} == 0 )) && _pass "dryrun: every gated mutator really has the gate" \
+                            || _fail "dryrun: claims a gate it does not have: ${_dr_lying[*]}"
+# Pin the two known-ungated modules: flipping either to 1 without fixing the
+# module would re-introduce the false "preview" claim the gate caught.
+[[ "${MODULE_DRYRUN[2]}"   == "0" ]] && _pass "dryrun: mod_02 declared ungated (STATE #3)" \
+                                     || _fail "dryrun: mod_02 must stay 0 until it honours --dry-run"
+[[ "${MODULE_DRYRUN[mas]}" == "0" ]] && _pass "dryrun: mas declared ungated (install path)" \
+                                     || _fail "dryrun: mas must stay 0 until install is gated"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. _spinner — non-TTY: static line, no \r, no ANSI, child rc returned.
+#    Palette is POPULATED here on purpose: at level 0 the colour constants are
+#    empty, so a "no ANSI" assertion would pass even if the code emitted them
+#    from the wrong branch — it would be testing _init_palette, not the gate.
+#    Level 2 + TUI_TTY=0 is a real combination (a recorded child reads the
+#    colour level and the tty flag from independent handoff variables).
+# ─────────────────────────────────────────────────────────────────────────────
+TUI_COLOR_LEVEL=2; _init_palette; TUI_UNICODE=0; _init_symbols; TUI_TTY=0
+[[ -n "$C_ACCENT" ]] && _pass "spinner non-tty: palette is populated (test has teeth)" \
+                     || _fail "spinner non-tty: palette empty — assertions would be vacuous"
 _out=$( { (sleep 0.2; exit 7) & } ; _spinner $! "fake operation" ); _rc=$?
 (( _rc == 7 ))                 && _pass "spinner non-tty: child rc 7 returned" || _fail "spinner non-tty: rc $_rc (expected 7)"
 has_cr  "$_out"                && _fail "spinner non-tty: contains \\r"        || _pass "spinner non-tty: no \\r"
@@ -121,11 +198,70 @@ _out=$( { (sleep 0.35; exit 3) & } ; _spinner $! "tty op" ); _rc=$?
 (( _rc == 3 ))       && _pass "spinner tty: child rc 3 returned" || _fail "spinner tty: rc $_rc (expected 3)"
 has_cr "$_out"       && _pass "spinner tty: redraws via \\r"     || _fail "spinner tty: no \\r seen"
 [[ "$_out" == *"tty op..."* ]] && _pass "spinner tty: shows label" || _fail "spinner tty: label missing"
-# \r is the animation itself — strip it, then require printable ASCII only
-printf '%s' "$_out" | tr -d '\r' | LC_ALL=C grep -q '[^ -~]' \
+# \r is the animation and the colour escapes are expected here (the palette is
+# populated on purpose); strip both, then require printable ASCII — what is
+# left must contain no multibyte frame.
+printf '%s' "$(strip_ansi "$_out")" | tr -d '\r' | LC_ALL=C grep -q '[^ -~]' \
                      && _fail "spinner tty ascii: multibyte frame leaked" \
                      || _pass "spinner tty ascii: frames are plain ASCII"
+
+# UTF-8 terminal: the braille frames must actually be used (this path was
+# previously never exercised — the section inherited TUI_UNICODE=0).
+TUI_UNICODE=1; _init_symbols
+_out=$( { (sleep 0.35; exit 0) & } ; _spinner $! "utf8 op" )
+printf '%s' "$_out" | LC_ALL=C grep -q $'\xe2\xa0' \
+    && _pass "spinner tty utf8: braille frames used" \
+    || _fail "spinner tty utf8: no braille frame in output"
+TUI_UNICODE=0; _init_symbols
 TUI_TTY=0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4b. Session-log strip — the saved log must show what the TERMINAL showed, not
+#     every spinner frame concatenated. The expression is read FROM the core so
+#     this exercises the real one, not a copy that could drift away from it.
+# ─────────────────────────────────────────────────────────────────────────────
+# Comments are excluded: the comment above the sed quotes the OLD rule to
+# explain why it was wrong, and matching that text would fail the check.
+_CORE="$_ROOT/brew_manager.sh"
+_CORE_CODE="$(grep -v '^[[:space:]]*#' "$_CORE")"
+printf '%s' "$_CORE_CODE" | grep -q 's/\\r//g' \
+    && _fail "log strip: core still deletes CRs wholesale (frames would pile up)" \
+    || _pass "log strip: core no longer uses s/\\r//g"
+printf '%s' "$_CORE_CODE" | grep -q 's/\.\*\\r//' \
+    && _pass "log strip: core applies carriage-return semantics" \
+    || _fail "log strip: core lost the s/.*\\r// rule"
+
+# Functional check on a script(1)-shaped sample: CRLF lines plus one animated
+# line. Extract the sed program from the core so a future edit is re-tested.
+_sedprog="$(grep -o "\$'s/.x1b.*'" "$_CORE" | head -1)"
+if [[ -n "$_sedprog" ]]; then
+    _pass "log strip: sed program extracted from the core"
+    _sample="${TMPDIR:-/tmp}/bm_logsample_$$"
+    {
+        printf 'plain line one\r\n'
+        printf '\r  | doctor... 0s\r  / doctor... 1s\r%-30s\r' ' '
+        printf 'line after spinner\r\n'
+        printf 'plain line two\r\n'
+    } > "$_sample"
+    _stripped="$(eval "sed $_sedprog" < "$_sample")"
+    [[ "$_stripped" == *"plain line one"* && "$_stripped" == *"plain line two"* ]] \
+        && _pass "log strip: ordinary CRLF lines survive intact" \
+        || _fail "log strip: ordinary lines were eaten: '$_stripped'"
+    [[ "$_stripped" == *"doctor..."* ]] \
+        && _fail "log strip: spinner frames still land in the log" \
+        || _pass "log strip: spinner frames collapse away"
+    [[ "$_stripped" == *"line after spinner"* ]] \
+        && _pass "log strip: output after the spinner is kept" \
+        || _fail "log strip: output after the spinner was lost"
+    rm -f "$_sample"
+else
+    _fail "log strip: could not extract the sed program from the core"
+fi
+# The strip is the only step that can destroy the session's audit artefact:
+# it must refuse to replace a non-empty log with an empty one.
+printf '%s' "$_CORE_CODE" | grep -q '\[\[ -s "\$_tmp" \]\]' \
+    && _pass "log strip: refuses to replace a log with an empty one" \
+    || _fail "log strip: lost the emptiness guard on the saved log"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Verdict (anti-vacuity: at least one check must have run)

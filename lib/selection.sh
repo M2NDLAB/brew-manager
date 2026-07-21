@@ -17,6 +17,8 @@
 #                          single source of truth for which numbered ids exist
 #   MODULE_NAME          — id/name → short display name for the menu card (BM-11,
 #                          presentation-only: never feeds the resolver)
+#   MODULE_DRYRUN        — id/name → 1 if a --dry-run session changes nothing by
+#                          running it (BM-12; honesty of the run summary)
 #   MODULE_IDS           — the numbered modules, in the 'go' sequence order
 #   _resolve_selection   — parse a selection spec into MODULES_TO_RUN
 #   _resolve_cli         — strict non-interactive selection (spec + --only/--skip),
@@ -75,6 +77,28 @@ typeset -gA MODULE_NAME=(
     [12]="Security audit"   [13]="Disk usage"
     [log]="Log manager"     [bk]="Brewfile backup"  [las]="Scheduler"
     [mas]="App Store"
+)
+
+# MODULE_DRYRUN — id → 1 when a `--dry-run` session provably changes NOTHING by
+# running this module, 0 when it can still act. This is NOT a risk level
+# (MODULE_RISK is): it is a factual statement about what the module's code does
+# under BREW_MANAGER_DRY_RUN, and the run summary uses it to decide whether it
+# may attest "previewed, nothing changed" for that module.
+#
+# Read-only modules are 1 by construction — they never mutate. Mutating modules
+# are 1 only when EVERY acting path is behind the dry-run gate:
+#   [2]   0 — mod_02 runs `brew update` unconditionally (STATE, Attenzione #3)
+#   [mas] 0 — `brew install mas` is behind _ask_danger but NOT behind the gate;
+#             the gate only covers `mas upgrade` (mod_mas_mas.sh:41 vs :114)
+# Overstating dry-run coverage here is a security bug of the same class as a
+# risk badge that understates blast radius (docs/03): both make the session log
+# claim a safety property the run did not have. Kept honest by
+# tests/test_run_summary.zsh, which greps each module marked 1 for the gate.
+typeset -gA MODULE_DRYRUN=(
+    [0]=1   [1]=1   [2]=0   [3]=1   [4]=1
+    [5]=1   [6]=1   [7]=1   [8]=1   [9]=1
+    [10]=1  [11]=1  [12]=1  [13]=1
+    [log]=1 [bk]=1  [las]=1 [mas]=0
 )
 
 typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)

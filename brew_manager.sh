@@ -247,15 +247,31 @@ if [[ -z "$BREW_MANAGER_RECORDING" ]]; then
     # it, but sed/mv would overwrite $? — and automation (launchd agents,
     # shell scripts) reads THIS process's exit code, not the child's.
     _run_rc=$?
-    # Strip ANSI escape codes and carriage returns from the saved log. A failed
-    # strip must not replace the run's rc (the contract with callers) — but it
-    # must not be silent either: say why the log was left raw.
+    # Strip ANSI escape codes from the saved log and resolve carriage returns to
+    # what the terminal actually showed. The CR pass is TWO substitutions in a
+    # fixed order and both are required:
+    #   s/\r$//   drops the CR of script(1)'s CRLF line endings FIRST — without
+    #             it the next rule would treat every ordinary line as
+    #             overwritten and delete its text.
+    #   s/.*\r//  keeps only what survives the last CR on the line: the visible
+    #             result of an in-place redraw.
+    # The old `s/\r//g` deleted the CRs but kept every frame, so one spinner
+    # animation landed in the log as a single enormous line (~14 KB for a 60s
+    # operation). That was invisible until BM-12 made the animated branch
+    # reachable — before it, the spinner never ran under the recorder.
+    # A failed strip must not replace the run's rc (the contract with callers) —
+    # but it must not be silent either: say why the log was left raw. The
+    # emptiness guard is deliberate: this rewrite is the only step that can
+    # destroy the session's audit artefact, so a strip that turns a non-empty
+    # log into an empty one is treated as failure and the RAW log is kept.
     _tmp="$(mktemp)"
-    sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g; s/\x1b[()][AB012]//g; s/\x1b[DMEH]//g; s/\r//g; s/^[[:space:]]*$//g' \
-        "$LOG_FILE" > "$_tmp" && mv "$_tmp" "$LOG_FILE" || {
-        echo "WARNING: log cleanup failed — raw log kept at $LOG_FILE" >&2
+    if sed $'s/\x1b\[[0-9;?]*[a-zA-Z]//g; s/\x1b[()][AB012]//g; s/\x1b[DMEH]//g; s/\r$//; s/.*\r//; s/^[[:space:]]*$//g' \
+           "$LOG_FILE" > "$_tmp" && { [[ -s "$_tmp" ]] || [[ ! -s "$LOG_FILE" ]]; }; then
+        mv "$_tmp" "$LOG_FILE"
+    else
+        echo "WARNING: log cleanup failed or emptied the log — raw log kept at $LOG_FILE" >&2
         rm -f "$_tmp"
-    }
+    fi
     exit $_run_rc
 fi
 
@@ -405,10 +421,10 @@ echo ""
 CASK_COUNT=0
 FORMULA_COUNT=0
 OUTDATED_COUNT=0
-DU_AFTER="n/a"
-# KB twins of mod_05's cache measurements (BM-12): human du strings ("1.2G")
-# don't subtract, so the summary's disk-delta line needs numeric values.
-# Empty = "not measured this run" — the summary then omits the line entirely.
+# Cache measurements (BM-12). The human string lives in mod_05, which prints
+# it; the core keeps only the KB twins the summary subtracts, because "1.2G"
+# does not subtract. Empty = "not measured this run" → the summary omits the
+# disk line rather than reporting a fabricated delta.
 DU_BEFORE_KB=""
 DU_AFTER_KB=""
 typeset -a UNMANAGED_WITH_CASK=()
@@ -421,13 +437,11 @@ typeset -a UNMANAGED_APPLE=()
 
 # Per-position outcome tracking for the final summary (BM-12): status and
 # duration of every dispatched module. Indexed by RUN position, not by id —
-# the selection grammar allows repeats (1,1,2). 'preview' is derived from the
-# DRY_RUN contract via MODULE_RISK: read-only modules do their real work even
-# in a dry run (-> done), mutating ones only preview their actions. (mod_02's
-# unconditional brew update is a known breach of that contract — STATE #3 —
-# the row becomes exact the day mod_02 is fixed, not by weakening the label.)
-# 'failed' is never assigned here: module return codes are noise until BM-18
-# gives them a contract (STATE #4b) — a fake red X would be worse than none.
+# the selection grammar allows repeats (1,1,2). The status itself is decided by
+# _run_status (lib/common.sh), which needs BOTH registries: MODULE_RISK says
+# how much the module could change, MODULE_DRYRUN whether --dry-run actually
+# stops it. 'failed' is never assigned: module return codes are noise until
+# BM-18 gives them a contract (STATE #4b) — a fake red X is worse than none.
 typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
     _mod_t0=$SECONDS
@@ -439,11 +453,7 @@ for _mod in "${MODULES_TO_RUN[@]}"; do
         *)   "_module_${_mod}" ;;
     esac
     RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
-    if (( DRY_RUN )) && [[ "${MODULE_RISK[$_mod]:-write}" != "ro" ]]; then
-        RUN_STATUS+=("preview")
-    else
-        RUN_STATUS+=("done")
-    fi
+    RUN_STATUS+=( "$(_run_status "$DRY_RUN" "${MODULE_RISK[$_mod]:-write}" "${MODULE_DRYRUN[$_mod]:-0}")" )
 done
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -463,12 +473,15 @@ echo ""
 
 # One row per dispatched module, in run order (repeats included). zsh arrays
 # are 1-based: the loop index starts at 1 by design, not off by one.
-_run_dry=0
+_seen_preview=0 _seen_ran=0
 for (( _i=1; _i <= ${#MODULES_TO_RUN[@]}; _i++ )); do
     _m="${MODULES_TO_RUN[$_i]}"
     _st="${RUN_STATUS[$_i]:-done}"
     _note=""
-    [[ "$_st" == "preview" ]] && { _note="preview (--dry-run)"; _run_dry=1; }
+    case "$_st" in
+        preview) _note="preview (--dry-run)"            ; _seen_preview=1 ;;
+        ran)     _note="ran anyway (no --dry-run gate)" ; _seen_ran=1     ;;
+    esac
     printf '  %s %b%3s%b  %b%-17s%b %b%7s%b   %b%s%b\n' \
         "$(_run_glyph "$_st")" \
         "$C_CYAN_B" "$_m" "$NC" \
@@ -479,12 +492,12 @@ done
 echo ""
 # Legend limited to the glyphs that can actually appear in THIS run — the
 # reserved 'failed' glyph is not advertised until BM-18 makes it assignable.
-if (( _run_dry )); then
-    printf '  %s %bcompleted%b    %s %bpreview (--dry-run)%b\n' \
-        "$(_run_glyph done)" "$C_INFO" "$NC" "$(_run_glyph preview)" "$C_INFO" "$NC"
-else
-    printf '  %s %bcompleted%b\n' "$(_run_glyph done)" "$C_INFO" "$NC"
-fi
+printf '  %s %bcompleted%b' "$(_run_glyph done)" "$C_INFO" "$NC"
+(( _seen_preview )) && printf '    %s %bpreviewed, nothing changed%b' \
+    "$(_run_glyph preview)" "$C_INFO" "$NC"
+(( _seen_ran )) && printf '    %s %bacted despite --dry-run%b' \
+    "$(_run_glyph ran)" "$C_INFO" "$NC"
+printf '\n'
 _hline "┄" "$C_GRAY"
 
 _stat_row "Installed casks"             "$CASK_COUNT"                   "$C_CYAN_B"
@@ -493,10 +506,19 @@ _stat_row "Apps adoptable via --adopt"  "${#UNMANAGED_WITH_CASK[@]}"    "$C_YELL
 _stat_row "Apps without brew cask"      "${#UNMANAGED_NO_CASK[@]}"      "$C_GRAY"
 _stat_row "Available updates"           "${OUTDATED_COUNT}"             "${OUTDATED_COUNT:+$C_YELLOW}"
 
-# Disk-delta line — only when mod_05 measured the cache this run. "" from
-# _du_kb means "no measurement" and omits the line: a fabricated 0 would
-# render a fake freed-delta. The cache can legitimately GROW (a download
-# landed mid-run): say so rather than clamping to zero.
+# Disk-delta line — only when a module measured the cache this run (today only
+# mod_05 does). "" from _du_kb means "no measurement" and omits the line: a
+# fabricated 0 would render a fake freed-delta.
+#
+# The "after" side is re-measured HERE, not reused from mod_05: in the `go`
+# sequence module 10 (greedy upgrades) runs AFTER 5 and downloads into the same
+# cache, so mod_05's own end-of-module figure would report "freed ~1.6G" for a
+# cache that ended the session larger (gate finding). Measured at render time,
+# the line describes the session, which is what it claims to be. The cache can
+# legitimately GROW: say so rather than clamping to zero.
+if [[ -n "$DU_BEFORE_KB" ]]; then
+    DU_AFTER_KB="$(_du_kb "$(brew --cache)")"
+fi
 if [[ -n "$DU_BEFORE_KB" && -n "$DU_AFTER_KB" ]]; then
     _dsk_delta=$(( DU_BEFORE_KB - DU_AFTER_KB ))
     if (( _dsk_delta > 0 )); then
