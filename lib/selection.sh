@@ -86,20 +86,23 @@ typeset -gA MODULE_NAME=(
 # may attest "previewed, nothing changed" for that module.
 #
 # Read-only modules are 1 by construction — they never mutate. Mutating modules
-# are 1 only when EVERY acting path is behind the dry-run gate:
-#   [mas] 0 — `brew install mas` is behind _ask_danger but NOT behind the gate;
-#             the gate only covers `mas upgrade` (mod_mas_mas.sh:41 vs :114)
+# are 1 only when EVERY acting path is behind the dry-run gate. Every module
+# qualifies today: the last two exceptions (mod_02's unconditional `brew update`
+# and the `brew install mas` path) were gated in fix/dryrun-mod02-mas, so a
+# dry run can no longer produce a "ran anyway" row. A NEW module that mutates
+# without the gate must be added here as 0 — understating is honest, overstating
+# is not.
 # Overstating dry-run coverage here is a security bug of the same class as a
 # risk badge that understates blast radius (docs/03): both make the session log
 # claim a safety property the run did not have. Kept honest by
 # tests/test_run_summary.zsh, which greps each module marked 1 for the gate, and
-# by tests/test_dryrun_gates.zsh, which runs the modules against a mock brew and
-# proves the commands are never invoked.
+# by tests/test_dryrun_gates.zsh, which runs the two formerly-ungated modules
+# against a mock brew and proves the commands are never invoked.
 typeset -gA MODULE_DRYRUN=(
     [0]=1   [1]=1   [2]=1   [3]=1   [4]=1
     [5]=1   [6]=1   [7]=1   [8]=1   [9]=1
     [10]=1  [11]=1  [12]=1  [13]=1
-    [log]=1 [bk]=1  [las]=1 [mas]=0
+    [log]=1 [bk]=1  [las]=1 [mas]=1
 )
 
 typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)

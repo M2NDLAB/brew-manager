@@ -171,10 +171,20 @@ done
 # against a mock brew by tests/test_dryrun_gates.zsh.
 [[ "${MODULE_DRYRUN[2]}"   == "1" ]] && _pass "dryrun: mod_02 gated (brew update skipped)" \
                                      || _fail "dryrun: mod_02 honours --dry-run — registry must say 1"
-# Pin the remaining ungated module: flipping it to 1 without fixing the module
-# would re-introduce the false "preview" claim the gate caught.
-[[ "${MODULE_DRYRUN[mas]}" == "0" ]] && _pass "dryrun: mas declared ungated (install path)" \
-                                     || _fail "dryrun: mas must stay 0 until install is gated"
+[[ "${MODULE_DRYRUN[mas]}" == "1" ]] && _pass "dryrun: mas gated (install skipped)" \
+                                     || _fail "dryrun: mas honours --dry-run — registry must say 1"
+
+# Class invariant (IMP-004: close the class, not the instance). With every
+# mutator gated, no module can produce a "ran anyway" row any more — so assert
+# it over the WHOLE registry rather than over the two modules just fixed. A
+# future module that mutates without the gate has to be declared 0, and fails
+# HERE instead of surfacing as a warning in a user's dry-run session.
+typeset -a _acts_in_dry=()
+for _k in "${(k)MODULE_DESC[@]}"; do
+    [[ "$(_run_status 1 "${MODULE_RISK[$_k]}" "${MODULE_DRYRUN[$_k]}")" == "ran" ]] && _acts_in_dry+=("$_k")
+done
+(( ${#_acts_in_dry[@]} == 0 )) && _pass "dryrun: no module acts under --dry-run (whole registry)" \
+                               || _fail "dryrun: acts despite --dry-run: ${_acts_in_dry[*]}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. _spinner — non-TTY: static line, no \r, no ANSI, child rc returned.

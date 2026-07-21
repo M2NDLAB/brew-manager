@@ -34,6 +34,18 @@ _module_16() {
         echo ""
         printf "  ${C_GRAY}Install with:${NC}  ${C_CYAN}brew install mas${NC}\n"
         echo ""
+        # --dry-run gate, placed BEFORE the confirmation on purpose: consent is
+        # not the question in a preview session. Reaching _ask_danger would let
+        # an unattended `--dry-run --yes` run auto-confirm and actually install
+        # mas — the one path in this module that still acted in a dry run
+        # (STATE Attenzione #3/#14). Nothing below runs without mas anyway, so
+        # the preview ends the module.
+        if (( BREW_MANAGER_DRY_RUN )); then
+            _info "Dry-run mode — skipping install"
+            _item "Would run: ${C_CYAN}brew install mas${NC}"
+            _info "Nothing further to preview — the rest of this module needs mas"
+            return
+        fi
         if _ask_danger "Install the mas CLI" "Install mas now?" "n" \
             "brew install mas - install the Mac App Store command-line tool"; then
             echo ""
