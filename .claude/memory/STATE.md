@@ -1,12 +1,14 @@
 ---
 type: state
 updated: 2026-07-21
-branch: feat/progress-summary
+branch: fix/dryrun-mod02-mas
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-21 | Ultimo: **BM-12 — spinner + summary di sessione** (M3, 4° e ULTIMO task) su `feat/progress-summary` (5 commit sopra main): mockup PRIMA del codice → decisione utente **summary variante B completa + spinner sui soli siti già cablati**; `_spinner` gata su `TUI_TTY` (era morto-in-pratica su RECORDING) e propaga l'rc del figlio; renderer puri + summary con righe di esito per POSIZIONE, stat, delta disco, footer identità. **Gate adversariale (2 lenti): comportamento PULITO ma 4 difetti di VERITÀ trovati e FIXATI** — il summary attestava "preview, nothing changed" per moduli senza gate --dry-run (mod_02/mas) → nuovo registry `MODULE_DRYRUN` + `_run_status` puro + stato `⚠ ran anyway`; lo spinner inondava il log (strip ora a semantica CR + guardia di non-vuoto); secondi sotto-riportati; riga disco che poteva mentire → ri-misura al rendering. **247 test verdi**. **M3 COMPLETA** (BM-09→BM-12). **In attesa di integrazione** (bump MINOR, merge/push = utente); poi **release v1.4.0** che impacchetta tutta M3. Prima: BM-11 INTEGRATO in main (merge `2e61180`). | Indice: [[INDEX]]
+> Aggiornato: 2026-07-21 | Ultimo: **micro-task `--dry-run` mod_02 + mas** (strada B, deciso dall'utente dopo l'integrazione di BM-12) su `fix/dryrun-mod02-mas`, 8 commit sopra main `21c956b`. I due gate richiesti sono fatti (`brew update` e `brew install mas` non girano più in dry-run; il gate precede sempre la conferma, quindi `--dry-run` batte `--yes`). **Il gate adversariale a 2 lenti ha però REFUTATO l'affermazione che il branch aveva aggiunto**: portando `MODULE_DRYRUN` tutto a 1 il branch ATTESTAVA come verificati 4 difetti pre-esistenti — auto-update implicito di Homebrew (HIGH, mod_04/10/bk), `brew bundle check` in `bk [4]` (MEDIUM), `rm -f` in `las [c]` (MEDIUM), `mkdir` ungated (LOW). **Decisione utente: via di mezzo** → `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (una riga, chiude l'HIGH per tutti i moduli) + `[bk]=0`/`[las]=0` dichiarati onestamente + allow-list al posto dell'invariante tautologica + README ristretto al vero. **268 test verdi**. **In attesa di integrazione** (bump PATCH). Prima: **M3 COMPLETA**, BM-12 integrato in main (merge `21c956b`); v1.4.0 non ancora rilasciata. | Indice: [[INDEX]]
+
+> **Storico precedente**: BM-12 — spinner + summary di sessione (M3, 4° e ultimo task), 5 commit su `feat/progress-summary`: mockup PRIMA del codice → decisione utente **summary variante B completa + spinner sui soli siti già cablati**; `_spinner` gata su `TUI_TTY` (era morto-in-pratica su RECORDING) e propaga l'rc del figlio; renderer puri + summary con righe di esito per POSIZIONE, stat, delta disco, footer identità. **Gate adversariale (2 lenti): comportamento PULITO ma 4 difetti di VERITÀ trovati e FIXATI** — il summary attestava "preview, nothing changed" per moduli senza gate --dry-run (mod_02/mas) → nuovo registry `MODULE_DRYRUN` + `_run_status` puro + stato `⚠ ran anyway`; lo spinner inondava il log (strip ora a semantica CR + guardia di non-vuoto); secondi sotto-riportati; riga disco che poteva mentire → ri-misura al rendering. **248 test verdi**. **M3 COMPLETA** (BM-09→BM-12), INTEGRATA in main (merge `21c956b`); **release v1.4.0** non ancora fatta.
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -83,8 +85,9 @@ tags: [state]
     clone pulito prima del rilascio (version-check + 102 test + `--version`).
     Merge/tag/push eseguiti dall'utente.
     → [[sessions/2026-07-18-release-v1.3.0]].
-  - [x] **M3 — TUI bella + funzionale (BM-09…BM-12): COMPLETA** (BM-12 in attesa
-    di integrazione; poi release v1.4.0 che impacchetta i quattro task).
+  - [x] **M3 — TUI bella + funzionale (BM-09…BM-12): COMPLETA e INTEGRATA in main**
+    (BM-12 mergiato in `21c956b`); resta da fare la release v1.4.0, che
+    impacchetterà i quattro task.
     - [x] **BM-09** fondazione TUI in `lib/common.sh` — branch
       `feat/tui-foundation` (feat `bab07d0` + fix `b2d7b62` + docs `910d551`).
       Rendering capability-aware (detection colore/Unicode, handoff parent→child
@@ -129,8 +132,23 @@ tags: [state]
       summary con righe di esito per POSIZIONE (ripetizioni ok), stat, riga disco
       e footer. **Gate adversariale a 2 lenti: comportamento pulito, ma 4 difetti
       di VERITÀ** (vedi Attenzione #14) tutti FIXATI in `13dc359`; test 42→70
-      (**suite 247**). **In attesa di integrazione** (bump MINOR).
+      (**suite 248** — la vecchia voce «247» era imprecisa di 1, misurato su main
+      il 2026-07-21). **INTEGRATO in main** (merge `21c956b`, branch eliminato).
       → [[sessions/2026-07-21-bm12-progress-summary]].
+  - [x] **Micro-task `--dry-run` mod_02 + mas** (2026-07-21, fuori roadmap,
+    strada B decisa dall'utente dopo l'integrazione di BM-12): branch
+    `fix/dryrun-mod02-mas`, 8 commit. `brew update` (mod_02) e `brew install mas`
+    ora gatati — il gate precede esecuzione E conferma, quindi `--dry-run` batte
+    `--yes`; preview con tabella repository + età della cache API. **Gate
+    adversariale a 2 lenti: 0 finding sul codice nuovo, ma l'AFFERMAZIONE globale
+    del branch REFUTATA** (4 difetti pre-esistenti che il branch attestava come
+    verificati → Attenzione #3, #14, #15, #16). Via di mezzo decisa dall'utente:
+    `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (una riga, chiude l'HIGH ovunque) +
+    `[bk]`/`[las]` dichiarati 0 + allow-list al posto dell'invariante tautologica
+    + README ristretto al vero. Nuovo `tests/test_dryrun_gates.zsh` (18 check:
+    tripwire su mock brew con controlli "denti" in wet, e2e dell'auto-update
+    attraverso `script(1)`); **suite 268**. **In attesa di integrazione**
+    (bump PATCH). → [[sessions/2026-07-21-dryrun-mod02-mas]].
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -147,7 +165,10 @@ tags: [state]
   `_menu_row`/`_menu_section`; summary con `MODULE_NAME`; help del menu compresso
   in footer 3 righe. Dal **BM-12** il dispatch traccia stato+durata per POSIZIONE
   (`RUN_STATUS`/`RUN_SECS`) e il summary di fine sessione rende righe di esito,
-  stat, delta disco e footer identità. Vedi [[core-brew-manager]].
+  stat, delta disco e footer identità. Dal **micro-task dry-run** (2026-07-21)
+  esporta `HOMEBREW_NO_AUTO_UPDATE=1` SOLO sotto `--dry-run` (riga 152): senza,
+  brew rieseguiva `brew update` da sé prima di `outdated`/`upgrade`/`bundle` e
+  una preview riscriveva comunque l'indice. Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
   capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
@@ -165,7 +186,10 @@ tags: [state]
   **BM-10** anche `MODULE_RISK` (id→ro/write/danger, single source of truth del
   badge, presentazione — NON alimenta il resolver) + `_about_risk`. Dal **BM-11**
   `MODULE_NAME` (nome breve da menu, presentation-only) e testi `MODULE_DESC` da
-  sottotitolo (≤46 col ASCII; le CHIAVI restano il contratto congelato). Vedi
+  sottotitolo (≤46 col ASCII; le CHIAVI restano il contratto congelato). Dal
+  **BM-12** `MODULE_DRYRUN` (id→1 se una run `--dry-run` non cambia NULLA
+  eseguendo il modulo): dal micro-task 2026-07-21 `[2]`/`[mas]` sono 1 (gate
+  dimostrato) e `[bk]`/`[las]` 0 (dichiarati onestamente, #15/#16). Vedi
   [[lib-selection]].
 - 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
   `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
@@ -180,7 +204,7 @@ tags: [state]
   certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
   v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **220 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **268 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
@@ -193,9 +217,17 @@ tags: [state]
   `_ask_danger` (== `_ask` sotto --yes/non-interactive); `test_menu_registry.zsh`
   (8, BM-11) fissa il layout 80-col del menu come invariante di DATI (lockstep
   `MODULE_NAME`↔`MODULE_DESC`, cap 17/46 colonne, ASCII-only, chiavi congelate);
-  `test_run_summary.zsh` (42, BM-12) fissa lo spinner gated su `TUI_TTY` (non-TTY:
-  zero `\r`/ANSI + riga statica) con **rc del figlio preservato**, i formatter/glifi
-  puri, e l'**invariante di wiring** `DU_AFTER`↔twin KB sul sorgente di mod_05.
+  `test_run_summary.zsh` (72, BM-12 + micro-task dry-run) fissa lo spinner gated su
+  `TUI_TTY` (non-TTY: zero `\r`/ANSI + riga statica) con **rc del figlio
+  preservato**, i formatter/glifi puri, l'**invariante di wiring**
+  `DU_AFTER`↔twin KB sul sorgente di mod_05, e la coerenza di `MODULE_DRYRUN`
+  (grep del gate nel sorgente + **allow-list bidirezionale** `_KNOWN_UNGATED`:
+  un `0` fuori lista fallisce, una voce stantia pure — vedi IMP-009);
+  `test_dryrun_gates.zsh` (18, micro-task 2026-07-21) esegue mod_02 e mas contro
+  un **mock brew con tripwire** e prova che in dry-run i comandi mutanti non sono
+  invocati, con i controlli "denti" in wet (per mas: stesso `y` su stdin,
+  `--dry-run` unica variabile), più l'e2e che `HOMEBREW_NO_AUTO_UPDATE` raggiunge
+  davvero brew **attraverso il re-exec di `script(1)`**.
   Resto del codice non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
@@ -252,16 +284,18 @@ tags: [state]
    canale di selezione morto su tutte le release), weekday in las/bk + selezione
    Modify/Remove dello scheduler (BM-05a), contatore mod_09 (BM-05b). La regola
    by-convention resta in CLAUDE.md per il codice nuovo.
-3. **DRY_RUN non uniforme**: ~~mod_05~~ (risolto in BM-02), ~~restore bk
-   [3]/[3b]~~ (risolto in BM-03); resta `brew install mas` non gated in
-   mod_mas; e (gate BM-08c) `mod_02` esegue `brew update` INCONDIZIONATAMENTE — no
-   `_ask`, non gated da `--dry-run`: gira anche con `2 --dry-run` e in non-TTY. È
-   refresh di metadati (nessun install/rimozione/file utente), ma è comunque una
-   mutazione fuori dal contratto DRY_RUN/consenso. **Effetto collaterale visibile
-   dal BM-12**: il summary etichetta `mod_02` come `↷ preview` sotto `--dry-run`
-   (deriva l'etichetta dal contratto, non dal comportamento reale) mentre l'update
-   è comunque avvenuto — la riga diventa esatta quando si fixa mod_02, NON
-   indebolendo l'etichetta. → TRIGGER: primo intervento su mod_02 o mod_mas.
+3. **DRY_RUN non uniforme**: ~~mod_05~~ (BM-02), ~~restore bk [3]/[3b]~~ (BM-03),
+   ~~`brew install mas`~~ e ~~`brew update` incondizionato in mod_02~~ **CHIUSI**
+   dal micro-task 2026-07-21 (`fix/dryrun-mod02-mas`): entrambi i comandi sono
+   dietro il gate, che precede esecuzione E conferma (`--dry-run` batte `--yes`),
+   dimostrato da `tests/test_dryrun_gates.zsh` con tripwire su mock brew.
+   Chiuso anche l'**auto-update implicito di Homebrew** (era il difetto più
+   diffuso, trovato dal gate: `brew` esegue `brew update --auto-update` da sé
+   prima di `install|outdated|upgrade|bundle|release`, e il `--dry-run` DI BREW
+   non lo ferma) → `HOMEBREW_NO_AUTO_UPDATE=1` esportato solo sotto `--dry-run`
+   in `brew_manager.sh:152`, verificato end-to-end attraverso il re-exec di
+   `script(1)`. RESIDUI APERTI, entrambi dichiarati onestamente nel registry:
+   vedi #15 (mod_bk `[4]`) e #16 (mod_las `[c]` + `mkdir`).
 3b. **Echo intermedio sui dati espande gli escape** (LOW, gate BM-03): l'echo
    builtin zsh converte `\e`/`\0NN`/`\x..`. Istanza nel resolver **CHIUSA in
    BM-08b** (era un bypass MEDIUM: `\065`→mod_05; ora `${(@s:,:)}`/`${// /}`).
@@ -346,14 +380,47 @@ tags: [state]
    nel label potrebbe iniettare struttura. → TRIGGER: hardening mod_las — validare
    il label anche sui path non-interattivi (stessa forma del suffisso).
 14. **`MODULE_DRYRUN` è la lista dei moduli che NON rispettano `--dry-run`**
-   (BM-12, gate): `[2]=0` (mod_02, `brew update` incondizionato) e `[mas]=0`
-   (`brew install mas` fuori dal gate, dietro `_ask_danger`). Finché restano 0 il
-   summary li marca `⚠ ran anyway (no --dry-run gate)` — onesto, ma è un debito
-   VISIBILE all'utente a ogni run in dry-run. **Non flippare il valore a 1 senza
-   fixare il modulo**: `tests/test_run_summary.zsh` fallisce (verifica il gate nel
-   sorgente) e, peggio, si tornerebbe alla falsa attestazione "nothing changed".
-   È lo stesso debito di #3, ora con un contatore che lo mostra. → TRIGGER: fix di
-   mod_02/mod_mas (chiude #3 e questa insieme).
+   (BM-12). ~~`[2]=0` e `[mas]=0`~~ **CHIUSI** (micro-task 2026-07-21: entrambi
+   ora `1`, gate dimostrato). Al loro posto `[bk]=0` e `[las]=0`, che erano `1`
+   da sempre — **dichiarati, mai verificati**: il gate del micro-task ha
+   confrontato l'INTERO registry col codice e li ha trovati falsi (#15, #16). Il
+   summary li marca `⚠ ran anyway` — vero, e visibile a ogni dry-run.
+   **Non flippare un valore a 1 senza fixare il modulo**: `test_run_summary.zsh`
+   fallisce (grep del gate nel sorgente + allow-list) e si tornerebbe alla falsa
+   attestazione "nothing changed". L'allow-list è bidirezionale: un `0` fuori
+   lista fallisce, e una voce che non è più debito fallisce pure — quindi al fix
+   di #15/#16 va aggiornata `_KNOWN_UNGATED` in `tests/test_run_summary.zsh`.
+   → TRIGGER: fix di #15 o #16.
+15. **`mod_bk [4] Check` esegue il Brewfile come DSL Ruby in una preview**
+   (MEDIUM, gate 2026-07-21, PRE-ESISTENTE — accettato come debito, non fixato
+   qui perché `mod_bk` è componente sensibile e merita task+review propri):
+   `brew bundle check` (`mod_bk_brewfile.sh:499`/`:503`) valuta il contenuto del
+   Brewfile, mentre lo stesso file documenta a `:96-99` perché la preview del
+   restore lo legge STATICAMENTE ("even a check would execute code from a hostile
+   Brewfile"). Richiede un `backups/Brewfile` manomesso (attaccante locale).
+   Dichiarato con `MODULE_DRYRUN[bk]=0`. → TRIGGER: task dedicato su mod_bk (o
+   BM-14 viste report): gatare `[4]` o riusare la lettura statica.
+16. **`mod_las [c]` cancella i log di audit senza gate + `mkdir` ungated**
+   (MEDIUM+LOW, gate 2026-07-21, PRE-ESISTENTE — stesso motivo di #15):
+   il case `c|C` fa `rm -f` su `agents_activity.log` e su tutti i
+   `logs/agent_*.log` (`mod_las_scheduler.sh:817-819`) senza gate `--dry-run`,
+   mentre `mod_log` gata gli `rm` equivalenti; l'audit trail degli agent è
+   irreversibile. In più `mkdir -p "$HOME/Library/LaunchAgents"` (`:15`) gira
+   anche in dry-run e anche sul path che esce subito in non-interattivo (stesso
+   pattern LOW in `mod_log:15` e `mod_bk:18`, ma lì sono directory del tool).
+   Dichiarato con `MODULE_DRYRUN[las]=0`. → TRIGGER: task dedicato su mod_las
+   (o hardening #12/#13, che toccano lo stesso modulo).
+17. **`(( BREW_MANAGER_DRY_RUN ))` è aritmetica su una stringa d'ambiente**
+   (INFO, gate 2026-07-21, PRE-ESISTENTE su tutti i ~18 siti): in zsh
+   `y`/`yes`/`true` valgono "gate spento" e una stringa `NAME=value` in contesto
+   aritmetico ESEGUE l'assegnazione. **Non raggiungibile oggi**: il core esporta
+   `BREW_MANAGER_DRY_RUN` ∈ {0,1} da parsing dei flag (`brew_manager.sh:151`)
+   prima di sorgere lib/ e modules/, e il figlio sotto `script(1)` ri-parsa gli
+   stessi `"$@"`. Hardening a costo zero se si tocca la classe:
+   `[[ "$BREW_MANAGER_DRY_RUN" == 1 ]]`. Nota collaterale: esportare a mano
+   `BREW_MANAGER_DRY_RUN=1` SENZA passare `--dry-run` dà una run reale (l'export
+   la sovrascrive). → TRIGGER: pass di hardening sui guard-rail, o prima
+   segnalazione utente sul comportamento della variabile d'ambiente.
 - [[LEARNINGS]]: IMP-001 APPLICATA; **IMP-002** (checklist superficie del
   contratto per i test), **IMP-003** (mai echo su dati — rafforzata dal gate BM-09),
   **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate),
@@ -364,20 +431,31 @@ tags: [state]
   `head` sull'output — origine BM-11, estesa da BM-12) e **IMP-008** (lente di gate
   "affermazioni, non solo azioni": un summary/badge che ASSERISCE una proprietà di
   sicurezza va verificato contro il comportamento reale — origine gate BM-12,
-  `Destinazione: framework`) APERTE, propose-only, in attesa di decisione (retro
-  periodica o su richiesta).
+  `Destinazione: framework`), **IMP-009** (un test che asserisce l'ASSENZA di
+  debito inverte l'incentivo: allow-list bidirezionale, non insieme vuoto),
+  **IMP-010** (promuovere un fix locale a CLAIM globale allarga l'insieme da
+  verificare oltre il diff) e **IMP-011** (gatare un comando esterno non basta:
+  verifica se lo STRUMENTO lo riesegue da sé — origine auto-update di Homebrew;
+  le tre `Destinazione: framework`, origine gate del micro-task dry-run
+  2026-07-21) APERTE, propose-only, in attesa di decisione (retro periodica o su
+  richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `2e61180` (merge BM-11;
-  sotto: merge BM-10 `2dd1f7c`, riconciliazione memoria `765bad4`), allineato a
+- **main** = integrazione + stabile (trunk-based); HEAD `21c956b` (merge BM-12;
+  sotto: merge BM-11 `2e61180`, merge BM-10 `2dd1f7c`), allineato a
   `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0` (annotato) +
   `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (si compila alla
   release, prassi v1.3.0). **v1.4.0 non ancora rilasciata**: impacchetterà
-  BM-09+BM-10+BM-11+BM-12 (tutta M3).
-- **feat/progress-summary** (BM-12) = spinner su `TUI_TTY` + summary di sessione,
-  5 commit di lavoro + checkpoint sopra main, gate passato dopo 4 fix, 247 test
-  verdi. **In attesa di integrazione dell'utente** (blocco `/integrate`, bump
-  MINOR). Dopo l'integrazione: **release v1.4.0** (impacchetta BM-09→BM-12).
+  BM-09+BM-10+BM-11+BM-12 (tutta M3) **più il micro-task dry-run** se integrato
+  prima della release.
+- **fix/dryrun-mod02-mas** (micro-task dry-run) = gate `--dry-run` su mod_02 e
+  mas + `HOMEBREW_NO_AUTO_UPDATE` sotto dry-run + registry onesto per bk/las,
+  8 commit di lavoro + checkpoint sopra main, gate adversariale passato (2 lenti;
+  la via di mezzo sui finding l'ha decisa l'utente), **268 test verdi**.
+  **In attesa di integrazione dell'utente** (blocco `/integrate`, bump PATCH:
+  solo `fix`/`docs`, nessun `feat`).
+- **feat/progress-summary** (BM-12) = **INTEGRATO in main** (merge `21c956b`),
+  branch eliminato.
 - **feat/menu-redesign** (BM-11) = **INTEGRATO in main** (merge `2e61180`), branch
   eliminato.
 - **feat/risk-badges** (BM-10) = **INTEGRATO in main** (merge `2dd1f7c`), branch

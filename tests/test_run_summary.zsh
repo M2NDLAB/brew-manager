@@ -165,12 +165,34 @@ for _k in "${(k)MODULE_DESC[@]}"; do
 done
 (( ${#_dr_lying[@]} == 0 )) && _pass "dryrun: every gated mutator really has the gate" \
                             || _fail "dryrun: claims a gate it does not have: ${_dr_lying[*]}"
-# Pin the two known-ungated modules: flipping either to 1 without fixing the
-# module would re-introduce the false "preview" claim the gate caught.
-[[ "${MODULE_DRYRUN[2]}"   == "0" ]] && _pass "dryrun: mod_02 declared ungated (STATE #3)" \
-                                     || _fail "dryrun: mod_02 must stay 0 until it honours --dry-run"
-[[ "${MODULE_DRYRUN[mas]}" == "0" ]] && _pass "dryrun: mas declared ungated (install path)" \
-                                     || _fail "dryrun: mas must stay 0 until install is gated"
+# mod_02 now skips `brew update` under --dry-run: flipping it back to 0 would
+# re-introduce the "ran anyway" row for a module that no longer acts. That the
+# gate really stops the command (not just mentions it) is proven end-to-end
+# against a mock brew by tests/test_dryrun_gates.zsh.
+[[ "${MODULE_DRYRUN[2]}"   == "1" ]] && _pass "dryrun: mod_02 gated (brew update skipped)" \
+                                     || _fail "dryrun: mod_02 honours --dry-run — registry must say 1"
+[[ "${MODULE_DRYRUN[mas]}" == "1" ]] && _pass "dryrun: mas gated (install skipped)" \
+                                     || _fail "dryrun: mas honours --dry-run — registry must say 1"
+
+# The set of ungated modules is pinned as an ALLOW-LIST, not asserted empty.
+# Failing the build on any 0 would invert the incentive the registry depends on:
+# the cheapest way out of a red build would be to declare 1 and mention the gate
+# in a comment, and the summary would then attest "nothing changed" for a module
+# that writes. Declaring debt honestly must stay free; what must not happen is
+# the debt growing in silence, or a fixed module keeping its exemption.
+typeset -a _KNOWN_UNGATED=(bk las)   # mod_bk [4] bundle check · mod_las [c] rm
+typeset -a _declared=()
+for _k in "${(k)MODULE_DESC[@]}"; do
+    (( ${MODULE_DRYRUN[$_k]:-0} )) || _declared+=("$_k")
+done
+_new_debt=(${_declared:|_KNOWN_UNGATED})
+(( ${#_new_debt[@]} == 0 )) && _pass "dryrun: no undeclared ungated module (allow-list: ${_KNOWN_UNGATED[*]})" \
+                            || _fail "dryrun: new ungated module(s) not in the allow-list: ${_new_debt[*]}"
+# ...and the allow-list itself must not outlive the debt: a module gated later
+# has to be removed from it, or the exemption silently protects working code.
+_stale=(${_KNOWN_UNGATED:|_declared})
+(( ${#_stale[@]} == 0 )) && _pass "dryrun: allow-list carries no stale entry" \
+                         || _fail "dryrun: allow-list still exempts gated module(s): ${_stale[*]}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. _spinner — non-TTY: static line, no \r, no ANSI, child rc returned.

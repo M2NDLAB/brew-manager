@@ -39,9 +39,13 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
   grammatica sono INTATTI (presentazione pura).
 - **Summary di sessione (BM-12)**: il loop di dispatch registra per ogni
   POSIZIONE della run (non per id — la grammatica ammette `1,1,2`) lo stato in
-  `RUN_STATUS` e la durata in `RUN_SECS`. Stato = `preview` se `DRY_RUN` e il
-  modulo NON è `ro` (un `ro` fa il suo lavoro vero anche in dry-run), altrimenti
-  `done`; **`failed` non è mai assegnato** (#4b). Il summary rende righe di esito
+  `RUN_STATUS` e la durata in `RUN_SECS`. Lo stato lo decide `_run_status`
+  ([[lib-common]]) da DUE registri: `MODULE_RISK` (quanto il modulo può cambiare)
+  e `MODULE_DRYRUN` (se `--dry-run` lo ferma davvero) — `done` se non è una dry
+  run o il modulo è `ro`, `preview` se è un mutante gatato, **`ran`** se è un
+  mutante NON gatato (oggi `bk` e `las`, STATE #15/#16). Derivarlo dal solo
+  rischio è ciò che produsse la falsa attestazione trovata dal gate BM-12.
+  **`failed` non è mai assegnato** (#4b). Il summary rende righe di esito
   + stat + riga "Disk" (solo se `DU_*_KB` sono stati misurati da mod_05) + footer
   identità. `_menu_section` è definita FUORI dal ramo interattivo perché la usa
   anche l'header del summary (una run CLI quel ramo non lo attraversa).
@@ -71,6 +75,15 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
   riconciliato 2026-07-18).
 - I moduli sono funzioni SOURCATE nello stesso processo: condividono l'ambiente;
   una variabile "locale" non dichiarata `local` inquina lo stato globale.
+- **`--dry-run` spegne anche l'auto-update di Homebrew** (riga 152, micro-task
+  2026-07-21): `(( DRY_RUN )) && export HOMEBREW_NO_AUTO_UPDATE=1`. Senza,
+  `brew` eseguiva `brew update --auto-update` da sé prima di
+  `install|outdated|upgrade|bundle|release`, quindi moduli che "si limitano a
+  elencare" (4, 10, bk) riscrivevano comunque l'indice in una preview — e nemmeno
+  il `--dry-run` DI BREW lo ferma (decide prima di leggere gli argomenti). Solo
+  sotto dry-run: una run normale mantiene il comportamento abituale di brew.
+  Verificato end-to-end perché la variabile deve sopravvivere al re-exec di
+  `script(1)` (`tests/test_dryrun_gates.zsh`).
 - Il re-exec sotto script(1) fa ripartire lo script dall'inizio: tutto ciò che
   precede il guard `BREW_MANAGER_RECORDING` viene eseguito DUE volte.
 - Installer Homebrew integrato (curl + exec zsh): non toccare senza rileggere il
@@ -86,3 +99,4 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
 - [[sessions/2026-07-18-exit-code-propagation]] (rc del figlio propagato dal parent)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (banner flat + menu a card allineate)
 - [[sessions/2026-07-21-bm12-progress-summary]] (tracking per-posizione + summary di sessione)
+- [[sessions/2026-07-21-dryrun-mod02-mas]] (HOMEBREW_NO_AUTO_UPDATE sotto --dry-run)

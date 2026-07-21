@@ -117,8 +117,16 @@ tags: [moc]
   lenti: comportamento pulito ma **4 difetti di verità** — attestava "preview,
   nothing changed" per moduli senza gate dry-run → `MODULE_DRYRUN` + `_run_status`
   + stato `⚠ ran anyway`; spinner che inondava il log → strip a semantica CR;
-  secondi sotto-riportati; riga disco che poteva mentire. 247 test. → IMP-008.
-  **M3 COMPLETA**; in attesa di integrazione, poi release v1.4.0
+  secondi sotto-riportati; riga disco che poteva mentire. 248 test. → IMP-008.
+  **M3 COMPLETA**; INTEGRATO in main (merge `21c956b`)
+- [[sessions/2026-07-21-dryrun-mod02-mas]] — micro-task: `--dry-run` gata
+  `brew update` (mod_02) e `brew install mas`, sempre PRIMA della conferma. Il
+  gate a 2 lenti non ha trovato nulla sul codice nuovo ma ha **refutato
+  l'affermazione globale** che il branch aveva aggiunto (registry tutto a 1):
+  auto-update implicito di Homebrew (HIGH) → `HOMEBREW_NO_AUTO_UPDATE` sotto
+  dry-run; `bk [4]`/`las [c]` non gatati (MEDIUM) → dichiarati `0`. Invariante
+  tautologica → **allow-list** bidirezionale. 268 test. → IMP-009/010/011.
+  In attesa di integrazione (bump PATCH)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente

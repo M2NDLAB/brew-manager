@@ -99,7 +99,8 @@ Every run ends with a **session summary**: one row per module in the order it ra
 ```
   ✓      7  Services               5s
   ↷      5  Cleanup                4s   preview (--dry-run)
-  ⚠      2  Database update        3s   ran anyway (no --dry-run gate)
+  ↷      2  Database update        0s   preview (--dry-run)
+  ⚠     bk  Brewfile backup        2s   ran anyway (no --dry-run gate)
 
   ✓ completed    ↷ previewed, nothing changed    ⚠ acted despite --dry-run
   Disk   cache 3.8G → 2.1G  (freed ~1.7G)
@@ -113,7 +114,12 @@ Every run ends with a **session summary**: one row per module in the order it ra
 
 Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work.
 
-The `⚠` mark is deliberately blunt: two modules do not yet honour `--dry-run` — module `2` always runs `brew update`, and the `mas` module can install the `mas` tool itself if you confirm — so the summary flags them rather than claiming a preview that did not happen. Everything else stops at a preview.
+Two modules still carry the `⚠` mark, and the summary says so rather than claiming a preview that did not happen:
+
+- **`bk`** — the *Check* option runs `brew bundle check`, which evaluates the Brewfile as a Ruby script. The backup and restore paths themselves are previewed properly.
+- **`las`** — the *clear logs* option deletes the agent activity log outright, and the module creates `~/Library/LaunchAgents` if it does not exist. Installing, modifying and removing agents are previewed properly.
+
+Every other module stops at a preview: nothing is installed, removed, upgraded or overwritten. A dry run also sets `HOMEBREW_NO_AUTO_UPDATE`, because Homebrew otherwise refreshes its package index by itself before commands such as `brew outdated` — so even the modules that only *list* packages used to leave the index rewritten behind them.
 
 Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]` / `[!]`. The disk line appears only when a module measured the cache (today, module `5`); the "after" figure is taken at the end of the run, so later modules that download into the cache are reflected in it.
 
@@ -170,7 +176,7 @@ Flags change **how** the run behaves and combine with either form:
 | Flag | What it does |
 |------|--------------|
 | `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`, and force-upgrades (module `10`), Mac App Store updates and restores stay off. The one deliberate exception is module `5`, whose cleanup prompt defaults to *yes* so a scheduled maintenance run can actually free disk space — add `--skip=5` (or `--dry-run`) if you don't want that. |
-| `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. |
+| `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. It also sets `HOMEBREW_NO_AUTO_UPDATE` for the session, so Homebrew does not refresh its index behind your back while you are only looking. Two modules still have ungated options — see [the session summary](#the-session-summary). |
 | `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
 | `--only=ids` | Keeps only the listed modules from the selection (e.g. `go --only=0,4`). Applied after the positional selection. |
@@ -227,6 +233,8 @@ Runs a full diagnostic of your Homebrew installation and the underlying system:
 Runs `brew update` to fetch the latest package definitions from Homebrew's JSON API. This is **not** the same as upgrading packages — it only refreshes the list of what is available and what versions exist. Actual package upgrades happen in module `4`.
 
 Since Homebrew 4.x, `brew update` fetches lightweight JSON files rather than cloning Git repositories, so this step completes in seconds.
+
+Under `--dry-run` nothing is fetched: the module lists the repositories that would be refreshed and how long ago the local index was last updated.
 
 ---
 
@@ -442,6 +450,8 @@ For the first two you can **re-register** (create the missing file and bring eve
 Manages apps installed from the Mac App Store using [`mas`](https://github.com/mas-cli/mas), an open-source CLI tool. If `mas` is not installed, this module will offer to install it via `brew install mas`.
 
 Shows all installed App Store apps with their App ID, name, and version. Checks for available updates and offers to run `mas upgrade` to update them all. Requires that you are signed into the App Store with your Apple ID.
+
+Under `--dry-run` neither the `mas` install nor the upgrade runs: you are shown what would be installed or updated, and you are not asked to confirm.
 
 Note: `mas` is completely separate from Homebrew — it only communicates with the Mac App Store and does not interact with brew at all.
 
