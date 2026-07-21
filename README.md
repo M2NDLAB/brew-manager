@@ -90,6 +90,27 @@ Every module also carries a **risk badge** that makes its blast radius visible a
 
 Before a `[!]` action actually runs, brew-manager draws a **framed danger box** that names the exact command and spells out what it will do, then asks you to confirm. Under `--dry-run` you get a preview instead and are never asked; in an unattended run consent still comes only from `--yes` (see [Available flags](#available-flags)).
 
+While a long operation is in flight (`brew doctor`, `brew update`) a **spinner** shows it is still working, with the seconds elapsed. It only animates on a real terminal: piped output and scheduled runs get a single static line per operation instead, so the log stays clean.
+
+### The session summary
+
+Every run ends with a **session summary**: one row per module in the order it ran, with the time it took, then the totals the modules collected, the Homebrew cache before and after, and the path of the session log.
+
+```
+  ✓      7  Services               5s
+  ↷      5  Cleanup                4s   preview (--dry-run)
+
+  ✓    completed    ↷    preview (--dry-run)
+  Disk   cache 3.8G → 2.1G  (freed ~1.7G)
+```
+
+| Mark | Meaning |
+|------|---------|
+| `✓` (`[OK]`) | The module ran to completion. |
+| `↷` (`[--]`) | `--dry-run`: the module previewed its actions and changed nothing. |
+
+Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work. Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]`, and the disk line appears only when a module actually measured the cache.
+
 ### Choosing what to run
 
 You can choose the modules **on the command line** or **interactively** — whichever fits.
