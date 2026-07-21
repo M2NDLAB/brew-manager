@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-las-scheduler
-updated: 2026-07-12
+updated: 2026-07-21
 tags: [component]
 ---
 # mod-las-scheduler (modules/mod_las_scheduler.sh)
@@ -38,7 +38,17 @@ Funzionante con riserve importanti (sotto). Nessun test.
   solo il 1° `<string>` positionale → un plist a due arg è registrato monco.
 - Install non chiede conferma y/n finale; il **label** sui path recreate/re-register
   non è validato (Attenzione #13, label injection).
+- **`[c] clear logs` cancella senza gate `--dry-run`** (Attenzione #16, MEDIUM,
+  gate del micro-task dry-run 2026-07-21): `rm -f` su `agents_activity.log` e su
+  tutti i `logs/agent_*.log` (`:817-819`), mentre `mod_log` gata gli `rm`
+  equivalenti — e l'activity log è la traccia di AUDIT di install/modify/remove,
+  irreversibile. In più `mkdir -p "$HOME/Library/LaunchAgents"` (`:15`) gira
+  anche in dry-run, anche sul path che poi esce subito in non-interattivo.
+  Per questo `MODULE_DRYRUN[las]=0`: in dry-run il summary marca `⚠ ran anyway`.
+  Chi fixa deve togliere `las` da `_KNOWN_UNGATED` in
+  `tests/test_run_summary.zsh` e riportare il registry a 1.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (agenti via resolver, _install_agent rifiuta invalidi)
+- [[sessions/2026-07-21-dryrun-mod02-mas]] (gate: `[c]` + `mkdir` non gatati → `MODULE_DRYRUN[las]=0`)

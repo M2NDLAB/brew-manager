@@ -221,6 +221,81 @@ tags: [improvement]
   che produce report/summary/badge.
 - Destinazione: framework
 
+### IMP-009 — Un test che asserisce l'ASSENZA di debito inverte l'incentivo: pinna l'INSIEME, non il vuoto
+- Data: 2026-07-21 | Origine: gate del micro-task dry-run (mod_02/mas), finding LOW.
+- Problema osservato: dopo aver gatato gli ultimi due moduli avevo aggiunto un
+  "invariante di classe" che scandiva il registry e FALLIVA se un modulo era
+  dichiarato non-gatato (`MODULE_DRYRUN=0`). Sembrava il rafforzamento naturale
+  di IMP-004 (chiudi la classe), ma rendeva la dichiarazione onesta l'unica
+  mossa che rompe la build: per un modulo nuovo che scrive senza gate, la via
+  più rapida al verde non è fixarlo — è dichiarare `1` e citare
+  `BREW_MANAGER_DRY_RUN` in un commento (l'altro check è un grep sul file).
+  Il test spingeva verso la bugia esattamente dove il progetto ha bisogno di
+  verità (il summary attesta "nothing changed" su quel dato).
+- Proposta: aggiungere a `docs/02-code-quality.md` (sezione "Test che dimostrano")
+  la regola: **un invariante su un debito noto si scrive come ALLOW-LIST
+  bidirezionale, non come asserzione di insieme vuoto**. Due check: (a) un
+  elemento fuori lista fallisce → il debito non cresce in silenzio; (b) una voce
+  della lista che non è più debito fallisce → l'esenzione non sopravvive al fix.
+  Regola generale: se dichiarare la verità rompe la build, il test è progettato
+  male — misura la dichiarazione, non il comportamento.
+- Beneficio atteso / rischio: toglie l'incentivo a mentire nei registri su cui
+  poggiano le asserzioni di sicurezza. Rischio: una allow-list può diventare un
+  parcheggio comodo — mitigato dal check (b) e dal fatto che ogni voce va
+  motivata in `STATE.md`.
+- Trigger di ripresa: decisione utente (retro periodica) o prossimo invariante
+  scritto su un registro di capability.
+- Destinazione: framework
+
+### IMP-010 — Promuovere un fix locale a CLAIM globale allarga l'insieme da verificare oltre il diff
+- Data: 2026-07-21 | Origine: gate del micro-task dry-run, finding HIGH/MEDIUM.
+- Problema osservato: il task chiudeva due violazioni note (`mod_02`, `mas`), ma
+  per farlo ha portato a 1 un registro di 18 voci, aggiunto un test di classe e
+  riscritto il README da "questi due moduli non rispettano `--dry-run`" a "ogni
+  modulo si ferma all'anteprima". Il diff toccava 2 moduli; l'AFFERMAZIONE ne
+  copriva 18 — e quattro erano false, per difetti che il branch non aveva
+  introdotto (auto-update implicito di Homebrew in mod_04/10/bk, `rm` non gatato
+  in `las [c]`, `brew bundle check` in `bk [4]`). Il branch non ha rotto nulla:
+  ha ATTESTATO come verificato ciò che era solo dichiarato. Una review limitata
+  ai file modificati — la prassi normale — non l'avrebbe mai visto.
+- Proposta: aggiungere a `docs/03-security-gate.md`, accanto alla lente di
+  IMP-008, il criterio di **ampiezza**: quando un deliverable generalizza
+  un'affermazione (da "questi N" a "tutti"), l'insieme da verificare nel gate è
+  quello dell'AFFERMAZIONE, non quello del diff. Segnali che fanno scattare la
+  regola: un valore di registro/config che passa da eccezione a uniformità, un
+  test che sostituisce casi puntuali con un ciclo su tutto l'insieme, una frase
+  di doc che perde le sue eccezioni ("tranne…" che sparisce).
+- Beneficio atteso / rischio: intercetta la classe di difetto in cui il codice è
+  corretto e la promessa è falsa. Rischio: allarga il gate — va applicata solo
+  quando il claim si allarga davvero, non a ogni fix.
+- Trigger di ripresa: decisione utente, o prossimo deliverable che uniforma un
+  registro/una capability.
+- Destinazione: framework
+
+### IMP-011 — Gatare un comando esterno non basta: verifica se lo STRUMENTO lo riesegue da sé
+- Data: 2026-07-21 | Origine: gate del micro-task dry-run, finding HIGH (F1).
+- Problema osservato: mettere `brew update` dietro il gate `--dry-run` sembrava
+  chiudere la questione. Ma Homebrew esegue `brew update --auto-update` da solo
+  prima di `install|outdated|upgrade|bundle|release` (brew.sh,
+  `AUTO_UPDATE_COMMANDS`), e nemmeno il `--dry-run` DI BREW lo ferma: la
+  decisione è presa prima di leggere gli argomenti. Risultato: una sessione di
+  sola anteprima continuava a riscrivere l'indice tramite i moduli 4/10/bk, che
+  "si limitano a elencare". La porta d'ingresso era chiusa e quella di servizio
+  aperta — invisibile a qualsiasi test con mock, perché il mock non riproduce il
+  comportamento implicito dello strumento vero.
+- Proposta: aggiungere a `docs/02-code-quality.md` (o alle regole tecniche di
+  progetto) la regola: **quando si gata l'invocazione di uno strumento esterno,
+  verificare sul suo sorgente/doc se esistono percorsi che lo rieseguono
+  implicitamente**, e cercare l'interruttore ufficiale (qui
+  `HOMEBREW_NO_AUTO_UPDATE`). Vale per ogni strumento con comportamenti
+  automatici: package manager, git (hook, auto-gc), runner di CI, formatter con
+  watch.
+- Beneficio atteso / rischio: evita gate che sembrano chiusi e non lo sono.
+  Rischio: nessuno — è una verifica una tantum per strumento, di solito un grep
+  nella doc.
+- Trigger di ripresa: decisione utente, o prossimo gate su un comando esterno.
+- Destinazione: framework
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>

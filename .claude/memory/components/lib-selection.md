@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-selection
-updated: 2026-07-20
+updated: 2026-07-21
 tags: [component]
 ---
 # lib-selection (lib/selection.sh)
@@ -26,6 +26,16 @@ del tokenizer trovati e fixati).
   mai. Lockstep + cap di colonna pinnati da `tests/test_menu_registry.zsh`
   (8 check): il layout 80-col del menu è un'invariante di DATI.
 - `MODULE_IDS=(0..13)` (`typeset -ga`): sequenza `go`; gli speciali ne restano fuori.
+- `MODULE_DRYRUN` (assoc, BM-12): id → 1 se una sessione `--dry-run` non cambia
+  NULLA eseguendo quel modulo, 0 se può agire comunque. **Non è un livello di
+  rischio** (quello è `MODULE_RISK`): è un fatto sul CODICE, e il summary lo usa
+  per decidere se può attestare "previewed, nothing changed". Dal **micro-task
+  dry-run** (2026-07-21) `[2]`/`[mas]` valgono 1 (gate dimostrato con tripwire su
+  mock brew) e `[bk]`/`[las]` valgono **0**: erano 1 da sempre — dichiarati, mai
+  verificati — e il gate ha trovato `brew bundle check` in `bk [4]` e `rm -f` in
+  `las [c]` senza gate (STATE #15/#16). Regola: **sopravvalutare qui è un bug di
+  sicurezza** (il log di sessione attesterebbe una proprietà che la run non ha
+  avuto); sottovalutare è onesto.
 - `MODULE_RISK` (assoc, BM-10): id → `ro|write|danger`, 1 voce per chiave di
   `MODULE_DESC` = single source of truth del **badge di rischio**. **Presentazione
   pura**: NON alimenta il resolver (nessun impatto sul contratto di selezione).
@@ -73,6 +83,14 @@ del tokenizer trovati e fixati).
 - **Contratto stabile per BM-08b/c**: entrambi PUNTANO al resolver, non re-parsano.
   BM-08b dovrà però anticipare il source/la chiamata (il parsing CLI precede la
   definizione di `MODULE_DESC` nel flusso attuale).
+- **Il registro si tiene onesto con una ALLOW-LIST, non con "zero debito"**
+  (micro-task dry-run, IMP-009): `tests/test_run_summary.zsh` pinna
+  `_KNOWN_UNGATED=(bk las)` in DUE direzioni — un modulo dichiarato 0 fuori lista
+  fallisce (il debito non cresce in silenzio) e una voce che non è più debito
+  fallisce (l'esenzione non sopravvive al fix). Un test che facesse fallire ogni
+  `0` renderebbe la dichiarazione onesta l'unica mossa che rompe la build, e la
+  via più rapida al verde sarebbe mentire nel registro. **Al fix di #15/#16 va
+  aggiornata anche `_KNOWN_UNGATED`.**
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-17-bm08a-selection-resolver]] (nascita)
@@ -80,3 +98,4 @@ del tokenizer trovati e fixati).
 - [[sessions/2026-07-17-bm08c-agent-selection]] (`_selection_is_valid` per gli agenti)
 - [[sessions/2026-07-20-bm10-risk-badges]] (`MODULE_RISK` + `_about_risk`, presentazione)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (`MODULE_NAME` + testi MODULE_DESC da menu)
+- [[sessions/2026-07-21-dryrun-mod02-mas]] (`MODULE_DRYRUN` onesto: bk/las a 0, allow-list)
