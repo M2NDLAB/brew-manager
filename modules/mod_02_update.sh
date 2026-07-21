@@ -31,13 +31,15 @@ _mod02_repo_table() {
     fi
 }
 
-# _mod02_index_age → how long ago the local package index was last refreshed,
-# as "12m ago" / "3h ago" / "2d ago", or "unknown" when it cannot be told.
-# Read from the mtime of the newest file in Homebrew's api cache, which
-# `brew update` rewrites on every refresh: it is the closest thing to "how
-# stale is what this module would refresh" that costs no network call. Every
-# failure mode (no brew, no cache dir, empty dir, unreadable stat) degrades to
-# "unknown" rather than printing a fabricated age.
+# _mod02_index_age → how long ago Homebrew's API cache was last written, as
+# "12m ago" / "3h ago" / "2d ago", or "unknown" when it cannot be told.
+# Read from the mtime of the newest file in that cache. `brew update` rewrites
+# it on every refresh, but it is a PROXY, not a measurement of the last update:
+# other commands that consume the API write there too, and a tap-based setup
+# (HOMEBREW_NO_INSTALL_FROM_API) may have a fresh index and a stale cache. The
+# label says "cache" for that reason — it is the closest honest figure that
+# costs no network call. Every failure mode (no brew, no cache dir, empty dir,
+# unreadable stat) degrades to "unknown" rather than printing a fabricated age.
 _mod02_index_age() {
     local cache mtime now age
     cache="$(brew --cache 2>/dev/null)"
@@ -86,7 +88,7 @@ _module_2() {
         _item "Would run: ${C_CYAN}brew update${NC}"
         _mod02_repo_table "${C_GRAY}${SYM_DOT}${NC}" "would be refreshed"
         echo ""
-        _stat_row "Local index last refreshed" "$(_mod02_index_age)" "$C_GRAY"
+        _stat_row "Package index cache written" "$(_mod02_index_age)" "$C_GRAY"
         return
     fi
 
