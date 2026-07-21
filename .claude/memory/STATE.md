@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-07-20
-branch: feat/menu-redesign
+updated: 2026-07-21
+branch: feat/progress-summary
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-20 | Ultimo: **BM-11 — banner flat + menu a card allineate** (M3, 3° task) su `feat/menu-redesign` (3 commit di lavoro + checkpoint sopra main): mockup A/B proposti all'utente → decisione **variante flat + footer 3 righe**; `MODULE_NAME` (presentation-only) + testi `MODULE_DESC` riscritti da sottotitolo (CHIAVI congelate intatte) + `tests/test_menu_registry.zsh` (layout 80-col come invariante di DATI: cap 17/46 col, ASCII-only, lockstep); banner brand-line right-aligned (glifo/dot Unicode-gated, log path con `~`) + card `badge(4)·id(3)·nome(17)·desc(≤46)` + rule numerati/TOOLS; help 18→3 righe (README = riferimento completo); summary con MODULE_NAME; `_header_main` RIMOSSA (orfana, igiene BM-07). **Presentazione pura, contratto pubblico intatto.** **Gate PASSATO** (autore-che-verifica: zero righe guard-rail/resolver nel diff, 0 finding); **178 test verdi**. **In attesa di integrazione** (bump MINOR, merge/push = utente). Prima: BM-10 INTEGRATO in main (merge `2dd1f7c`). Prossimo: BM-12 (progress+summary) su decisione utente. | Indice: [[INDEX]]
+> Aggiornato: 2026-07-21 | Ultimo: **BM-12 — spinner + summary di sessione** (M3, 4° e ULTIMO task) su `feat/progress-summary` (5 commit sopra main): mockup PRIMA del codice → decisione utente **summary variante B completa + spinner sui soli siti già cablati**; `_spinner` gata su `TUI_TTY` (era morto-in-pratica su RECORDING) e propaga l'rc del figlio; renderer puri + summary con righe di esito per POSIZIONE, stat, delta disco, footer identità. **Gate adversariale (2 lenti): comportamento PULITO ma 4 difetti di VERITÀ trovati e FIXATI** — il summary attestava "preview, nothing changed" per moduli senza gate --dry-run (mod_02/mas) → nuovo registry `MODULE_DRYRUN` + `_run_status` puro + stato `⚠ ran anyway`; lo spinner inondava il log (strip ora a semantica CR + guardia di non-vuoto); secondi sotto-riportati; riga disco che poteva mentire → ri-misura al rendering. **247 test verdi**. **M3 COMPLETA** (BM-09→BM-12). **In attesa di integrazione** (bump MINOR, merge/push = utente); poi **release v1.4.0** che impacchetta tutta M3. Prima: BM-11 INTEGRATO in main (merge `2e61180`). | Indice: [[INDEX]]
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -83,7 +83,8 @@ tags: [state]
     clone pulito prima del rilascio (version-check + 102 test + `--version`).
     Merge/tag/push eseguiti dall'utente.
     → [[sessions/2026-07-18-release-v1.3.0]].
-  - [ ] **M3 — TUI bella + funzionale (BM-09…BM-12): AVVIATO.**
+  - [x] **M3 — TUI bella + funzionale (BM-09…BM-12): COMPLETA** (BM-12 in attesa
+    di integrazione; poi release v1.4.0 che impacchetta i quattro task).
     - [x] **BM-09** fondazione TUI in `lib/common.sh` — branch
       `feat/tui-foundation` (feat `bab07d0` + fix `b2d7b62` + docs `910d551`).
       Rendering capability-aware (detection colore/Unicode, handoff parent→child
@@ -118,9 +119,18 @@ tags: [state]
       contratto intatto. **Gate PASSATO** (0 finding). **178 test verdi**.
       **In attesa di integrazione** (bump MINOR).
       → [[sessions/2026-07-20-bm11-menu-redesign]].
-    - [ ] BM-12 (progress+summary): decisione utente (giudizio estetico) se
-      procedere. Costruirà su `_box`/palette/badge di BM-09/BM-10 e sul layout
-      BM-11 (lo spinner va gated su `TUI_TTY`, IMP-005).
+    - [x] **BM-12** spinner + summary di sessione — branch `feat/progress-summary`
+      (5 commit: `5968904` spinner+renderer, `7adcc20` cablaggio summary,
+      `d84b651`+`73f905c` README, `13dc359` fix del gate). Mockup prima del codice
+      → decisione utente: **summary variante B (completa) + spinner sui soli 2
+      siti già cablati** (mod_01/mod_02). `_spinner` gata su `TUI_TTY` — era
+      **morto in pratica** su RECORDING (la TUI gira sempre sotto script(1)) —
+      con frame Unicode/ASCII, secondi da `$SECONDS` e rc del figlio propagato;
+      summary con righe di esito per POSIZIONE (ripetizioni ok), stat, riga disco
+      e footer. **Gate adversariale a 2 lenti: comportamento pulito, ma 4 difetti
+      di VERITÀ** (vedi Attenzione #14) tutti FIXATI in `13dc359`; test 42→70
+      (**suite 247**). **In attesa di integrazione** (bump MINOR).
+      → [[sessions/2026-07-21-bm12-progress-summary]].
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -135,7 +145,9 @@ tags: [state]
   BM-08b) o dal menu interattivo. Dal **BM-11** banner flat (brand line
   right-aligned, Unicode-gated) e menu a card allineate con helper LOCALI
   `_menu_row`/`_menu_section`; summary con `MODULE_NAME`; help del menu compresso
-  in footer 3 righe. Vedi [[core-brew-manager]].
+  in footer 3 righe. Dal **BM-12** il dispatch traccia stato+durata per POSIZIONE
+  (`RUN_STATUS`/`RUN_SECS`) e il summary di fine sessione rende righe di esito,
+  stat, delta disco e footer identità. Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
   capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
@@ -143,7 +155,10 @@ tags: [state]
   `_box`/`_clear`. Dal **BM-10** i renderer di rischio `_risk_badge`/`_risk_caption`
   (puri) e `_ask_danger` (box `C_DANGER` → `_ask` INTATTO — presentazione, consenso
   invariato). Dal **BM-11** `_header_main` RIMOSSA (orfana dopo il banner flat del
-  core — igiene codice morto). Vedi [[lib-common]].
+  core — igiene codice morto). Dal **BM-12** `_spinner` gata su `TUI_TTY` (era
+  morto-in-pratica su RECORDING) e ritorna l'rc del figlio, più i renderer del
+  summary `_run_glyph`/`_fmt_secs`/`_fmt_kb`/`_fmt_kb_or_na`/`_du_kb` (puri;
+  `_du_kb` valida al bordo e ritorna VUOTO, mai 0). Vedi [[lib-common]].
 - `lib/selection.sh` (BM-08a/b) — registry `MODULE_DESC`/`MODULE_IDS` +
   `_resolve_selection` (lenient) + `_resolve_cli`/`_collect_module_tokens`
   (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Dal
@@ -165,7 +180,7 @@ tags: [state]
   certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
   v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **178 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **220 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
@@ -177,7 +192,10 @@ tags: [state]
   la degradazione L0/larghezza del badge e l'**invarianza del consenso** di
   `_ask_danger` (== `_ask` sotto --yes/non-interactive); `test_menu_registry.zsh`
   (8, BM-11) fissa il layout 80-col del menu come invariante di DATI (lockstep
-  `MODULE_NAME`↔`MODULE_DESC`, cap 17/46 colonne, ASCII-only, chiavi congelate).
+  `MODULE_NAME`↔`MODULE_DESC`, cap 17/46 colonne, ASCII-only, chiavi congelate);
+  `test_run_summary.zsh` (42, BM-12) fissa lo spinner gated su `TUI_TTY` (non-TTY:
+  zero `\r`/ANSI + riga statica) con **rc del figlio preservato**, i formatter/glifi
+  puri, e l'**invariante di wiring** `DU_AFTER`↔twin KB sul sorgente di mod_05.
   Resto del codice non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
@@ -239,8 +257,11 @@ tags: [state]
    mod_mas; e (gate BM-08c) `mod_02` esegue `brew update` INCONDIZIONATAMENTE — no
    `_ask`, non gated da `--dry-run`: gira anche con `2 --dry-run` e in non-TTY. È
    refresh di metadati (nessun install/rimozione/file utente), ma è comunque una
-   mutazione fuori dal contratto DRY_RUN/consenso. → TRIGGER: primo intervento su
-   mod_02 o mod_mas.
+   mutazione fuori dal contratto DRY_RUN/consenso. **Effetto collaterale visibile
+   dal BM-12**: il summary etichetta `mod_02` come `↷ preview` sotto `--dry-run`
+   (deriva l'etichetta dal contratto, non dal comportamento reale) mentre l'update
+   è comunque avvenuto — la riga diventa esatta quando si fixa mod_02, NON
+   indebolendo l'etichetta. → TRIGGER: primo intervento su mod_02 o mod_mas.
 3b. **Echo intermedio sui dati espande gli escape** (LOW, gate BM-03): l'echo
    builtin zsh converte `\e`/`\0NN`/`\x..`. Istanza nel resolver **CHIUSA in
    BM-08b** (era un bypass MEDIUM: `\065`→mod_05; ora `${(@s:,:)}`/`${// /}`).
@@ -324,25 +345,41 @@ tags: [state]
    validato `^[A-Za-z0-9._-]+$`). Un plist/conf manipolato con metacaratteri XML
    nel label potrebbe iniettare struttura. → TRIGGER: hardening mod_las — validare
    il label anche sui path non-interattivi (stessa forma del suffisso).
+14. **`MODULE_DRYRUN` è la lista dei moduli che NON rispettano `--dry-run`**
+   (BM-12, gate): `[2]=0` (mod_02, `brew update` incondizionato) e `[mas]=0`
+   (`brew install mas` fuori dal gate, dietro `_ask_danger`). Finché restano 0 il
+   summary li marca `⚠ ran anyway (no --dry-run gate)` — onesto, ma è un debito
+   VISIBILE all'utente a ogni run in dry-run. **Non flippare il valore a 1 senza
+   fixare il modulo**: `tests/test_run_summary.zsh` fallisce (verifica il gate nel
+   sorgente) e, peggio, si tornerebbe alla falsa attestazione "nothing changed".
+   È lo stesso debito di #3, ora con un contatore che lo mostra. → TRIGGER: fix di
+   mod_02/mod_mas (chiude #3 e questa insieme).
 - [[LEARNINGS]]: IMP-001 APPLICATA; **IMP-002** (checklist superficie del
   contratto per i test), **IMP-003** (mai echo su dati — rafforzata dal gate BM-09),
   **IMP-004** (chiudi la CLASSE: grep tutti i siti + verifica adversariale + re-gate),
   **IMP-005** (output di controllo terminale gata su `TUI_TTY`, non solo sul
   colore — origine BM-09), **IMP-006** (review-workflow su un git-range: isola gli
   agenti o vietali dal `checkout` — origine gate BM-10, `Destinazione: framework`)
-  e **IMP-007** (smoke moduli = selezione CLI posizionale, mai pipe sul prompt
-  Choice — origine BM-11) APERTE, propose-only, in attesa di decisione (retro
+  **IMP-007** (smoke moduli = selezione CLI posizionale, mai pipe sul prompt né
+  `head` sull'output — origine BM-11, estesa da BM-12) e **IMP-008** (lente di gate
+  "affermazioni, non solo azioni": un summary/badge che ASSERISCE una proprietà di
+  sicurezza va verificato contro il comportamento reale — origine gate BM-12,
+  `Destinazione: framework`) APERTE, propose-only, in attesa di decisione (retro
   periodica o su richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `2dd1f7c` (merge BM-10;
-  sotto: checkpoint memoria BM-10 `b30150d`, riconciliazione memoria `765bad4`),
-  allineato a `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0`
-  (annotato) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (si
-  compila alla release, prassi v1.3.0).
-- **feat/menu-redesign** (BM-11) = banner flat + menu a card allineate, 3 commit
-  di lavoro + checkpoint sopra main, gate passato (0 finding), 178 test verdi.
-  **In attesa di integrazione dell'utente** (blocco `/integrate`, bump MINOR).
+- **main** = integrazione + stabile (trunk-based); HEAD `2e61180` (merge BM-11;
+  sotto: merge BM-10 `2dd1f7c`, riconciliazione memoria `765bad4`), allineato a
+  `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0` (annotato) +
+  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (si compila alla
+  release, prassi v1.3.0). **v1.4.0 non ancora rilasciata**: impacchetterà
+  BM-09+BM-10+BM-11+BM-12 (tutta M3).
+- **feat/progress-summary** (BM-12) = spinner su `TUI_TTY` + summary di sessione,
+  5 commit di lavoro + checkpoint sopra main, gate passato dopo 4 fix, 247 test
+  verdi. **In attesa di integrazione dell'utente** (blocco `/integrate`, bump
+  MINOR). Dopo l'integrazione: **release v1.4.0** (impacchetta BM-09→BM-12).
+- **feat/menu-redesign** (BM-11) = **INTEGRATO in main** (merge `2e61180`), branch
+  eliminato.
 - **feat/risk-badges** (BM-10) = **INTEGRATO in main** (merge `2dd1f7c`), branch
   eliminato.
 - **chore/lint-mem-fw-v1.0.0** (riconciliazione memoria post-fw-v1.0.0) = **INTEGRATO
