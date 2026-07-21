@@ -174,17 +174,25 @@ done
 [[ "${MODULE_DRYRUN[mas]}" == "1" ]] && _pass "dryrun: mas gated (install skipped)" \
                                      || _fail "dryrun: mas honours --dry-run — registry must say 1"
 
-# Class invariant (IMP-004: close the class, not the instance). With every
-# mutator gated, no module can produce a "ran anyway" row any more — so assert
-# it over the WHOLE registry rather than over the two modules just fixed. A
-# future module that mutates without the gate has to be declared 0, and fails
-# HERE instead of surfacing as a warning in a user's dry-run session.
-typeset -a _acts_in_dry=()
+# The set of ungated modules is pinned as an ALLOW-LIST, not asserted empty.
+# Failing the build on any 0 would invert the incentive the registry depends on:
+# the cheapest way out of a red build would be to declare 1 and mention the gate
+# in a comment, and the summary would then attest "nothing changed" for a module
+# that writes. Declaring debt honestly must stay free; what must not happen is
+# the debt growing in silence, or a fixed module keeping its exemption.
+typeset -a _KNOWN_UNGATED=(bk las)   # mod_bk [4] bundle check · mod_las [c] rm
+typeset -a _declared=()
 for _k in "${(k)MODULE_DESC[@]}"; do
-    [[ "$(_run_status 1 "${MODULE_RISK[$_k]}" "${MODULE_DRYRUN[$_k]}")" == "ran" ]] && _acts_in_dry+=("$_k")
+    (( ${MODULE_DRYRUN[$_k]:-0} )) || _declared+=("$_k")
 done
-(( ${#_acts_in_dry[@]} == 0 )) && _pass "dryrun: no module acts under --dry-run (whole registry)" \
-                               || _fail "dryrun: acts despite --dry-run: ${_acts_in_dry[*]}"
+_new_debt=(${_declared:|_KNOWN_UNGATED})
+(( ${#_new_debt[@]} == 0 )) && _pass "dryrun: no undeclared ungated module (allow-list: ${_KNOWN_UNGATED[*]})" \
+                            || _fail "dryrun: new ungated module(s) not in the allow-list: ${_new_debt[*]}"
+# ...and the allow-list itself must not outlive the debt: a module gated later
+# has to be removed from it, or the exemption silently protects working code.
+_stale=(${_KNOWN_UNGATED:|_declared})
+(( ${#_stale[@]} == 0 )) && _pass "dryrun: allow-list carries no stale entry" \
+                         || _fail "dryrun: allow-list still exempts gated module(s): ${_stale[*]}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. _spinner — non-TTY: static line, no \r, no ANSI, child rc returned.
