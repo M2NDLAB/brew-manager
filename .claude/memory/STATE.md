@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-07-23
-branch: chore/release-v1.4.0
+branch: chore/checkpoint-post-v1.4.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-23 | Ultimo: **release v1.4.0 PRONTA per integrazione** su `chore/release-v1.4.0` (1 commit `6bbb21f` sopra main `dc47ae4`). Impacchetta tutta **M3** (TUI: BM-09→BM-12) + il **micro-task `--dry-run` mod_02/mas**, già integrati in main. Trunk-based: codice già su main → il rilascio è bump `VERSION` 1.3.0→**1.4.0** + CHANGELOG `[1.4.0]` + tag annotato; merge/tag/push all'utente (`/integrate`). Bump **MINOR** (M3 porta `feat`). **Decisione utente: rilascia ORA col debito dry-run dichiarato** (opzioni "chiudi prima" scartate): #15/#16 (`bk [4]`/`las [c]` non gatati, `⚠ ran anyway`) sono onesti, pre-esistenti, su componenti sensibili → hardening dopo. CHANGELOG con sezione **Known limitations** onesta. `make check` pulito, **268 test verdi**; `make version-check` rosso finché il tag non esiste (atteso, #5b). | Indice: [[INDEX]]
+> Aggiornato: 2026-07-23 | Ultimo: **release v1.4.0 RILASCIATA** — merge `ab45323` in main, tag **annotato** `v1.4.0` (oggetto `d4901b3` → commit `ab45323`) creato e pushato; `main == origin/main`; `make version-check` verde; branch `chore/release-v1.4.0` eliminato. Merge/tag/push eseguiti dall'utente. Impacchetta tutta **M3** (TUI: BM-09→BM-12) + il **micro-task `--dry-run` mod_02/mas**; bump **MINOR** (13 `feat` nel set `v1.3.0..main`). CHANGELOG `[Unreleased]` ora vuota. Debito dry-run **#15/#16** (`bk [4]`/`las [c]` non gatati, `⚠ ran anyway`) rilasciato come **Known limitation dichiarata** (decisione utente: rilascia ora, onesto e pre-esistente) → hardening successivo. Questo checkpoint (post-release, solo memoria) su `chore/checkpoint-post-v1.4.0`, da integrare. | Indice: [[INDEX]]
 
 > **Storico precedente**: micro-task `--dry-run` mod_02 + mas (2026-07-21, strada B decisa dall'utente dopo BM-12) — `brew update` (mod_02) e `brew install mas` dietro il gate, che precede la conferma → `--dry-run` batte `--yes`. Gate a 2 lenti: **0 finding sul codice nuovo** ma **affermazione globale del branch REFUTATA** (aveva portato `MODULE_DRYRUN` tutto a 1, ATTESTANDO 4 difetti pre-esistenti: auto-update implicito di Homebrew HIGH, `bk [4]` MEDIUM, `las [c]` MEDIUM, `mkdir` LOW). Via di mezzo utente: `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (chiude l'HIGH auto-update per tutti i moduli) + `[bk]=0`/`[las]=0` dichiarati onestamente (#15/#16) + allow-list bidirezionale al posto dell'invariante tautologica. **268 test verdi**. **INTEGRATO in main** (merge `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
 
@@ -149,15 +149,14 @@ tags: [state]
     tripwire su mock brew con controlli "denti" in wet, e2e dell'auto-update
     attraverso `script(1)`); **suite 268**. **INTEGRATO in main** (merge
     `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
-  - [ ] **Release v1.4.0 — PRONTA per integrazione** (2026-07-23): bump `VERSION`
-    1.3.0→**1.4.0** + CHANGELOG `[1.4.0]` (intro "interface release"; Added = M3;
-    Fixed = dry-run mod_02/mas + auto-update Homebrew; **Known limitations** onesta
-    per #15/#16) su `chore/release-v1.4.0` (commit `6bbb21f`). Impacchetta M3
-    (BM-09→12) + il micro-task dry-run. Bump **MINOR**. **Decisione utente:
-    rilascia ORA col debito #15/#16 dichiarato** (scartate B «chiudi #15+#16» e C
-    «chiudi solo #16»). 268 test verdi; `version-check` rosso finché manca il tag
-    (atteso, #5b). Merge `--no-ff` + tag annotato `v1.4.0` + push all'utente
-    (`/integrate`). → [[sessions/2026-07-23-release-v1.4.0]].
+  - [x] **Release v1.4.0 RILASCIATA** (2026-07-23): merge `ab45323` in main, tag
+    **annotato** `v1.4.0` (oggetto `d4901b3` → commit `ab45323`) creato e pushato;
+    `main == origin/main`; `make version-check` verde; branch
+    `chore/release-v1.4.0` eliminato. Merge/tag/push eseguiti dall'utente. Bump
+    **MINOR** (13 `feat` nel set `v1.3.0..main`): impacchetta tutta M3 (BM-09→12) +
+    il micro-task dry-run. CHANGELOG `[1.4.0]` con **Known limitations** onesta per
+    #15/#16 (**decisione utente: rilascia ORA col debito dichiarato**, scartate le
+    opzioni "chiudi prima"). 268 test verdi. → [[sessions/2026-07-23-release-v1.4.0]].
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -450,18 +449,18 @@ tags: [state]
   richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `dc47ae4` (merge
-  micro-task dry-run; sotto: merge BM-12 `21c956b`, BM-11 `2e61180`), allineato a
-  `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0` (annotato) +
-  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: la sezione `[1.4.0]` vive
-  ora sul branch di release, non ancora su main (si consolida col merge). **v1.4.0
-  PRONTA per integrazione** (vedi sotto): impacchetta tutta M3 (BM-09→12) + il
-  micro-task dry-run, tutti già in main.
-- **chore/release-v1.4.0** (release) = bump `VERSION` 1.3.0→1.4.0 + CHANGELOG
-  `[1.4.0]` (1 commit `6bbb21f` sopra main `dc47ae4`), **268 test verdi**,
-  `version-check` rosso finché manca il tag (atteso). **PRONTA per integrazione
-  dell'utente** (blocco `/integrate`, bump **MINOR**: M3 porta `feat`). Merge
-  `--no-ff` + tag annotato `v1.4.0` + push = umano.
+- **main** = integrazione + stabile (trunk-based); HEAD `ab45323` (merge di
+  release v1.4.0; sotto: checkpoint `8006ea7`, bump `6bbb21f`, merge micro-task
+  dry-run `dc47ae4`), allineato a `origin/main`; tag **`v1.4.0`** (annotato,
+  pushato, oggetto `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotati) +
+  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (consolidata sotto
+  `[1.4.0]` col merge). `make version-check` verde.
+- **chore/checkpoint-post-v1.4.0** (questo checkpoint, post-release, solo memoria)
+  = STATE "RILASCIATA" + nota di sessione con gli SHA del merge/tag. **PRONTO per
+  integrazione dell'utente** (blocco `/integrate`, bump "nessun tag": solo `chore`
+  di memoria).
+- **chore/release-v1.4.0** (release) = **INTEGRATO in main** (merge `ab45323`,
+  tag annotato `v1.4.0`), branch eliminato.
 - **fix/dryrun-mod02-mas** (micro-task dry-run) = **INTEGRATO in main** (merge
   `dc47ae4`), branch eliminato.
 - **feat/progress-summary** (BM-12) = **INTEGRATO in main** (merge `21c956b`),

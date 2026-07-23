@@ -135,8 +135,8 @@ tags: [moc]
   dry-run): bump VERSION 1.3.0→1.4.0 + CHANGELOG "interface release" con sezione
   **Known limitations** onesta per #15/#16. Verificati i due debiti sul codice
   reale; **decisione utente: rilascia ORA col debito dichiarato** (scartate le
-  opzioni "chiudi prima"). Bump MINOR; 268 test; version-check rosso pre-tag.
-  PRONTA per integrazione (merge+tag+push all'utente)
+  opzioni "chiudi prima"). Bump MINOR; 268 test. **RILASCIATA** (merge `ab45323`,
+  tag annotato `v1.4.0` → `ab45323`; version-check verde)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -156,8 +156,8 @@ tags: [moc]
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
   **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** (v1.3.0 rilasciata 2026-07-18);
   **M3 CHIUSO** (BM-09→BM-12, tutta la TUI, INTEGRATA in main) + micro-task
-  dry-run integrato. **Release v1.4.0 PRONTA per integrazione** (2026-07-23):
-  impacchetta M3 + micro-task, bump MINOR, debito #15/#16 dichiarato. Fuori
-  roadmap integrati: upgrade framework → v1.0.0. Prossimo dopo la release:
+  dry-run integrato. **Release v1.4.0 RILASCIATA** (2026-07-23, merge `ab45323`,
+  tag annotato `v1.4.0`): impacchetta M3 + micro-task, bump MINOR, debito #15/#16
+  dichiarato. Fuori roadmap integrati: upgrade framework → v1.0.0. Prossimo:
   hardening #15/#16 (sensibili) o M4.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
