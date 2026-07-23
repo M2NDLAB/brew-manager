@@ -8,6 +8,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-23
+
+The interface release. brew-manager now renders itself for the terminal it is
+actually running in — colour and Unicode where they are supported, plain ASCII
+when piped — puts a risk badge on every module, redraws the banner and menu, spins
+while a long operation runs, and prints a summary of what each module did when the
+session ends.
+
+### Added
+- **Capability-aware terminal rendering.** The tool detects colour and Unicode
+  support and adapts: a semantic palette on a capable terminal, degrading to plain
+  ASCII when output is piped or `NO_COLOR` is set. Piped output now carries zero
+  ANSI escapes.
+- **A risk badge on every module.** `[RO]` (read-only), `[W]` (writes only the
+  tool's own files) and `[!]` (can change your system) appear in the menu — with a
+  legend — and in each module's "About" block; destructive prompts are drawn in a
+  distinct danger frame. Levels come from an audited per-module classification.
+- **Redesigned banner and menu.** Modules are shown as aligned cards
+  (badge · id · name · description) inside 80 columns, with the menu help
+  compressed into a three-line footer.
+- **A spinner while long operations run** (only on a real terminal; Unicode or
+  ASCII frames) and **an end-of-session summary**: one outcome line per module run
+  — in order, repeats included — plus tap/package statistics, the disk space
+  reclaimed, and an identity footer.
+
+### Fixed
+- **`--dry-run` is honoured by `brew update` (module 2) and the `mas` install.**
+  Both used to run even in a preview; they now sit behind the dry-run gate, which
+  is checked before the confirmation prompt, so `--dry-run` wins over `--yes`.
+- **Homebrew's implicit auto-update no longer runs under `--dry-run`.** Before an
+  `install` / `outdated` / `upgrade` / `bundle`, Homebrew re-runs `brew update` by
+  itself and rewrites its package index — which a preview must not do.
+  `HOMEBREW_NO_AUTO_UPDATE=1` is now set for the duration of a `--dry-run` session.
+
+### Known limitations
+- **Two menu actions still act under `--dry-run`, and the summary now says so.**
+  `bk` option [4] (Check) runs `brew bundle check`, and `las` option [c] (Clear
+  logs) deletes the agent logs — both even in a preview. The end-of-session summary
+  marks these with a warning (the `⚠` / `[!]` "ran" status: "dry-run was requested
+  but this module acted anyway") instead of claiming the run changed nothing. Both
+  are pre-existing and tracked for a dedicated hardening task.
+
 ## [1.3.0] - 2026-07-18
 
 The scheduler release. The command line now takes a module selection, scheduled

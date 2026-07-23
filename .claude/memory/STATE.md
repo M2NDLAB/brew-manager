@@ -1,14 +1,14 @@
 ---
 type: state
-updated: 2026-07-21
-branch: fix/dryrun-mod02-mas
+updated: 2026-07-23
+branch: chore/release-v1.4.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-21 | Ultimo: **micro-task `--dry-run` mod_02 + mas** (strada B, deciso dall'utente dopo l'integrazione di BM-12) su `fix/dryrun-mod02-mas`, 8 commit sopra main `21c956b`. I due gate richiesti sono fatti (`brew update` e `brew install mas` non girano più in dry-run; il gate precede sempre la conferma, quindi `--dry-run` batte `--yes`). **Il gate adversariale a 2 lenti ha però REFUTATO l'affermazione che il branch aveva aggiunto**: portando `MODULE_DRYRUN` tutto a 1 il branch ATTESTAVA come verificati 4 difetti pre-esistenti — auto-update implicito di Homebrew (HIGH, mod_04/10/bk), `brew bundle check` in `bk [4]` (MEDIUM), `rm -f` in `las [c]` (MEDIUM), `mkdir` ungated (LOW). **Decisione utente: via di mezzo** → `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (una riga, chiude l'HIGH per tutti i moduli) + `[bk]=0`/`[las]=0` dichiarati onestamente + allow-list al posto dell'invariante tautologica + README ristretto al vero. **268 test verdi**. **In attesa di integrazione** (bump PATCH). Prima: **M3 COMPLETA**, BM-12 integrato in main (merge `21c956b`); v1.4.0 non ancora rilasciata. | Indice: [[INDEX]]
+> Aggiornato: 2026-07-23 | Ultimo: **release v1.4.0 PRONTA per integrazione** su `chore/release-v1.4.0` (1 commit `6bbb21f` sopra main `dc47ae4`). Impacchetta tutta **M3** (TUI: BM-09→BM-12) + il **micro-task `--dry-run` mod_02/mas**, già integrati in main. Trunk-based: codice già su main → il rilascio è bump `VERSION` 1.3.0→**1.4.0** + CHANGELOG `[1.4.0]` + tag annotato; merge/tag/push all'utente (`/integrate`). Bump **MINOR** (M3 porta `feat`). **Decisione utente: rilascia ORA col debito dry-run dichiarato** (opzioni "chiudi prima" scartate): #15/#16 (`bk [4]`/`las [c]` non gatati, `⚠ ran anyway`) sono onesti, pre-esistenti, su componenti sensibili → hardening dopo. CHANGELOG con sezione **Known limitations** onesta. `make check` pulito, **268 test verdi**; `make version-check` rosso finché il tag non esiste (atteso, #5b). | Indice: [[INDEX]]
 
-> **Storico precedente**: BM-12 — spinner + summary di sessione (M3, 4° e ultimo task), 5 commit su `feat/progress-summary`: mockup PRIMA del codice → decisione utente **summary variante B completa + spinner sui soli siti già cablati**; `_spinner` gata su `TUI_TTY` (era morto-in-pratica su RECORDING) e propaga l'rc del figlio; renderer puri + summary con righe di esito per POSIZIONE, stat, delta disco, footer identità. **Gate adversariale (2 lenti): comportamento PULITO ma 4 difetti di VERITÀ trovati e FIXATI** — il summary attestava "preview, nothing changed" per moduli senza gate --dry-run (mod_02/mas) → nuovo registry `MODULE_DRYRUN` + `_run_status` puro + stato `⚠ ran anyway`; lo spinner inondava il log (strip ora a semantica CR + guardia di non-vuoto); secondi sotto-riportati; riga disco che poteva mentire → ri-misura al rendering. **248 test verdi**. **M3 COMPLETA** (BM-09→BM-12), INTEGRATA in main (merge `21c956b`); **release v1.4.0** non ancora fatta.
+> **Storico precedente**: micro-task `--dry-run` mod_02 + mas (2026-07-21, strada B decisa dall'utente dopo BM-12) — `brew update` (mod_02) e `brew install mas` dietro il gate, che precede la conferma → `--dry-run` batte `--yes`. Gate a 2 lenti: **0 finding sul codice nuovo** ma **affermazione globale del branch REFUTATA** (aveva portato `MODULE_DRYRUN` tutto a 1, ATTESTANDO 4 difetti pre-esistenti: auto-update implicito di Homebrew HIGH, `bk [4]` MEDIUM, `las [c]` MEDIUM, `mkdir` LOW). Via di mezzo utente: `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (chiude l'HIGH auto-update per tutti i moduli) + `[bk]=0`/`[las]=0` dichiarati onestamente (#15/#16) + allow-list bidirezionale al posto dell'invariante tautologica. **268 test verdi**. **INTEGRATO in main** (merge `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -147,8 +147,17 @@ tags: [state]
     `[bk]`/`[las]` dichiarati 0 + allow-list al posto dell'invariante tautologica
     + README ristretto al vero. Nuovo `tests/test_dryrun_gates.zsh` (18 check:
     tripwire su mock brew con controlli "denti" in wet, e2e dell'auto-update
-    attraverso `script(1)`); **suite 268**. **In attesa di integrazione**
-    (bump PATCH). → [[sessions/2026-07-21-dryrun-mod02-mas]].
+    attraverso `script(1)`); **suite 268**. **INTEGRATO in main** (merge
+    `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
+  - [ ] **Release v1.4.0 — PRONTA per integrazione** (2026-07-23): bump `VERSION`
+    1.3.0→**1.4.0** + CHANGELOG `[1.4.0]` (intro "interface release"; Added = M3;
+    Fixed = dry-run mod_02/mas + auto-update Homebrew; **Known limitations** onesta
+    per #15/#16) su `chore/release-v1.4.0` (commit `6bbb21f`). Impacchetta M3
+    (BM-09→12) + il micro-task dry-run. Bump **MINOR**. **Decisione utente:
+    rilascia ORA col debito #15/#16 dichiarato** (scartate B «chiudi #15+#16» e C
+    «chiudi solo #16»). 268 test verdi; `version-check` rosso finché manca il tag
+    (atteso, #5b). Merge `--no-ff` + tag annotato `v1.4.0` + push all'utente
+    (`/integrate`). → [[sessions/2026-07-23-release-v1.4.0]].
 - [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
   processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
   lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
@@ -441,19 +450,20 @@ tags: [state]
   richiesta).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `21c956b` (merge BM-12;
-  sotto: merge BM-11 `2e61180`, merge BM-10 `2dd1f7c`), allineato a
+- **main** = integrazione + stabile (trunk-based); HEAD `dc47ae4` (merge
+  micro-task dry-run; sotto: merge BM-12 `21c956b`, BM-11 `2e61180`), allineato a
   `origin/main`; tag **`v1.3.0`** (annotato, pushato) + `v1.2.0` (annotato) +
-  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (si compila alla
-  release, prassi v1.3.0). **v1.4.0 non ancora rilasciata**: impacchetterà
-  BM-09+BM-10+BM-11+BM-12 (tutta M3) **più il micro-task dry-run** se integrato
-  prima della release.
-- **fix/dryrun-mod02-mas** (micro-task dry-run) = gate `--dry-run` su mod_02 e
-  mas + `HOMEBREW_NO_AUTO_UPDATE` sotto dry-run + registry onesto per bk/las,
-  8 commit di lavoro + checkpoint sopra main, gate adversariale passato (2 lenti;
-  la via di mezzo sui finding l'ha decisa l'utente), **268 test verdi**.
-  **In attesa di integrazione dell'utente** (blocco `/integrate`, bump PATCH:
-  solo `fix`/`docs`, nessun `feat`).
+  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: la sezione `[1.4.0]` vive
+  ora sul branch di release, non ancora su main (si consolida col merge). **v1.4.0
+  PRONTA per integrazione** (vedi sotto): impacchetta tutta M3 (BM-09→12) + il
+  micro-task dry-run, tutti già in main.
+- **chore/release-v1.4.0** (release) = bump `VERSION` 1.3.0→1.4.0 + CHANGELOG
+  `[1.4.0]` (1 commit `6bbb21f` sopra main `dc47ae4`), **268 test verdi**,
+  `version-check` rosso finché manca il tag (atteso). **PRONTA per integrazione
+  dell'utente** (blocco `/integrate`, bump **MINOR**: M3 porta `feat`). Merge
+  `--no-ff` + tag annotato `v1.4.0` + push = umano.
+- **fix/dryrun-mod02-mas** (micro-task dry-run) = **INTEGRATO in main** (merge
+  `dc47ae4`), branch eliminato.
 - **feat/progress-summary** (BM-12) = **INTEGRATO in main** (merge `21c956b`),
   branch eliminato.
 - **feat/menu-redesign** (BM-11) = **INTEGRATO in main** (merge `2e61180`), branch
