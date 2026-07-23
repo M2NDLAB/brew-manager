@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-21
+updated: 2026-07-23
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,13 +15,17 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  7 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
+  10 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
   dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
   verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
   colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
   vietali dal checkout — BM-10, Destinazione: framework), IMP-007 (smoke moduli =
   selezione CLI, mai pipe sul prompt né head sull'output — BM-11/BM-12), IMP-008
-  (lente di gate "affermazioni, non solo azioni" — BM-12, Destinazione: framework)
+  (lente di gate "affermazioni, non solo azioni" — BM-12, Destinazione: framework),
+  IMP-009 (invariante su un debito = allow-list bidirezionale, non insieme vuoto),
+  IMP-010 (fix locale promosso a claim globale allarga l'insieme da verificare) e
+  IMP-011 (gatare un comando esterno: verifica se lo strumento lo riesegue da sé) —
+  le ultime tre `Destinazione: framework`
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -126,7 +130,13 @@ tags: [moc]
   auto-update implicito di Homebrew (HIGH) → `HOMEBREW_NO_AUTO_UPDATE` sotto
   dry-run; `bk [4]`/`las [c]` non gatati (MEDIUM) → dichiarati `0`. Invariante
   tautologica → **allow-list** bidirezionale. 268 test. → IMP-009/010/011.
-  In attesa di integrazione (bump PATCH)
+  **INTEGRATO in main** (merge `dc47ae4`)
+- [[sessions/2026-07-23-release-v1.4.0]] — release v1.4.0 (M3 + micro-task
+  dry-run): bump VERSION 1.3.0→1.4.0 + CHANGELOG "interface release" con sezione
+  **Known limitations** onesta per #15/#16. Verificati i due debiti sul codice
+  reale; **decisione utente: rilascia ORA col debito dichiarato** (scartate le
+  opzioni "chiudi prima"). Bump MINOR; 268 test; version-check rosso pre-tag.
+  PRONTA per integrazione (merge+tag+push all'utente)
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -144,10 +154,10 @@ tags: [moc]
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
   sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** e **v1.3.0 RILASCIATA**
-  (2026-07-18). **M3 AVVIATO**: BM-09 (fondazione TUI) **INTEGRATO in main**
-  (merge `5867137`); **BM-10** (badge di rischio) **COMPLETATO** su `feat/risk-badges`
-  (gate passato, 170 test), in attesa di integrazione. Fuori roadmap: **upgrade
-  framework v0.5.1 → v1.0.0** + riconciliazione memoria **INTEGRATI in main** (merge
-  `765bad4`). Prossimo: STOP, decisione utente su BM-11/12 (giudizio estetico).
+  **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** (v1.3.0 rilasciata 2026-07-18);
+  **M3 CHIUSO** (BM-09→BM-12, tutta la TUI, INTEGRATA in main) + micro-task
+  dry-run integrato. **Release v1.4.0 PRONTA per integrazione** (2026-07-23):
+  impacchetta M3 + micro-task, bump MINOR, debito #15/#16 dichiarato. Fuori
+  roadmap integrati: upgrade framework → v1.0.0. Prossimo dopo la release:
+  hardening #15/#16 (sensibili) o M4.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
