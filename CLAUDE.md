@@ -103,19 +103,21 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   `.claude/commands/new-component.md`. In short: a `modules/mod_NN_slug.sh` file
   (loaded automatically by the `mod_*.sh` glob), a `_module_NN` function (number
   without zero-padding; `_module_14`/`_module_15`/`_module_16` are currently taken by
-  bk/las/mas — see STATE.md), and an entry in every registry of `lib/selection.sh`:
-  `MODULE_DESC` (mandatory: without it the module cannot be selected), `MODULE_NAME`,
-  `MODULE_RISK` and `MODULE_DRYRUN` (kept in lockstep by the tests), plus
-  `MODULE_IDS` for the `go` sequence. The menu rows are generated from the
-  registries; for the special modules also an alias in the `_resolve_selection` case
-  and a branch in the dispatch case of `brew_manager.sh`.
+  bk/las/mas — see STATE.md), and an entry in each per-id registry of
+  `lib/selection.sh`: `MODULE_DESC` (mandatory: without it the module cannot be
+  selected), `MODULE_NAME`, `MODULE_RISK` and `MODULE_DRYRUN` (kept in lockstep by
+  the tests); only if it must run in the `go` sequence, also in `MODULE_IDS`. The
+  rows of the numbered modules are rendered from the registries (`_menu_row` over
+  `MODULE_IDS`); the special modules are also named by hand in `lib/selection.sh`,
+  in the menu loop and in the dispatch case of `brew_manager.sh` — full list in
+  new-component.md.
 - **Code conventions**: internal functions prefixed with `_`; constants and shared
   state in UPPERCASE; TUI output only through the `lib/common.sh` utilities
   (`_section`, `_ok`, `_warn`, `_err`, `_info`, `_item`, `_stat_row`), plus
   `_about_risk` from `lib/selection.sh` for the About block; prompts ONLY
   through `_ask`/`_read_choice` (never a bare `read` for confirmations). Beware of zsh
-  arrays: they are 1-based (a source of off-by-one errors already present in the
-  code). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
+  arrays: they are 1-based (a source of off-by-one errors this code has already had;
+  the known ones are closed, STATE.md item 2). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
   `BREW_MANAGER_YES`** — it is the by-convention rule that prevents the most
   widespread class of defects that emerged from the assessment (see STATE.md).
   Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not

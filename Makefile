@@ -15,6 +15,7 @@ reset-task: ## Discard the interrupted half-done task, preserving branch and com
 
 test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
 	bash scripts/test-hooks-install.sh
+
 # ============================================================================
 # brew-manager-specific targets (zsh, no build).
 # ============================================================================

@@ -36,16 +36,23 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
      `tests/test_run_summary.zsh`) — the tests keep all four in lockstep with
      `MODULE_DESC`;
    - if it must run in the `go` sequence: add the number to `MODULE_IDS`;
-     `tests/test_menu_registry.zsh` pins the key set and the count, update it too;
-   - the menu rows are generated from the registries (`_menu_row`): no dedicated
-     printf;
-   - for the special modules only: an alias in the `_resolve_selection` case of
-     `lib/selection.sh`, the name in the `for tid in log bk las mas` menu loop, a
-     branch in the dispatch case of `brew_manager.sh` (alias → function) and in
-     its "Valid modules" error message.
+   - `tests/test_menu_registry.zsh` pins the `MODULE_DESC` key set (every module)
+     and the `MODULE_IDS` count (numbered modules): update it too;
+   - the rows of the numbered modules are rendered from the registries
+     (`_menu_row` over `MODULE_IDS`): no dedicated printf;
+   - the module lists written by hand: the "Valid modules" error of
+     `brew_manager.sh`, the `0→13` hint of the menu section and the "module ids
+     0-13" hint of `modules/mod_las_scheduler.sh`;
+   - for the special modules only: in `lib/selection.sh` a whole-token arm in the
+     `_resolve_selection` case AND the name in the lowercase-special checks of both
+     `_resolve_selection` (comma lists) and `_collect_module_tokens`
+     (`--only`/`--skip`); the name in the `for tid in log bk las mas` menu loop; a
+     branch in the dispatch case of `brew_manager.sh` (alias → function).
 5. Minimal verification:
    - `zsh -n` on every touched file;
-   - `make test` (the registry tests fail if step 4 is incomplete);
+   - `make test` (the registry tests fail if a registry entry of step 4 is missing;
+     the special-module wiring — resolver checks, menu loop, dispatch — is not
+     covered by tests, the smoke run below checks it);
    - smoke run `./brew_manager.sh --dry-run` selecting the new module: it must show
      up in the menu, start, and NOT perform mutating actions;
    - if the module is mutating: check that with the default answer to the prompts it
