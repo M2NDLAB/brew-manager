@@ -1,92 +1,89 @@
-# 03 — Security gate: review obbligatoria sui componenti sensibili
+# 03 — Security gate: mandatory review on sensitive components
 
-La sicurezza ha due livelli in questo framework:
+Security has two levels in this framework:
 
-1. **Baseline sempre attiva** — l'hook pre-commit esegue il secret scanning
-   (gitleaks) su ogni commit: nessun secret in chiaro entra nel repo (regola 1 di
-   `CLAUDE.md`). Vale per tutto, sempre, senza eccezioni. L'hook protegge i commit
-   dal momento in cui è installato: su un repo con storia PREESISTENTE (come questo,
-   innestato su un progetto già esistente) la baseline si COMPLETA con una scansione
-   one-off dell'intera storia — `gitleaks detect` — da eseguire una tantum (in
-   brew-manager è annotato come debito in `memory/STATE.md`, sezione «Attenzione /
-   problemi aperti»). I finding sulla storia sono decisioni dell'utente: un secret
-   già pushato va ruotato/revocato comunque; riscrivere la storia è un'altra cosa e
-   non si fa alla leggera.
-2. **Gate sui componenti sensibili** — una review di sicurezza manuale, dedicata,
-   PRIMA di portare in integrazione un componente critico. È l'oggetto di questo
-   documento.
+1. **An always-on baseline** — the pre-commit hook runs secret scanning (gitleaks)
+   on every commit: no secret in plaintext enters the repo (rule 1 of `CLAUDE.md`).
+   It holds for everything, always, without exceptions. The hook protects commits
+   from the moment it is installed: on a repo with PRE-EXISTING history (like this one,
+   grafted onto an already existing project) the baseline is COMPLETED by a one-off
+   scan of the whole history — `gitleaks detect` — to be run once (in brew-manager it
+   is recorded as debt in `memory/STATE.md`, section «Attenzione / problemi aperti»).
+   Findings on the history are the user's decisions: a secret that has already been
+   pushed must be rotated/revoked anyway; rewriting history is a different matter and
+   is not done lightly.
+2. **The gate on sensitive components** — a manual, dedicated security review BEFORE
+   taking a critical component into integration. That is what this document is about.
 
-## Cosa sono i "componenti sensibili"
+## What "sensitive components" are
 
-I componenti dove un difetto di sicurezza ha impatto sproporzionato: autenticazione/
-autorizzazione, gestione di pagamenti o denaro, dati personali, l'edge che fa
-enforcement (gateway/proxy), qualunque superficie che esegue azioni per conto di un
-client (es. un server di tool/automazione).
+The components where a security defect has disproportionate impact:
+authentication/authorisation, handling of payments or money, personal data, the edge
+that performs enforcement (gateway/proxy), any surface that performs actions on
+behalf of a client (e.g. a tool/automation server).
 
-> **Quali, in concreto, in questo progetto.** brew-manager non ha auth né pagamenti:
-> qui "sensibile" = raggio di impatto sul Mac reale dell'utente (file rimossi,
-> pacchetti installati/disinstallati, persistenza launchd). Ricadono nel gate:
+> **Which ones, concretely, in this project.** brew-manager has no auth and no
+> payments: here "sensitive" = blast radius on the user's real Mac (removed files,
+> packages installed/uninstalled, launchd persistence). These fall under the gate:
 >
-> - `modules/mod_00_audit.sh` — adozione app con `brew install --cask --adopt`
-> - `modules/mod_05_cleanup.sh` — `brew autoremove` + `brew cleanup -s` (rimozioni)
-> - `modules/mod_bk_brewfile.sh` — restore (installa pacchetti, scrive plist,
+> - `modules/mod_00_audit.sh` — app adoption with `brew install --cask --adopt`
+> - `modules/mod_05_cleanup.sh` — `brew autoremove` + `brew cleanup -s` (removals)
+> - `modules/mod_bk_brewfile.sh` — restore (installs packages, writes plists,
 >   `launchctl load`)
-> - `modules/mod_las_scheduler.sh` — persistenza LaunchAgent in `~/Library/LaunchAgents`
-> - `brew_manager.sh` — dispatch, parsing input, esecuzione con `--yes`
-> - `lib/common.sh` — infrastruttura condivisa dei guard-rail (`_ask`, `_read_choice`,
->   YES_MODE, DRY_RUN): un difetto qui si propaga a TUTTI i moduli
+> - `modules/mod_las_scheduler.sh` — LaunchAgent persistence in `~/Library/LaunchAgents`
+> - `brew_manager.sh` — dispatch, input parsing, execution with `--yes`
+> - `lib/common.sh` — shared guard-rail infrastructure (`_ask`, `_read_choice`,
+>   YES_MODE, DRY_RUN): a defect here propagates to ALL modules
 >
-> A rischio medio, fuori dal gate ma da trattare con attenzione (preview + conferme):
-> `mod_04_updates`, `mod_10_greedy`, `mod_mas_mas` (upgrade globali / install mas).
+> Medium risk, outside the gate but to be handled with care (preview + confirmations):
+> `mod_04_updates`, `mod_10_greedy`, `mod_mas_mas` (global upgrades / mas install).
 
-## La meccanica del gate
+## How the gate works
 
-Oltre alla Definition of Done (`02-code-quality.md`), PRIMA della richiesta di merge
-(PR) verso il branch di integrazione di un componente sensibile:
+On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
+(PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** eseguita sul diff del branch.
-2. Finding **HIGH/CRITICAL → RISOLTI** prima della PR. Non negoziabile.
-3. Finding **MEDIUM → risolti**, oppure **accettati esplicitamente** come debito noto
-   in `memory/STATE.md`, con il motivo dell'accettazione.
-4. Finding **LOW/INFO → almeno registrati** (debito o backlog).
+1. **`/security-review`** run on the branch diff.
+2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
+3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
+   `memory/STATE.md`, with the reason for accepting them.
+4. **LOW/INFO findings → at least recorded** (debt or backlog).
 
-Il gate è un GATE, non un'attività opzionale: un componente "completato" e con i test
-funzionali verdi può comunque avere difetti di sicurezza invisibili ai test (un
-bypass di un controllo, uno spoofing, un endpoint amministrativo esposto). Solo una
-review dedicata li trova prima che finiscano in integrazione.
+The gate is a GATE, not an optional activity: a component that is "complete" and has
+green functional tests can still carry security defects the tests cannot see (a
+bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
+finds them before they reach integration.
 
-## Quando la review deve essere adversariale (autore ≠ giudice)
+## When the review must be adversarial (author ≠ judge)
 
-Il criterio non è la severità nominale ma il **raggio di propagazione** del difetto:
+The criterion is not nominal severity but the **blast radius** of the defect:
 
-- **Adversariale** — chi verifica NON è chi ha scritto (un secondo agente, una
-  seconda persona, o un secondo passaggio con mandato esplicito di REFUTARE): per il
-  codice di sicurezza in moduli CONDIVISI, dove un difetto si propaga a più
-  consumer. L'autore che rilegge il proprio lavoro tende a rileggere le proprie
-  assunzioni.
-- **Autore-che-verifica** — sufficiente (e l'adversariale è overhead): per
-  ricognizioni fattuali e fix locali ispezionabili, con raggio di propagazione
-  nullo.
+- **Adversarial** — the verifier is NOT the author (a second agent, a second person,
+  or a second pass with an explicit mandate to REFUTE): for security code in SHARED
+  modules, where a defect propagates to several consumers. An author re-reading their
+  own work tends to re-read their own assumptions.
+- **Author-verifies** — sufficient (and adversarial review is overhead): for factual
+  reconnaissance and inspectable local fixes, with zero blast radius.
 
-**Prima di agire sui finding.** In una review multi-agente — specie dopo
-interruzioni o resume — verifica la COMPLETEZZA dai numeri giusti: la fonte
-autoritativa è la SINTESI della review, non i conteggi grezzi di un journal di
-esecuzione (che i retry possono gonfiare). Prima si riconcilia il conteggio, poi si
-agisce sui finding.
+**Before acting on the findings.** In a multi-agent review — especially after
+interruptions or resumes — check COMPLETENESS against the right numbers: the
+authoritative source is the review's SYNTHESIS, not the raw counts of an execution
+journal (which retries can inflate). First reconcile the count, then act on the
+findings.
 
-## Prevenzione *by-convention*
+## Prevention *by convention*
 
-Il gate trova i difetti; le convenzioni li prevengono. Dove un'intera classe di
-errori è evitabile con una regola (es. "gli endpoint di management/diagnostica non si
-espongono mai sulla superficie pubblica", "ogni endpoint mutativo passa per il
-controllo di autorizzazione"), scrivi la convenzione nelle regole tecniche del
-progetto invece di affidarti alla review caso per caso.
+The gate finds defects; conventions prevent them. Where a whole class of errors can
+be avoided with a rule (e.g. "management/diagnostics endpoints are never exposed on
+the public surface", "every mutating endpoint goes through the authorisation check"),
+write the convention into the project's technical rules instead of relying on a
+case-by-case review.
 
-## Dopo la review
+## After the review
 
-- Le decisioni di accettazione del debito vanno in `STATE.md` (sezione *Attenzione /
-  problemi aperti*), col motivo.
-- Se la review insegna qualcosa sul **processo** (es. un componente che mancava
-  dall'elenco dei sensibili, una convenzione assente), diventa una proposta IMP in
-  `LEARNINGS.md` — vedi `06-self-improvement.md`. Le lezioni delle review sono tra le
-  fonti migliori di miglioramento.
+- The decisions to accept debt go into `STATE.md` (section *Caution & open issues*),
+  with the reason.
+- If the review teaches something about the **process** (e.g. a component missing
+  from the list of sensitive ones, an absent convention), it becomes an IMP proposal
+  in `LEARNINGS.md` — see `06-self-improvement.md`. Review lessons are among the best
+  sources of improvement.

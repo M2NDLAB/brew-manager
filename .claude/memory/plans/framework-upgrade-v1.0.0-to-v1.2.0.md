@@ -62,7 +62,7 @@ change, no tag.
 - [x] 3. `settings.json` (3-way, hook fallback pruned) + `reset-task.sh` (3-way, `main dev`) — commit: 5ca991a
 - [x] 4. Makefile (process part = v1.2.0, product section Level 1 in EN, recipes identical) — commit: 91cd45d
 - [x] 5. CLAUDE.md rebuild (rule 9, language slot + prospective bullet, D1 title map) + the checkpoint-step-3 functional check — commit: 0fbddb3
-- [ ] 6. docs/00, 01, 02 rebuild — commit: —
+- [x] 6. docs/00, 01, 02 rebuild — commit: 499213d
 - [ ] 7. docs/03, 04 rebuild (public contract preserved) — commit: —
 - [ ] 8. docs/06 rebuild — commit: —
 - [ ] 9. commands: checkpoint, harvest-framework, lint-memory, new-component rebuild — commit: —
