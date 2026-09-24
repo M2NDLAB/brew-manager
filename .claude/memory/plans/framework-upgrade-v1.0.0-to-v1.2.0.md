@@ -3,7 +3,7 @@ type: plan
 prompt: framework-upgrade-v1.0.0-to-v1.2.0
 branch: chore/framework-upgrade-v1.0.0-to-v1.2.0
 created: 2026-09-24
-status: in-progress
+status: completed
 tags: [plan, framework, upgrade, process, language]
 ---
 # Plan: upgrade the grafted claude-code-framework v1.0.0 → v1.2.0
@@ -69,7 +69,7 @@ change, no tag.
 - [x] 10. M1 `docs(memory)`: sessions/decisions/components/plans guide READMEs → v1.2.0 — commit: 452632c
 - [x] 11. M2 `docs(memory)`: LEARNINGS header template lines + IMP format comment → v1.2.0 — commit: d13a632
 - [x] 12. Level-1 correction of the stale claims (CLAUDE.md, new-component, docs/02, docs/04) — commit: e8ae4ce
-- [ ] 13. Provenance pin → v1.2.0 (Step 6) — commit: —
+- [x] 13. Provenance pin → v1.2.0 (Step 6) — commit: 7e78453
 
 Closing (no `[task N/T]`): Step 4 hooks + functional proof · Step 5 verification (DoD
 greps, IMP-043 old/new title grep, invariant V1–V7, `make check`, `make test`,
@@ -84,6 +84,10 @@ Everything else untouched; no backfill of `model`/`turns`. Verified end-to-end b
 writing (positive run all ok; 8 negative branches all caught).
 
 ## Resumption notes
+- COMPLETED 2026-09-24. Closing done: translation-fidelity review (no high finding; fixes
+  in `3a4fe9b`), Step 4 hooks + real proof, Step 5 (268 tests, IMP-043 check, invariant
+  V1–V7), /retro (IMP-012…022), /checkpoint. Awaiting the user's integration, no tag.
+  → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]].
 - Session scratchpad (same session only):
   `/private/tmp/claude-501/-Users-seco-Projects-brew-manager/a22fe5fb-b1da-4da4-b9bc-c7873b0c7fa5/scratchpad/`
   — `verify-invariant.sh` (V1–V7), `stage/` (M1/M2 files), `sections/` (the FASE 1

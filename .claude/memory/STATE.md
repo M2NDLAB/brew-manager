@@ -1,14 +1,14 @@
 ---
 type: state
-updated: 2026-07-23
-branch: chore/checkpoint-post-v1.4.0
+updated: 2026-09-24
+branch: chore/framework-upgrade-v1.0.0-to-v1.2.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Aggiornato: 2026-07-23 | Ultimo: **release v1.4.0 RILASCIATA** — merge `ab45323` in main, tag **annotato** `v1.4.0` (oggetto `d4901b3` → commit `ab45323`) creato e pushato; `main == origin/main`; `make version-check` verde; branch `chore/release-v1.4.0` eliminato. Merge/tag/push eseguiti dall'utente. Impacchetta tutta **M3** (TUI: BM-09→BM-12) + il **micro-task `--dry-run` mod_02/mas**; bump **MINOR** (13 `feat` nel set `v1.3.0..main`). CHANGELOG `[Unreleased]` ora vuota. Debito dry-run **#15/#16** (`bk [4]`/`las [c]` non gatati, `⚠ ran anyway`) rilasciato come **Known limitation dichiarata** (decisione utente: rilascia ora, onesto e pre-esistente) → hardening successivo. Questo checkpoint (post-release, solo memoria) su `chore/checkpoint-post-v1.4.0`, da integrare. | Indice: [[INDEX]]
+> Updated: 2026-09-24 | Last: **framework upgrade v1.0.0 → v1.2.0** on `chore/framework-upgrade-v1.0.0-to-v1.2.0` — plan + 13 task commits + closing, process only, **no tag**, **awaiting the user's integration**. The method is now in English (rule 9: artifacts English, interaction Italian; the Italian memory is kept, headings frozen and mapped in CLAUDE.md — [[decisions/2026-09-24-language-rule-prospective]]); new session notes carry `model`/`turns`. Memory touched only as the declared exception (guide READMEs + LEARNINGS format; invariant V1–V7 green); 268 tests green. New priority debt: Caution #18 (`_module_14` collision, M4 prerequisite). → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] | Index: [[INDEX]]
 
-> **Storico precedente**: micro-task `--dry-run` mod_02 + mas (2026-07-21, strada B decisa dall'utente dopo BM-12) — `brew update` (mod_02) e `brew install mas` dietro il gate, che precede la conferma → `--dry-run` batte `--yes`. Gate a 2 lenti: **0 finding sul codice nuovo** ma **affermazione globale del branch REFUTATA** (aveva portato `MODULE_DRYRUN` tutto a 1, ATTESTANDO 4 difetti pre-esistenti: auto-update implicito di Homebrew HIGH, `bk [4]` MEDIUM, `las [c]` MEDIUM, `mkdir` LOW). Via di mezzo utente: `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (chiude l'HIGH auto-update per tutti i moduli) + `[bk]=0`/`[las]=0` dichiarati onestamente (#15/#16) + allow-list bidirezionale al posto dell'invariante tautologica. **268 test verdi**. **INTEGRATO in main** (merge `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
+> **Previous**: release v1.4.0 (2026-07-23) — merge `ab45323` into main, annotated tag `v1.4.0` (object `d4901b3`), pushed by the user; it packages M3 (BM-09→12) and the dry-run micro-task; debt #15/#16 shipped as a declared Known limitation. → [[sessions/2026-07-23-release-v1.4.0]].
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -163,6 +163,16 @@ tags: [state]
   compilato in docs/04 (moduli CONGELATI, decisione utente); invariante memoria VUOTA;
   132 test verdi. **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag").
   → [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]].
+- [x] **Framework upgrade v1.0.0 → v1.2.0** (2026-09-24, out of roadmap, process only;
+  the THIRD upgrade of the graft, a jump decided mid-way: a v1.1.0 assessment was
+  superseded before any file was touched). FASE 1 read-only multi-agent assessment →
+  user decisions D1–D14 → FASE 2 on `chore/framework-upgrade-v1.0.0-to-v1.2.0`:
+  13 task commits, hooks reinstalled and proven (gitleaks blocks, commitlint rejects),
+  translation fidelity reviewed adversarially. Stale claims corrected in a separate
+  Level-1 commit; security gate not applicable (verdict in the note). 268 tests green.
+  **Awaiting the user's integration** (no tag). →
+  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
+  [[plans/framework-upgrade-v1.0.0-to-v1.2.0]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -203,15 +213,19 @@ tags: [state]
   `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
   las, log, mas. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
   [[mod-bk-brewfile]], [[mod-las-scheduler]].
-- Framework di processo `.claude/` (docs, commands, memoria), CLAUDE.md, Makefile,
-  hook git (gitleaks + commitlint), CHANGELOG.md. **Metodo aggiornato a framework
-  v1.0.0** (da v0.5.1): `docs/04` con il criterio del MAJOR + il **contratto pubblico
-  di brew-manager** (flag/selezione/exit-code/plist + **moduli congelati**),
-  `/lint-memory` +controllo 11 "inventari vs realtà", `make test-scripts` nei Comandi
-  rapidi. Provenance pin `.claude/framework-version` (retrofit, FUORI da memory/, baseline
-  certa dei prossimi upgrade). Storia: [[sessions/2026-07-11-innesto-note]] (innesto
-  v0.2.0), [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
-  [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0).
+- The `.claude/` process framework (docs, commands, memory), CLAUDE.md, Makefile, git
+  hooks (gitleaks + commitlint), CHANGELOG.md. **Method at framework v1.2.0** (from
+  v1.0.0, 2026-09-24): the whole method in English (rule 9), interaction in Italian,
+  the Italian memory headings frozen and mapped in the CLAUDE.md technical rules (D1);
+  /checkpoint writes `model`/`turns` into session notes; IMP format
+  `Origin: [[<session note>]] — <problem>`; `docs/04` keeps brew's public contract
+  (flags, selection grammar, frozen module ids, exit codes 0/1/2, plist format); hooks
+  carry the English marker (the Italian one is accepted as legacy). Provenance pin
+  `.claude/framework-version` at 1.2.0 / `7d6a9f7`, outside memory/. History:
+  [[sessions/2026-07-11-innesto-note]] (graft v0.2.0),
+  [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
+  [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0),
+  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0).
 - Test: `tests/` (zsh puro, zero-dip, `make test`, **268 check** con anti-vacuità):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
@@ -246,8 +260,14 @@ tags: [state]
   `brew_manager.sh` + `lib/common.sh` → [[2026-07-12-componenti-sensibili]].
 - commitlint mantenuto benché il progetto non usi Node (npx risolve al volo, zero
   footprint nel repo); formattazione hook lasciata commentata (shfmt non installato).
-- Lingua: doc di progetto (README, SECURITY) in inglese; framework e memoria in
-  italiano.
+- Language (since the framework v1.2.0 upgrade, 2026-09-24): artifacts in English
+  (rule 9), interaction in Italian; the memory written in Italian before the upgrade is
+  not translated (per-entry policy for the living files); STATE/LEARNINGS headings are
+  frozen identifiers, mapped in CLAUDE.md →
+  [[decisions/2026-09-24-language-rule-prospective]].
+- `.gitignore`: the template's `*.log` pattern was omitted on purpose at the graft —
+  brew's logs are already ignored through `logs/` and `brew_report_*.log` (user
+  decision D10, 2026-09-24). It is not debt.
 - README non modificato all'innesto: la nota "gestito con Claude Code" resta
   un'opzione aperta (proposta in Contributing o footer).
 - SLA di risposta (72h/7gg) RIMOSSI da SECURITY.md dall'utente a mano (commit
@@ -278,6 +298,13 @@ tags: [state]
   la sezione moduli descrive il resolver reale). Chiuse.
 - ~~`BREW_MANAGER_VERSION="1.1.0"` vs tag v1.1.2~~ **RISOLTO** in BM-07 (file
   VERSION + `make version-check`).
+- **README vs code after BM-12** (found by the upgrade assessment, 2026-09-24; out of
+  the upgrade's scope, future `docs/readme-*` branch — decision D2): "Adding a new
+  module" says "three entries, one per registry", but `MODULE_DRYRUN` is a fourth
+  mandatory one (`tests/test_run_summary.zsh`), and it omits the key-set pin of
+  `tests/test_menu_registry.zsh`; "Project structure" omits `lib/selection.sh` and
+  `tests/`. → TRIGGER: next README task, at the latest M4 (a new module would follow
+  the README).
 
 ## Attenzione / problemi aperti
 1. ~~**CLI posizionale + plist scheduler**~~ **CHIUSO (M2, BM-08b+BM-08c)**: il
@@ -447,18 +474,55 @@ tags: [state]
   le tre `Destinazione: framework`, origine gate del micro-task dry-run
   2026-07-21) APERTE, propose-only, in attesa di decisione (retro periodica o su
   richiesta).
+18. **`_module_14` collision: the next numbered module would be shadowed by bk**
+   (latent defect found by the upgrade assessment, 2026-09-24 — **PRIORITY debt and a
+   PREREQUISITE of M4**, user decision D2): bk/las/mas are defined as
+   `_module_14`/`_module_15`/`_module_16` (`mod_bk_brewfile.sh:9`,
+   `mod_las_scheduler.sh:9`, `mod_mas_mas.sh:8`) and the dispatch maps them
+   (`brew_manager.sh:458-461`). The frozen-identifier contract (docs/04) makes 14 the
+   next numbered module, but the alphabetical glob (`brew_manager.sh:241`) sources
+   `mod_bk_*` after `mod_14_*`, so bk's `_module_14` wins: selecting `14` — or `go`,
+   or a LaunchAgent — would run bk (`danger`). Shadowing reproduced in a sandbox; the
+   end-to-end effect is plausible, not run. new-component.md and CLAUDE.md now warn
+   about it. The fix touches sensitive components (dispatch + bk/las/mas) → its own
+   task and the security gate. → TRIGGER: before any new numbered module (M4).
+19. **`lib/selection.sh` missing from the sensitive components** (MEDIUM, process):
+   "What exists" and [[lib-selection]] call it sensitive, and the input parsing that
+   docs/03 attributes to `brew_manager.sh` moved there, but rule 8, docs/03, docs/00
+   and [[2026-07-12-componenti-sensibili]] do not list it: a branch touching only it
+   would skip the gate. Proposed as IMP-022 (Level 2). → TRIGGER: user decision, at
+   the latest before the next change to `lib/selection.sh`.
+20. **`.gitignore` lacks three template patterns** (LOW, out of the upgrade's scope,
+   D10): `.vault-token` and `vault-keys.json` (the template's secrets block) and
+   `*.iml` were never added at the graft; nothing of the kind is tracked
+   (`git ls-files` empty). `*.log` is not debt (see Decisions). → TRIGGER: next
+   change to `.gitignore`, or a vault/JetBrains tool entering the workflow.
+- [[LEARNINGS]] (retro of the upgrade, 2026-09-24; OPEN, propose-only): **IMP-012**
+  hooks-install vs linked worktrees; **IMP-013** the edge-case-4 rollback needs
+  `FORCE_OVERWRITE=1`; **IMP-014** docs/05 delimiters without the promised legacy
+  reader; **IMP-015** new slots invisible to the Step 4 grep; **IMP-016** a translation
+  release vs name-cited section titles; **IMP-017** a written gate verdict for upgrades
+  touching the baseline; **IMP-018** read the framework only via its tag, with `-C`;
+  **IMP-019** `wip:` rejected by commitlint; **IMP-020** content-based memory
+  invariant checks; **IMP-021** delegation briefs quote the user's decisions
+  verbatim — all `Destination: framework`; **IMP-022** `lib/selection.sh` among the
+  sensitive components (project).
 
 ## Branch attivi
-- **main** = integrazione + stabile (trunk-based); HEAD `ab45323` (merge di
-  release v1.4.0; sotto: checkpoint `8006ea7`, bump `6bbb21f`, merge micro-task
-  dry-run `dc47ae4`), allineato a `origin/main`; tag **`v1.4.0`** (annotato,
-  pushato, oggetto `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotati) +
-  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`: vuota (consolidata sotto
-  `[1.4.0]` col merge). `make version-check` verde.
-- **chore/checkpoint-post-v1.4.0** (questo checkpoint, post-release, solo memoria)
-  = STATE "RILASCIATA" + nota di sessione con gli SHA del merge/tag. **PRONTO per
-  integrazione dell'utente** (blocco `/integrate`, bump "nessun tag": solo `chore`
-  di memoria).
+- **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) = plan
+  + 13 task commits + a review-fix commit (`3a4fe9b`) + this checkpoint, in the main
+  worktree. **READY for the user's
+  integration** (`/integrate` block, no tag). The git hooks were already reinstalled
+  from this branch (English marker): if the branch is abandoned, restore them from
+  `main` with `FORCE_OVERWRITE=1 make hooks-install` (the old script does not
+  recognise the English marker and stops with rc=1).
+- **main** = integration + stable (trunk-based); HEAD `e7c3a56` (merge of the
+  post-v1.4.0 checkpoint; below it the release merge `ab45323`), aligned with
+  `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` → `ab45323`) + `v1.3.0`
+  + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`:
+  empty. `make version-check` green.
+- **chore/checkpoint-post-v1.4.0** (post-release memory checkpoint) = **INTEGRATED into
+  main** (merge `e7c3a56`), branch deleted.
 - **chore/release-v1.4.0** (release) = **INTEGRATO in main** (merge `ab45323`,
   tag annotato `v1.4.0`), branch eliminato.
 - **fix/dryrun-mod02-mas** (micro-task dry-run) = **INTEGRATO in main** (merge

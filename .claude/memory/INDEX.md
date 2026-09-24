@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-07-23
+updated: 2026-09-24
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -137,6 +137,11 @@ tags: [moc]
   reale; **decisione utente: rilascia ORA col debito dichiarato** (scartate le
   opzioni "chiudi prima"). Bump MINOR; 268 test. **RILASCIATA** (merge `ab45323`,
   tag annotato `v1.4.0` → `ab45323`; version-check verde)
+- [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — framework upgrade
+  v1.0.0 → v1.2.0 (third upgrade; the method goes English, model/turns in session
+  notes): FASE 1 multi-agent assessment, decisions D1–D14, 13 task commits, memory
+  invariant V1–V7, hooks proven, retro IMP-012…022. The first note in English and
+  with model/turns. Awaiting integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -150,6 +155,9 @@ tags: [moc]
   contratto ad array globale (non stdout), return 0/1, harness zsh (no bats)
 - [[2026-07-17-consent-vs-noninteractive]] — BM-08c: NON_INTERACTIVE (anti-blocco)
   separato da YES_MODE (solo --yes); "non c'è tty" ≠ consenso
+- [[2026-09-24-language-rule-prospective]] — rule 9 adopted: English artifacts from
+  the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept, memory
+  headings frozen and mapped in CLAUDE.md
 
 ## Piani
 - [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
@@ -161,3 +169,5 @@ tags: [moc]
   dichiarato. Fuori roadmap integrati: upgrade framework → v1.0.0. Prossimo:
   hardening #15/#16 (sensibili) o M4.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
+- [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
+  v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
