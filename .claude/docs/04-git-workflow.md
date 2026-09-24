@@ -1,271 +1,272 @@
-# 04 — Git workflow: commit, branch, merge, rollback
+# 04 — Git workflow: commits, branches, merges, rollback
 
-Regole PERMANENTI. Claude Code le applica in autonomia dove indicato e chiede
-conferma dove indicato.
+PERMANENT rules. Claude Code applies them autonomously where indicated and asks for
+confirmation where indicated.
 
-## Modello di branching
+## Branching model
 
-> **Convenzione di lettura — i nomi dei branch in QUESTO progetto.** In
-> questo doc e nei comandi, **branch di integrazione** (dove confluiscono le feature) e
-> **branch stabile** (le versioni rilasciate) sono RUOLI, non nomi imposti.
-> **brew-manager è trunk-based su `main`: i due ruoli COINCIDONO** — "merge sul
-> branch di integrazione" e "release sul branch stabile" si riferiscono entrambi a
-> `main`. Esiste un `origin/dev` remoto, dormiente e allineato a `main` al momento
-> dell'innesto: non è il branch di integrazione (decisione registrata in
-> `.claude/memory/decisions/`). Dove qui sotto si legge `develop`, in questo
-> progetto vale `main`.
+> **Reading convention — the branch names in THIS project.** In this doc and in the
+> commands, **integration branch** (where features converge) and **stable branch**
+> (the released versions) are ROLES, not imposed names. **brew-manager is trunk-based
+> on `main`: the two roles COINCIDE** — "merge onto the integration branch" and
+> "release on the stable branch" both refer to `main`. A remote `origin/dev` exists,
+> dormant and aligned with `main` at the time of the graft: it is not the integration
+> branch (decision recorded in `.claude/memory/decisions/`). Wherever `develop` appears
+> below, in this project read `main`.
 
-Modello di DEFAULT (a due branch), come esempio concreto:
-- `main` = branch stabile/produzione. Solo merge dal branch di integrazione via
-  release, mai commit diretti.
-- `develop` = branch di integrazione/staging. Solo merge di feature branch,
-  eseguiti da un umano (vedi *Merge*: via PR o via blocco `/integrate`).
-- `feat/<area>-<descrizione>` = una feature, vita breve (giorni, non settimane).
-- `fix/<area>-<descrizione>` per bugfix; `hotfix/<descrizione>` dal branch stabile (e
-  ri-merge nel branch di integrazione subito dopo).
-- Claude Code crea SEMPRE un branch prima di iniziare una feature o una modifica
-  significativa — mai lavorare direttamente sul branch di integrazione.
+The DEFAULT model (two branches), as a concrete example:
+- `main` = stable/production branch. Only merges from the integration branch via a
+  release, never direct commits.
+- `develop` = integration/staging branch. Only merges of feature branches, performed
+  by a human (see *Merge*: via PR or via the `/integrate` block).
+- `feat/<area>-<description>` = one feature, short-lived (days, not weeks).
+- `fix/<area>-<description>` for bugfixes; `hotfix/<description>` from the stable
+  branch (and re-merged into the integration branch right after).
+- Claude Code ALWAYS creates a branch before starting a feature or a significant
+  change — never work directly on the integration branch.
 
-## QUANDO committare (i punti importanti)
+## WHEN to commit (the points that matter)
 
-Commit = checkpoint logico autoconsistente che compila e passa i test. Si committa:
-1. PRIMA di ogni cambiamento rischioso o refactor ampio (checkpoint di sicurezza per
-   il rollback).
-2. Quando una unità funzionante è completa (una migrazione + il modello, un endpoint
-   con i suoi test, un componente UI funzionante).
-3. Alla fine di ogni task di un piano (vedi `01-task-planning.md`).
-4. SEMPRE prima di chiudere una sessione, anche se il lavoro è parziale (commit con
-   prefisso `wip:` SOLO su feature branch — mai `wip` su `develop`).
+A commit = a self-consistent logical checkpoint that builds and passes the tests. You
+commit:
+1. BEFORE every risky change or wide refactor (a safety checkpoint for rollback).
+2. When a working unit is complete (a migration + its model, an endpoint with its
+   tests, a working UI component).
+3. At the end of every task of a plan (see `01-task-planning.md`).
+4. ALWAYS before closing a session, even if the work is partial (a commit prefixed
+   `wip:` ONLY on a feature branch — never `wip` on `develop`).
 
-MAI committare: codice che non compila su `develop`/`main`; file di ambiente o
-secret (gitleaks blocca, ma non contarci come unica difesa); artefatti di build e
-dipendenze installate.
+NEVER commit: code that does not build on `develop`/`main`; environment or secret
+files (gitleaks blocks them, but do not rely on it as the only defence); build
+artifacts and installed dependencies.
 
-## Formato commit — Conventional Commits
+## Commit format — Conventional Commits
 
-`<tipo>(<scope>): <descrizione imperativa minuscola>`
+`<type>(<scope>): <imperative lowercase description>`
 
-Tipi: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`.
-Scope = nome del componente o area. Body (obbligatorio se il cambiamento non è
-ovvio): il PERCHÉ del cambiamento, non il cosa (il cosa è nel diff). Footer per i
-riferimenti (`Refs: #issue`, o un rimando alla decisione/ADR registrata).
+Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`.
+Scope = the name of the component or area. Body (mandatory if the change is not
+obvious): the WHY of the change, not the what (the what is in the diff). Footer for
+references (`Refs: #issue`, or a pointer to the recorded decision/ADR).
 
-Esempio:
+Example:
 ```
-feat(<area>): aggiungi step di compensazione al flusso X
+feat(<area>): add a compensation step to flow X
 
-Il flusso lasciava una risorsa bloccata quando il passo Y andava in timeout.
-Aggiunto uno step di compensazione idempotente.
+The flow left a resource locked when step Y timed out.
+Added an idempotent compensation step.
 Refs: #123
 ```
 
-Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
+The format is checked by the `commit-msg` hook (commitlint) and defined in
 `commitlint.config.cjs`.
 
-**Storia condivisa = per sempre.** Nei messaggi destinati alla storia condivisa
-(commit, merge, tag) nessun riferimento a istanze ESTERNE al progetto — nomi di
-altri progetti, clienti, ambienti privati: la storia pushata non si riscrive, e in
-un repo-template un nome concreto vi resta per sempre, violando l'agnosticità.
+**Shared history = forever.** In messages destined for the shared history (commits,
+merges, tags) there must be no reference to instances EXTERNAL to the project — names
+of other projects, clients, private environments: pushed history is not rewritten,
+and in a template repo a concrete name stays there forever, breaking agnosticism.
 
 ## Merge
 
-- Feature → `develop`: il merge è SEMPRE un'azione umana, mai eseguita da Claude
-  Code, in una di due forme — questo progetto adotta il **blocco `/integrate`**
-  (sviluppatore singolo, trunk-based su `main`):
-  - **via Pull Request** quando esiste un flusso di review remoto (team, forge con
-    review obbligatoria);
-  - **via blocco `/integrate`** (merge locale `--no-ff` che l'UTENTE incolla ed
-    esegue) nel flusso a sviluppatore singolo, dove una PR verso se stessi non
-    aggiunge controllo.
-  In entrambe le forme, prima del merge: rebase su `develop`
-  (`git fetch && git rebase origin/develop`) per risolvere i conflitti nel branch,
-  non nel merge.
-- Strategia: squash merge per feature piccole (storia pulita), merge commit per
-  feature grandi dove la storia interna dei commit ha valore. Mai fast-forward su
-  `develop` (si perde la traccia del branch).
-- Messaggio del merge commit: `merge:` NON è un tipo valido per commitlint. Per un
-  merge esplicito (`--no-ff`) usa un tipo valido con "merge" nella descrizione, es.
-  `feat(<area>): merge <feature> in develop`. I merge auto-generati da git ("Merge
-  branch …") commitlint li ignora di default, ma preferiamo il messaggio conventional
-  esplicito.
-- `develop` → `main`: solo come merge di release, nella stessa forma scelta sopra
-  (PR di release, o variante release del blocco `/integrate`). Il tag di versione
-  segue la sezione *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0`
-  in poi su `main`, dopo il merge di release).
+- Feature → `develop`: the merge is ALWAYS a human action, never performed by Claude
+  Code, in one of two forms — this project adopts the **`/integrate` block**
+  (single developer, trunk-based on `main`):
+  - **via Pull Request** when a remote review flow exists (a team, a forge with
+    mandatory review);
+  - **via the `/integrate` block** (a local `--no-ff` merge that the USER pastes and
+    runs) in the single-developer flow, where a PR to yourself adds no control.
+  In both forms, before the merge: rebase onto `develop`
+  (`git fetch && git rebase origin/develop`) to resolve conflicts in the branch, not
+  in the merge.
+- Strategy: squash merge for small features (a clean history), a merge commit for
+  large features where the internal commit history has value. Never fast-forward onto
+  `develop` (the trace of the branch would be lost).
+- Merge commit message: `merge:` is NOT a valid type for commitlint. For an explicit
+  merge (`--no-ff`) use a valid type with "merge" in the description, e.g.
+  `feat(<area>): merge <feature> into develop`. Merges auto-generated by git ("Merge
+  branch …") are ignored by commitlint by default, but we prefer the explicit
+  conventional message.
+- `develop` → `main`: only as a release merge, in the same form chosen above (a
+  release PR, or the release variant of the `/integrate` block). The version tag
+  follows the *Versioning* section below (in 0.x you tag on `develop`; from `1.0.0`
+  onwards on `main`, after the release merge).
 
-Conflitti: Claude Code li risolve solo se banali (import, formattazione); se toccano
-logica, si FERMA e chiede all'utente mostrando le due versioni.
+Conflicts: Claude Code resolves them only if they are trivial (imports, formatting);
+if they touch logic, it STOPS and asks the user, showing both versions.
 
-## Versioning — SemVer su tag annotati
+## Versioning — SemVer on annotated tags
 
-Le versioni sono **tag git annotati** (`git tag -a vX.Y.Z -m "..."`), mai tag
-leggeri: un tag annotato porta autore, data e messaggio. (Precisione sul razionale:
-`git describe` SENZA `--tags` considera i soli tag annotati; il blocco di
-`/integrate` usa `git describe --tags`, che accetta anche i tag leggeri — per
-esempio ereditati da un innesto su un repo esistente — e per questo VERIFICA che
-la base sia un tag SemVer sano prima di calcolare il bump.) Formato SemVer `vX.Y.Z`.
+Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
+tags: an annotated tag carries author, date and message. (A precision about the
+rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
+`/integrate` block uses `git describe --tags`, which also accepts lightweight tags —
+inherited, for instance, from a graft onto an existing repo — and for that reason it
+VERIFIES that the base is a sane SemVer tag before computing the bump.) SemVer format
+`vX.Y.Z`.
 
-**Il tipo di conventional commit suggerisce il bump** (la decisione finale resta
-dell'utente — vedi "Tag e release"):
+**The conventional commit type suggests the bump** (the final decision stays with the
+user — see "Tags and releases"):
 
-| Commit                                                          | Bump        |
-| --------------------------------------------------------------- | ----------- |
-| `feat`                                                          | MINOR       |
-| `fix` (incluse le correzioni di sicurezza)                      | PATCH       |
-| breaking change (`tipo!` o footer `BREAKING CHANGE:`)           | MAJOR       |
-| `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore`, sola doc/memoria | **nessun tag** |
+| Commit                                                                   | Bump       |
+| ------------------------------------------------------------------------ | ---------- |
+| `feat`                                                                   | MINOR      |
+| `fix` (including security fixes)                                         | PATCH      |
+| breaking change (`type!` or a `BREAKING CHANGE:` footer)                 | MAJOR      |
+| `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore`, docs/memory only   | **no tag** |
 
-Per un deliverable che raccoglie più commit, il bump è il **più alto** tra quelli dei
-commit inclusi (un solo `feat` tra tanti `chore` → MINOR; nessun `feat`/`fix` →
-nessun tag, è lavoro interno, non un rilascio).
+For a deliverable that gathers several commits, the bump is the **highest** among
+those of the included commits (a single `feat` among many `chore`s → MINOR; no
+`feat`/`fix` → no tag, it is internal work, not a release).
 
-**Cosa è un «breaking change» — il criterio del MAJOR.** SemVer parla di compatibilità
-del *contratto pubblico* del progetto: è breaking ogni modifica che costringe un
-consumatore ad adattarsi per adottare la nuova versione. brew-manager è un progetto **di
-codice**: il suo contratto pubblico — ciò che una release promette di NON rompere senza un
-MAJOR — è l'insieme di queste superfici:
-- **Flag CLI** — nomi e semantica di `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`,
-  `--upgrade=y|n`, `--only=`, `--skip=`, `--version|-V`: rimuoverne uno, rinominarlo o
-  cambiarne il significato è MAJOR;
-- **Grammatica di selezione** — il posizionale `[modules]` (lista di id, oppure `go`) più
-  `--only`/`--skip`: cambiarne il formato in modo incompatibile è MAJOR;
-- **Identificatori di modulo** — i NUMERI (`0`–`13`), la keyword `go` e i NOMI speciali
-  (`bk`/`las`/`log`/`mas`) sono CONGELATI: rinumerare, riassegnare un numero a un modulo
-  diverso o rinominare è MAJOR; i moduli nuovi si APPENDONO (numeri/nomi nuovi), mai
-  riorganizzando quelli esistenti. Motivo concreto: i numeri sono persistiti nei plist dei
-  LaunchAgent sui Mac degli utenti (`modules=3,5`), e riassegnarli cambierebbe in silenzio
-  ciò che un agente già installato esegue;
-- **Contratto di exit-code** — i codici fissati dai test end-to-end
-  (`tests/test_exit_codes.zsh`): `0` esecuzione riuscita, `1` selezione che risolve vuota,
-  `2` token di modulo o flag ignoto — cambiarli è MAJOR. *(Fuori dal contratto per ora, in
-  ingresso come estensione additiva con BM-18: la propagazione del fallimento a runtime di
-  un modulo, che oggi esce ancora `0` — #4b.)*;
-- **Formato del plist/LaunchAgent** — lo schema scritto dallo scheduler in
-  `~/Library/LaunchAgents` e il campo `modules=` letto dal restore: un cambio incompatibile
-  rompe gli agenti già installati, quindi è MAJOR.
+**What a «breaking change» is — the MAJOR criterion.** SemVer is about the
+compatibility of the project's *public contract*: any change that forces a consumer
+to adapt in order to adopt the new version is breaking. brew-manager is a **code**
+project: its public contract — what a release promises NOT to break without a
+MAJOR — is the set of these surfaces:
+- **CLI flags** — names and semantics of `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`,
+  `--upgrade=y|n`, `--only=`, `--skip=`, `--version|-V`: removing one, renaming it or
+  changing its meaning is MAJOR;
+- **Selection grammar** — the positional `[modules]` (a list of ids, or `go`) plus
+  `--only`/`--skip`: changing its format incompatibly is MAJOR;
+- **Module identifiers** — the NUMBERS (`0`–`13`), the `go` keyword and the special
+  NAMES (`bk`/`las`/`log`/`mas`) are FROZEN: renumbering, reassigning a number to a
+  different module or renaming is MAJOR; new modules are APPENDED (new numbers/names),
+  never by reorganising the existing ones. Concrete reason: the numbers are persisted
+  in the LaunchAgent plists on users' Macs (`modules=3,5`), and reassigning them would
+  silently change what an already-installed agent runs;
+- **Exit-code contract** — the codes pinned by the end-to-end tests
+  (`tests/test_exit_codes.zsh`): `0` successful run, `1` a selection that resolves to
+  empty, `2` an unknown module token or flag — changing them is MAJOR. *(Outside the
+  contract for now, coming in as an additive extension with BM-18: the propagation of
+  a module's runtime failure, which today still exits `0` — #4b.)*;
+- **plist/LaunchAgent format** — the schema written by the scheduler into
+  `~/Library/LaunchAgents` and the `modules=` field read by the restore: an
+  incompatible change breaks the agents already installed, so it is MAJOR.
 
-Aggiunte retrocompatibili (un modulo in più in append, un flag nuovo, un campo opzionale)
-sono MINOR; le correzioni che non toccano il contratto sono PATCH. Sotto `1.0.0` la
-promessa non è ancora attiva (vedi i regimi qui sotto).
+Backward-compatible additions (one more module, appended; a new flag; an optional
+field) are MINOR; fixes that do not touch the contract are PATCH. Below `1.0.0` the
+promise is not active yet (see the regimes below).
 
-Il versioning ha **due regimi**, separati dalla release `1.0.0`, e determinano su QUALE
-BRANCH vive il tag:
+Versioning has **two regimes**, separated by the `1.0.0` release, and they determine
+on WHICH BRANCH the tag lives:
 
-- **Pre-1.0 — si tagga sul branch di SVILUPPO.** Finché non c'è la prima release
-  stabile la versione è `0.y.z` e i tag vivono su `develop`, non su `main`: feature →
-  bump MINOR (`v0.1.0` → `v0.2.0`), fix/sicurezza → bump PATCH (`v0.2.0` → `v0.2.1`),
-  refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
-  breaking interno resta nel MINOR e non forza da solo l'1.0.0.
-- **La release `1.0.0` — l'atto che attiva la promessa.** Attraversare la `1.0.0` è il
-  momento in cui un progetto DICHIARA stabile il proprio contratto pubblico: si porta
-  `develop` su `main` con un merge di release (nella forma scelta in *Merge*) e si
-  applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle versioni
-  rilasciate e vale il regime post-1.0: da questo punto in poi rompere il contratto
-  (breaking change, come definito sopra) costa un MAJOR.
-- **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
-  `main`, dopo il merge di release `develop → main`: breaking → MAJOR
-  (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH
-  (`v1.4.2` → `v1.4.3`). Un **hotfix** parte da `main`, è un PATCH taggato su `main`,
-  e va ri-mergiato su `develop` subito dopo (vedi "Modello di branching") così la
-  correzione non si perde alla release successiva.
+- **Pre-1.0 — you tag on the DEVELOPMENT branch.** Until there is a first stable
+  release the version is `0.y.z` and the tags live on `develop`, not on `main`:
+  feature → MINOR bump (`v0.1.0` → `v0.2.0`), fix/security → PATCH bump (`v0.2.0` →
+  `v0.2.1`), refactor/docs/memory → no tag. In 0.x no API stability is promised: an
+  internal breaking change stays within the MINOR and does not by itself force 1.0.0.
+- **The `1.0.0` release — the act that activates the promise.** Crossing `1.0.0` is
+  the moment a project DECLARES its public contract stable: `develop` is brought onto
+  `main` with a release merge (in the form chosen in *Merge*) and the tag **`v1.0.0`
+  is applied on `main`**. From here `main` is the line of released versions and the
+  post-1.0 regime applies: from this point on, breaking the contract (a breaking
+  change, as defined above) costs a MAJOR.
+- **Post-1.0 — you tag on the STABLE branch.** From 1.0.0 the release tags live on
+  `main`, after the `develop → main` release merge: breaking → MAJOR (`v1.4.2` →
+  `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH (`v1.4.2` →
+  `v1.4.3`). A **hotfix** starts from `main`, is a PATCH tagged on `main`, and is
+  re-merged onto `develop` right after (see "Branching model") so the fix is not lost
+  at the next release.
 
-> **Conflitto storico risolto qui.** La regola precedente — "tag solo dopo il merge su
-> `main`" — descriveva solo il post-1.0 e ignorava la fase 0.x. È SOSTITUITA da questi
-> due regimi: in 0.x si tagga su `develop`, da 1.0.0 su `main`. Non restano due
-> istruzioni in conflitto.
+> **A historical conflict is resolved here.** The previous rule — "tag only after the
+> merge onto `main`" — described only the post-1.0 case and ignored the 0.x phase. It
+> is REPLACED by these two regimes: in 0.x you tag on `develop`, from 1.0.0 on
+> `main`. No two conflicting instructions remain.
 
-> Modello di branching diverso (es. trunk-based, o nomi differenti —
-> [DA DEFINIRE AL SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla
-> linea di lavoro, post-1.0 sulla linea rilasciata.
+> A different branching model (e.g. trunk-based, or different names —
+> [TO BE DEFINED AT SETUP])? The names change, the two regimes do not: pre-1.0 you
+> tag on the working line, post-1.0 on the released line.
 
-**Igiene dei tag e del push (per l'utente che esegue).**
-- Il tag si DIGITA a mano, con un solo `-m` breve e ASCII puro: em-dash, accenti e
-  spazi non-breaking copiati da un editor corrompono il comando in modi oscuri.
-- Prima di pushare un tag: verificarlo SEMPRE con `git rev-parse <tag>`.
-  `git tag -d` si usa SOLO se quella verifica fallisce — mai su un tag sano, e mai
-  inline coi comandi costruttivi (vedi "Confine di esecuzione").
-- Prima di ogni push su un branch condiviso: `git log origin/<branch>..<branch>`
-  per vedere ESATTAMENTE cosa si sta per rendere pubblico — un push trascina TUTTI
-  i commit locali, non solo l'ultimo.
+**Tag and push hygiene (for the user who runs the commands).**
+- The tag is TYPED by hand, with a single short `-m` in pure ASCII: em dashes,
+  accents and non-breaking spaces copied from an editor corrupt the command in
+  obscure ways.
+- Before pushing a tag: ALWAYS verify it with `git rev-parse <tag>`. `git tag -d` is
+  used ONLY if that verification fails — never on a healthy tag, and never inline
+  with the constructive commands (see "Execution boundary").
+- Before every push to a shared branch: `git log origin/<branch>..<branch>` to see
+  EXACTLY what you are about to make public — a push drags ALL local commits along,
+  not only the last one.
 
-## Rollback — scegliere lo strumento giusto
+## Rollback — choosing the right tool
 
-- Commit già pushato su branch condiviso (`develop`/`main`): `git revert <sha>` —
-  crea un commit inverso, la storia resta intatta. È l'UNICA opzione sui branch
-  condivisi. Mai reset/force-push su `develop` o `main`.
-- Commit locale non pushato: `git reset --soft HEAD~1` (tiene le modifiche) o
-  `--hard` (le distrugge — chiedere SEMPRE conferma all'utente prima di `--hard`).
-- Esperimento da buttare: il branch si cancella, niente da annullare — è il motivo
-  per cui si lavora SEMPRE su branch.
-- Release rotta in produzione: rollback del **deploy** PRIMA (riportare l'ambiente
-  alla versione precedente), revert del **codice** DOPO con calma. Non si debugga in
-  produzione.
-- `git push --force` è VIETATO ovunque tranne sul proprio feature branch non
-  condiviso, e solo come `--force-with-lease`.
+- A commit already pushed to a shared branch (`develop`/`main`): `git revert <sha>` —
+  it creates an inverse commit, the history stays intact. It is the ONLY option on
+  shared branches. Never reset/force-push on `develop` or `main`.
+- A local, unpushed commit: `git reset --soft HEAD~1` (keeps the changes) or `--hard`
+  (destroys them — ALWAYS ask the user for confirmation before `--hard`).
+- An experiment to throw away: the branch is deleted, there is nothing to undo — it
+  is the reason we ALWAYS work on a branch.
+- A release broken in production: roll back the **deployment** FIRST (bring the
+  environment back to the previous version), revert the **code** AFTERWARDS, calmly.
+  You do not debug in production.
+- `git push --force` is FORBIDDEN everywhere except on your own unshared feature
+  branch, and only as `--force-with-lease`.
 
-## Regole operative per Claude Code
+## Operating rules for Claude Code
 
-- `git status` e `git diff` prima di ogni commit: verificare che entrino SOLO i file
-  attesi. Mai `git add .` alla cieca — add esplicito per path.
-- Push: solo su richiesta dell'utente o a fine task completato. La configurazione
-  (`.claude/settings.json`) nega il push automatico — è intenzionale: il push lo
-  conferma l'umano.
-- Tag e release: solo l'utente decide quando; Claude Code prepara (changelog dai
-  conventional commit, bump versione secondo *Versioning*, tag annotato già scritto)
-  e chiede conferma.
-- Blocco di integrazione: a fine deliverable, `/integrate` produce la sequenza di
-  comandi di merge + tag pronta da incollare (prossima versione calcolata da
-  `git describe` e dal bump di *Versioning*). Claude Code la STAMPA, non la esegue:
-  push, merge e tag restano azioni umane.
+- `git status` and `git diff` before every commit: check that ONLY the expected files
+  go in. Never `git add .` blindly — explicit add by path.
+- Push: only at the user's request or at the end of a completed task. The
+  configuration (`.claude/settings.json`) denies automatic pushes — that is
+  intentional: the human confirms the push.
+- Tags and releases: only the user decides when; Claude Code prepares (changelog from
+  the conventional commits, version bump per *Versioning*, the annotated tag already
+  written) and asks for confirmation.
+- Integration block: at the end of a deliverable, `/integrate` produces the sequence
+  of merge + tag commands ready to paste (the next version computed from
+  `git describe` and the bump of *Versioning*). Claude Code PRINTS it, it does not
+  run it: push, merge and tag remain human actions.
 
-## Confine di esecuzione e blocchi per l'utente
+## Execution boundary and blocks for the user
 
-Il confine che decide CHI esegue un comando git è lo STATO che il comando tocca.
-Dichiararlo esplicitamente evita gli incidenti che nascono dalla sua ambiguità:
+The boundary that decides WHO runs a git command is the STATE the command touches.
+Stating it explicitly avoids the incidents that come from its ambiguity:
 
-- **Storia LOCALE → Claude Code.** Commit, amend, `rm --cached`, branch locali,
-  rebase del proprio feature branch: li esegue Claude Code in autonomia, dentro le
-  regole di questo doc.
-- **Storia CONDIVISA → l'utente.** Push, merge sul branch di integrazione, tag:
-  Claude Code li PREPARA (blocchi pronti da incollare, vedi `/integrate`), l'utente
-  li esegue dal suo terminale.
+- **LOCAL history → Claude Code.** Commits, amend, `rm --cached`, local branches,
+  rebase of one's own feature branch: Claude Code runs these autonomously, within the
+  rules of this doc.
+- **SHARED history → the user.** Push, merge onto the integration branch, tags:
+  Claude Code PREPARES them (blocks ready to paste, see `/integrate`), the user runs
+  them from their own terminal.
 
-Regole per ogni blocco di comandi destinato all'esecuzione manuale dell'utente:
+Rules for every command block meant for manual execution by the user:
 
-1. **Valori REALI, mai placeholder nudi.** SHA, branch e versioni letti da
-   `git log`/`git tag`/`git describe`, mai `<hash>`/`vX.Y.Z`/`<branch>` da risolvere
-   a mano. Se un valore non è risolvibile a priori, marcarlo esplicitamente:
-   "sostituisci X leggendolo da `<comando>`".
-2. **Placeholder per l'esecutore ≠ comandi per l'utente.** I placeholder nei comandi
-   che esegue Claude Code (l'esecutore li risolve da solo) non si passano MAI
-   all'utente: l'utente non deve risolvere nulla.
-3. **Comandi distruttivi mai inline.** `tag -d`, `branch -D`, `reset --hard`,
-   `push --force`, `rm`: mai nello stesso blocco copia-incolla dei comandi
-   costruttivi. Vanno in un blocco SEPARATO, preceduto dalla condizione ESATTA che
-   li giustifica ("solo se `<comando>` fallisce") — mai eseguibili per inerzia
-   scorrendo la sequenza.
+1. **REAL values, never bare placeholders.** SHAs, branches and versions read from
+   `git log`/`git tag`/`git describe`, never `<hash>`/`vX.Y.Z`/`<branch>` to be
+   resolved by hand. If a value cannot be resolved up front, mark it explicitly:
+   "replace X by reading it from `<command>`".
+2. **Placeholders for the executor ≠ commands for the user.** The placeholders in
+   commands that Claude Code runs (the executor resolves them itself) are NEVER
+   passed to the user: the user must not have to resolve anything.
+3. **Destructive commands never inline.** `tag -d`, `branch -D`, `reset --hard`,
+   `push --force`, `rm`: never in the same copy-paste block as the constructive
+   commands. They go in a SEPARATE block, preceded by the EXACT condition that
+   justifies them ("only if `<command>` fails") — never executable out of inertia
+   while scrolling through the sequence.
 
-## Configurazione dei permessi (`settings.json`)
+## Permission configuration (`settings.json`)
 
-I permessi versionati (`.claude/settings.json`) sono la rete di sicurezza che decide
-cosa Claude Code può eseguire senza chiedere. Tienili **puliti e specifici**:
+The versioned permissions (`.claude/settings.json`) are the safety net that decides
+what Claude Code may run without asking. Keep them **clean and specific**:
 
-- **`allow`**: solo comandi **read-only** (ispezione: `status`, `diff`, `log`,
-  `branch`, la mappa dell'albero) e i comandi **sicuri e reversibili** di
-  staging/commit (`git add`, `git commit`). Nient'altro: si riducono i prompt per le
-  operazioni innocue, non per quelle che toccano stato condiviso.
-- **`deny`**: tutte le operazioni **distruttive o irreversibili** — push (incluso
-  `--force`), `reset --hard`, cancellazioni (`clean`, `branch -D`, `rm -rf`), e la
-  **lettura di segreti** (`.env`, `secrets/`, file di credenziali). La `deny` ha la
-  precedenza sull'`allow`: un `git branch:*` permesso resta comunque bloccato sul `-D`.
-- **File locale NON versionato.** I permessi personali stanno in `settings.local.json`
-  (già in `.gitignore`) e si parte **vuoti**: ciò che è condiviso e ragionato sta nel
-  file versionato; le concessioni estemporanee restano locali e non inquinano il
-  template del progetto.
-- **Niente auto-approvazioni vaghe.** Evita le concessioni "non chiedere più per
-  comandi simili": un `allow` troppo largo è un buco che nessuno ricorda di aver
-  aperto. Meglio un prompt in più che un permesso implicito e dimenticato.
+- **`allow`**: only **read-only** commands (inspection: `status`, `diff`, `log`,
+  `branch`, the tree map) and the **safe and reversible** staging/commit commands
+  (`git add`, `git commit`). Nothing else: the point is to reduce prompts for
+  harmless operations, not for the ones that touch shared state.
+- **`deny`**: all **destructive or irreversible** operations — push (including
+  `--force`), `reset --hard`, deletions (`clean`, `branch -D`, `rm -rf`), and
+  **reading secrets** (`.env`, `secrets/`, credential files). `deny` takes precedence
+  over `allow`: an allowed `git branch:*` is still blocked on `-D`.
+- **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
+  (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
+  lives in the versioned file; ad-hoc grants stay local and do not pollute the
+  project template.
+- **No vague auto-approvals.** Avoid grants of the "stop asking for similar commands"
+  kind: an `allow` that is too broad is a hole nobody remembers opening. Better one
+  prompt more than an implicit, forgotten permission.
 
-> I comandi read-only specifici dello stack aggiunti all'`allow` di questo progetto:
-> `zsh -n` (check di sintassi), `shellcheck` (se installato), `brew list`,
-> `brew info`, `git tag` (elenco), `git describe`.
+> The stack-specific read-only commands added to this project's `allow`:
+> `zsh -n` (syntax check), `shellcheck` (if installed), `brew list`,
+> `brew info`, `git tag` (listing), `git describe`, `git show` (IMP-001: review
+> agents read files at a revision).

@@ -1,150 +1,155 @@
-# 01 — Task planning & ripresa resiliente
+# 01 — Task planning & resilient resumption
 
-Protocollo PERMANENTE per eseguire prompt onerosi in modo resiliente alle
-interruzioni (limiti di utilizzo, crash, stop volontari). Obiettivo: non perdere
-MAI più di un singolo task di lavoro, e riprendere senza ricostruire nulla a mano.
+PERMANENT protocol for running heavy prompts in a way that survives interruptions
+(usage limits, crashes, deliberate stops). The goal: NEVER lose more than a single
+task of work, and resume without reconstructing anything by hand.
 
-## Principio
+## Principle
 
-Un prompt non si esegue "tutto d'un fiato" sperando di arrivare in fondo. Si
-valuta, e se è oneroso si trasforma in un PIANO a task piccoli e atomici, ognuno
-dei quali termina con un commit. Il commit per-task è il checkpoint: se la sessione
-muore al task N, i task 1..N-1 sono salvi su branch e si riprende dal task N.
-Niente si butta tranne il mezzo-task interrotto.
+A prompt is not run "in one breath" hoping to reach the end. It is judged, and if it
+is heavy it is turned into a PLAN of small, atomic tasks, each of which ends with a
+commit. The per-task commit is the checkpoint: if the session dies at task N, tasks
+1..N-1 are safe on the branch and you resume from task N. Nothing is thrown away
+except the interrupted half-done task.
 
-## FASE 1 — Valutazione (sempre, prima di scrivere codice)
+## PHASE 1 — Assessment (always, before writing code)
 
-All'avvio di OGNI prompt, prima di toccare file, stima l'onerosità:
-- Quanti file/moduli/unità/test produrrà (ordine di grandezza).
-- Se supera grossomodo ~8-10 file o ~400 righe complessive, o tocca più layer
-  (es. logica + persistenza + interfaccia + test), è ONEROSO → vai a FASE 2.
-- Se è piccolo e autoconsistente (un fix, un endpoint, una config) → eseguilo
-  direttamente con un solo commit finale, senza piano. Non burocratizzare i task
-  piccoli: il piano è uno strumento, non un rito.
+At the start of EVERY prompt, before touching files, estimate the heaviness:
+- How many files/modules/units/tests it will produce (order of magnitude).
+- If it goes beyond roughly ~8-10 files or ~400 lines in total, or it touches several
+  layers (e.g. logic + persistence + interface + tests), it is HEAVY → go to PHASE 2.
+- If it is small and self-contained (a fix, an endpoint, a config change) → run it
+  directly with a single final commit, no plan. Do not bureaucratise small tasks: the
+  plan is a tool, not a ritual.
 
-Questa valutazione la fai TU in autonomia, senza chiedere all'utente.
+You make this assessment YOURSELF, without asking the user.
 
-## FASE 2 — Generazione del piano
+## PHASE 2 — Producing the plan
 
-**Prima del piano, se ci sono scelte strutturali.** Se il prompt comporta decisioni
-costose da invertire (architettura, contratti tra moduli, scelta di un approccio),
-il piano NON è il primo artefatto: prima un assessment in SOLA LETTURA dello stato
-reale, poi la proposta con le alternative e i trade-off, poi la DECISIONE
-dell'utente, registrata in `decisions/` (o come ADR — vedi il README di
-`decisions/`). Solo allora il piano, che PUNTA alla decisione registrata invece di
-ridiscuterla a ogni task. Per i prompt onerosi ma senza bivi strutturali si va
-direttamente al piano.
+**Before the plan, if there are structural choices.** If the prompt involves
+decisions that are expensive to reverse (architecture, contracts between modules,
+the choice of an approach), the plan is NOT the first artifact: first a READ-ONLY
+assessment of the real state, then the proposal with the alternatives and the
+trade-offs, then the user's DECISION, recorded in `decisions/` (or as an ADR — see
+the README of `decisions/`). Only then the plan, which POINTS at the recorded
+decision instead of re-litigating it at every task. For prompts that are heavy but
+have no structural forks, go straight to the plan.
 
-Crea `.claude/memory/plans/<id-prompt>.md` (es. `plans/03-modulo-x.md`) con questo
-formato (frontmatter + checklist):
+Create `.claude/memory/plans/<prompt-id>.md` (e.g. `plans/03-module-x.md`) with this
+format (frontmatter + checklist):
 
 ```markdown
 ---
 type: plan
-prompt: <id-prompt>
-branch: <feature branch dedicato>
+prompt: <prompt-id>
+branch: <dedicated feature branch>
 created: YYYY-MM-DD
 status: in-progress | completed
 tags: [plan, <area>]
 ---
-# Piano: <prompt>
+# Plan: <prompt>
 
-## Obiettivo
-<1-2 righe: cosa deve esistere a piano completato>
+## Goal
+<1-2 lines: what must exist once the plan is complete>
 
-## Task
-- [ ] 1. <task atomico, committabile da solo> — commit: —
+## Tasks
+- [ ] 1. <atomic task, committable on its own> — commit: —
 - [ ] 2. <...> — commit: —
 - [ ] 3. <...> — commit: —
 
-## Note di ripresa
-<vuoto all'inizio; qui annoti stato/decisioni utili a una sessione futura>
+## Resumption notes
+<empty at the start; here you record state/decisions useful to a future session>
 
-## Collegamenti
-[[<componente>]] · [[STATE]]
+## Links
+[[<component>]] · [[STATE]]
 ```
 
-Regole per i task:
-- Ogni task deve essere ATOMICO e COMMITTABILE: deve lasciare il progetto in uno
-  stato consistente (compila / non peggiore di prima). Esempi buoni, agnostici allo
-  stack: "scaffold del modulo + manifest delle dipendenze", "migrazione schema +
-  modello dati", "implementa <unità di logica> + test", "endpoint/handler + DTO +
-  validazione". Esempio cattivo: "metà della configurazione di sicurezza".
-- Ordina per dipendenza: ciò che sta sotto prima di ciò che ci sta sopra.
-- 6-12 task è il range sano. Più di ~15 → il prompt andava diviso a monte
-  (segnalalo come IMP, vedi `06-self-improvement.md`). Meno di 4 → non era oneroso,
-  non serviva il piano.
-- Dopo aver scritto il piano, COMMITTALO subito (`chore: plan for <prompt>`) prima
-  di iniziare i task: così il piano sopravvive anche a un crash immediato.
+Rules for the tasks:
+- Every task must be ATOMIC and COMMITTABLE: it must leave the project in a
+  consistent state (it builds / it is no worse than before). Good, stack-agnostic
+  examples: "module scaffold + dependency manifest", "schema migration + data model",
+  "implement <unit of logic> + tests", "endpoint/handler + DTO + validation". A bad
+  example: "half of the security configuration".
+- Order by dependency: what sits underneath before what sits on top of it.
+- 6-12 tasks is the healthy range. More than ~15 → the prompt should have been split
+  upstream (flag it as an IMP, see `06-self-improvement.md`). Fewer than 4 → it was
+  not heavy, the plan was not needed.
+- Once the plan is written, COMMIT IT immediately (`chore: plan for <prompt>`) before
+  starting the tasks: that way the plan survives even an immediate crash.
 
-## FASE 3 — Esecuzione task-per-task
+## PHASE 3 — Task-by-task execution
 
-Per ogni task in ordine:
-1. Implementalo (codice commentato + errori gestiti, vedi `02-code-quality.md`).
-2. Verifica minima che il task regga (compila / test del task verdi).
-3. Commit con messaggio che referenzia il task:
-   `<tipo>(<scope>): [task N/T] <descrizione>`
-4. Spunta il task nel piano: `- [x] N. ... — commit: <sha>` e committa
-   l'aggiornamento del piano insieme o subito dopo (può stare nello stesso commit).
-5. Passa al successivo.
+For each task in order:
+1. Implement it (commented code + handled errors, see `02-code-quality.md`).
+2. Minimal verification that the task holds (it builds / the task's tests are green).
+3. Commit with a message that references the task:
+   `<type>(<scope>): [task N/T] <description>`
+4. Tick the task in the plan: `- [x] N. ... — commit: <sha>` and commit the plan
+   update together with it or right after (it may live in the same commit).
+5. Move on to the next one.
 
-NON accorpare più task in un commit: vanifica la granularità della ripresa.
+Do NOT merge several tasks into one commit: it defeats the granularity of the
+resumption.
 
-## FASE 4 — Completamento
+## PHASE 4 — Completion
 
-Quando tutti i task sono spuntati:
-- `status: completed` nel frontmatter del piano.
-- `/checkpoint` completo (memoria, doc, `STATE.md`: prompt fatto, prossimo).
-- Il merge sul branch di integrazione e il push li gestisce l'utente, mai push
-  autonomo (vedi `04-git-workflow.md`).
+When all the tasks are ticked:
+- `status: completed` in the plan's frontmatter.
+- A full `/checkpoint` (memory, docs, `STATE.md`: prompt done, next one).
+- The merge onto the integration branch and the push are handled by the user, never
+  an autonomous push (see `04-git-workflow.md`).
 
-## Caso speciale — refactor cross-modulo (codice condiviso)
+## Special case — cross-module refactor (shared code)
 
-Estrarre o spostare codice usato da più moduli (una utility comune, un tipo
-condiviso, una libreria interna) è un refactor a rischio sproporzionato: un singolo
-modulo "verde" non dice nulla sugli altri consumatori. Trattalo come un prompt
-oneroso (FASE 2 → piano), e applica in più questa disciplina:
+Extracting or moving code used by several modules (a common utility, a shared type,
+an internal library) is a refactor with disproportionate risk: a single "green"
+module says nothing about the other consumers. Treat it as a heavy prompt (PHASE 2 →
+plan), and apply this additional discipline:
 
-- **Branch dedicato, task atomici per consumatore.** Un passo = un'estrazione
-  coerente e committabile: "introduci il modulo condiviso", poi "migra il consumatore
-  A", poi "migra il consumatore B". Mai "sposta tutto" in un unico task.
-- **Test di TUTTI i moduli toccati verdi a OGNI passo** — non solo del modulo in cui
-  stai lavorando, e non solo alla fine. Dopo ogni task ri-esegui le suite di ogni
-  modulo che consuma il codice spostato: una regressione introdotta al passo 2 si
-  scopre al passo 2, non tre task dopo, quando la causa è già sepolta.
-- **Commit di sicurezza prima di iniziare** (docs/04, "QUANDO committare"): il
-  refactor ampio parte da un punto di ripristino pulito.
-- **Review di coerenza prima del merge.** Oltre alla Definition of Done (docs/02) e
-  — se tocca componenti sensibili — al gate di sicurezza (docs/03), verifica che
-  l'estrazione sia coerente ovunque: nessun consumatore rimasto sulla vecchia copia,
-  nessuna duplicazione residua, l'API condivisa usata allo stesso modo dappertutto.
+- **Dedicated branch, atomic tasks per consumer.** One step = one coherent,
+  committable extraction: "introduce the shared module", then "migrate consumer A",
+  then "migrate consumer B". Never "move everything" in a single task.
+- **Tests of ALL touched modules green at EVERY step** — not only of the module you
+  are working in, and not only at the end. After each task re-run the suites of every
+  module that consumes the moved code: a regression introduced at step 2 is found at
+  step 2, not three tasks later, when the cause is already buried.
+- **A safety commit before starting** (docs/04, "WHEN to commit"): a wide refactor
+  starts from a clean restore point.
+- **A coherence review before the merge.** On top of the Definition of Done (docs/02)
+  and — if it touches sensitive components — the security gate (docs/03), check that
+  the extraction is coherent everywhere: no consumer left on the old copy, no
+  leftover duplication, the shared API used the same way everywhere.
+  **The shared contract can be TEXTUAL, not only code**: section titles cited BY NAME
+  from other files are an API as well. If the work renames them (a translation, a wide
+  documentation restructuring), grep the OLD and the NEW wording before the merge —
+  having flagged the risk while planning is not a check.
 
-> Il "wiring" tra moduli è esattamente ciò che gli unit isolati non vedono: per un
-> refactor cross-modulo lo smoke del sistema cablato (DoD, docs/02 punto 3) conta
-> ancora di più.
+> The "wiring" between modules is exactly what isolated unit tests do not see: for a
+> cross-module refactor the smoke test of the wired system (DoD, docs/02 point 3)
+> matters even more.
 
-## RIPRESA (inizio di OGNI sessione)
+## RESUMPTION (at the start of EVERY session)
 
-L'hook `SessionStart` inietta `STATE.md`. Inoltre, all'avvio:
-1. Controlla se esiste un piano con `status: in-progress` in `.claude/memory/plans/`.
-2. Se sì E riguarda il prompt che l'utente ti sta chiedendo (o l'utente dice
-   "riprendi"): leggi il piano, fai `git log --oneline` sul branch per confermare
-   quali task sono già committati, e RIPRENDI dal primo task non spuntato. NON
-   ricominciare i task già fatti. NON ricreare il branch.
-3. Prima di riprendere il task interrotto: se il working tree è sporco (codice del
-   mezzo-task), scartalo con lo script `reset-task` o manualmente
-   (`git restore . && git clean -fd`) — riparti dal task pulito, non da macerie.
-4. Un prompt di ripresa ben fatto dà il COMPITO direttamente ("riprendi dal primo
-   task non spuntato del piano X") e PUNTA a piano e note di sessione per il
-   contesto: non deve produrre un turno a vuoto ("attendo istruzioni") né
-   ricostruire in chat ciò che è già su disco.
+The `SessionStart` hook injects `STATE.md`. In addition, at startup:
+1. Check whether a plan with `status: in-progress` exists in `.claude/memory/plans/`.
+2. If there is one AND it concerns the prompt the user is asking for (or the user
+   says "resume"): read the plan, run `git log --oneline` on the branch to confirm
+   which tasks are already committed, and RESUME from the first unticked task. Do NOT
+   restart tasks already done. Do NOT recreate the branch.
+3. Before resuming the interrupted task: if the working tree is dirty (code of the
+   half-done task), discard it with the `reset-task` script or manually
+   (`git restore . && git clean -fd`) — restart from the clean task, not from rubble.
+4. A well-formed resumption prompt gives the TASK directly ("resume from the first
+   unticked task of plan X") and POINTS at the plan and the session notes for
+   context: it must not produce an empty turn ("awaiting instructions") nor
+   reconstruct in the chat what is already on disk.
 
-## Cleanup di un task interrotto — CHIRURGICO, mai distruttivo
+## Cleanup of an interrupted task — SURGICAL, never destructive
 
-Se una sessione muore a metà di un task:
-- Si scarta SOLO il lavoro NON committato (il mezzo-task): `git restore .`,
+If a session dies halfway through a task:
+- ONLY the UNCOMMITTED work (the half-done task) is discarded: `git restore .`,
   `git restore --staged .`, `git clean -fd`.
-- NON si elimina il branch. NON si toccano i commit dei task precedenti.
-- Lo script `scripts/reset-task.sh` fa esattamente questo, con guardia di sicurezza
-  (rifiuta di operare sui branch condivisi).
-- Poi si rilancia il prompt: il protocollo di ripresa riparte dal task giusto.
+- The branch is NOT deleted. The commits of previous tasks are NOT touched.
+- The `scripts/reset-task.sh` script does exactly this, with a safety guard (it
+  refuses to operate on shared branches).
+- Then the prompt is relaunched: the resumption protocol restarts from the right task.

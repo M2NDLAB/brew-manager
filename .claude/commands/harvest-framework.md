@@ -1,74 +1,79 @@
 ---
-description: Raccoglie le IMP marcate "Destinazione: framework" e stampa un blocco copiabile da riproporre al repo del framework — solo legge e stampa, mai clone/copia/push/cross-repo
+description: Harvests the IMPs marked "Destination: framework" and prints a copyable block to re-propose to the framework repo — it only reads and prints, never clone/copy/push/cross-repo
 ---
-Raccogli le lezioni destinate al FRAMEWORK e preparane il blocco da riportare a monte,
-per: $ARGUMENTS (se $ARGUMENTS è vuoto: sull'intero backlog di `LEARNINGS.md`).
+Harvest the lessons destined for the FRAMEWORK and prepare the block to carry upstream,
+for: $ARGUMENTS (if $ARGUMENTS is empty: over the whole `LEARNINGS.md` backlog).
 
-Vedi il ponte in @.claude/docs/06-self-improvement.md (*"Il ponte verso il framework"*).
-Complementare a `/retro`: `/retro` REGISTRA le IMP (e ci mette il marcatore
-`Destinazione: framework` quando la lezione riguarda il metodo); `/harvest-framework` le
-RACCOGLIE per farle risalire.
+See the bridge in @.claude/docs/06-self-improvement.md (*"The bridge to the framework"*).
+Complementary to `/retro`: `/retro` RECORDS the IMPs (and puts the marker
+`Destination: framework` on them when the lesson is about the method);
+`/harvest-framework` HARVESTS them to carry them upstream.
 
-Questo comando **solo legge e stampa**: NON clona, NON copia file tra repo, NON esegue
-git/push verso il framework (confine di esecuzione — `04-git-workflow.md` — e agnosticità:
-il progetto non conosce, e non deve conoscere, dove vive il repo del framework). Il travaso
-e la ri-registrazione
-come IMP nel framework restano curatela UMANA.
+This command **only reads and prints**: it does NOT clone, it does NOT copy files between
+repos, it does NOT run git/push towards the framework (the execution boundary —
+`04-git-workflow.md` — and agnosticity: the project does not know, and must not know,
+where the framework repo lives). The transfer and the re-registration as an IMP in the
+framework remain HUMAN curation.
 
-## 1. Contesto (il comando è moot nel repo-framework)
-Se stai girando NEL repo del framework stesso (regime ibrido: ogni IMP è già una lezione
-sul framework), non c'è nulla da distinguere né rastrellare: dillo e fermati. Il comando
-serve nei progetti-CLIENTE, dove `LEARNINGS.md` è il backlog del progetto e solo ALCUNE
-IMP sono framework-bound.
+## 1. Context (the command is moot in the framework repo)
+If you are running IN the framework repo itself (hybrid regime: every IMP is already a
+lesson about the framework), there is nothing to tell apart nor to rake up: say so and
+stop. The command serves the CLIENT projects, where `LEARNINGS.md` is the project backlog
+and only SOME IMPs are framework-bound.
 
-## 2. Raccogli (read-only)
-1. Trova le voci marcate: `grep -n "Destinazione: framework" .claude/memory/LEARNINGS.md`
-   (il marcatore è per convenzione una riga fisica singola).
-2. Definisci il perimetro:
-   - default (`$ARGUMENTS` vuoto): TUTTE le IMP marcate, in qualunque sezione
-     (APERTE / Applicate / Rimandate) — il backlog intero;
-   - con `$ARGUMENTS`: restringi al criterio dato (una IMP specifica `IMP-nnn`, una
-     data/sessione, una sezione). Interpreta `$ARGUMENTS` come filtro sulle voci trovate.
-3. Per ciascuna voce nel perimetro, leggi il corpo dell'IMP in `LEARNINGS.md` e raccogli:
-   numero e titolo, Origine, Problema osservato, Proposta, Beneficio/rischio.
+## 2. Harvest (read-only)
+1. Find the marked entries:
+   `grep -nE "Destination: framework|Destinazione: framework" .claude/memory/LEARNINGS.md`
+   (by convention the marker is a single physical line). The Italian form is
+   recognised as LEGACY: backlogs written before the release that introduced
+   the English marker keep being raked up.
+2. Define the perimeter:
+   - default (`$ARGUMENTS` empty): ALL marked IMPs, in any section
+     (OPEN / Applied / Deferred) — the whole backlog;
+   - with `$ARGUMENTS`: narrow to the given criterion (a specific IMP `IMP-nnn`, a
+     date/session, a section). Interpret `$ARGUMENTS` as a filter on the entries found.
+3. For each entry in the perimeter, read the body of the IMP in `LEARNINGS.md` and collect:
+   number and title, Origin, Observed problem, Proposal, Benefit/risk.
 
-## 3. Anti-vacuità (obbligatoria)
-Se NESSUNA IMP è marcata `Destinazione: framework` nel perimetro scelto: NON stampare un
-blocco vuoto. Dichiara esplicitamente che non c'è materiale framework-bound, ricorda come
-si marca una lezione (la riga `- Destinazione: framework` nel corpo dell'IMP, vedi il
-formato in `LEARNINGS.md`) e fermati. Un output vuoto silenzioso sembrerebbe "tutto
-raccolto" quando non lo è.
+## 3. Anti-vacuity (mandatory)
+If NO IMP is marked `Destination: framework` in the chosen perimeter: do NOT print an
+empty block. State explicitly that there is no framework-bound material, recall how
+a lesson is marked (the line `- Destination: framework` in the body of the IMP, see the
+format in `LEARNINGS.md`) and stop. A silent empty output would look like "everything
+harvested" when it is not.
 
-## 4. Stampa il blocco RACCOLTA PER IL FRAMEWORK
-Un unico blocco di codice copiabile. Per ogni lezione usa il formato di una proposta IMP
-del framework (così è pronta da incollare nel suo `LEARNINGS.md`), MA con i riferimenti
-locali ANONIMIZZATI: nessun nome di questo progetto/cliente/ambiente, nessun path
-specifico del progetto, nessuno SHA locale (docs/04: la storia condivisa del framework è
-agnostica). Riformula "Origine" in termini generici ("emerso lavorando su un progetto che
-usa il framework"), mai con l'identità del progetto.
+## 4. Print the FRAMEWORK HARVEST block
+A single copyable code block. For each lesson use the format of a framework IMP proposal
+(so it is ready to paste into its `LEARNINGS.md`), BUT with the local references
+ANONYMISED: no name of this project/client/environment, no project-specific
+path, no local SHA, no `[[wikilink]]` to a local session note (docs/04: the shared
+history of the framework is agnostic). Rephrase "Origin" in generic terms ("emerged
+while working on a project that uses the framework"), never with the identity of the
+project.
 
 ```
-===== RACCOLTA PER IL FRAMEWORK =====
-# Riproponi ciascuna voce come IMP nel repo del framework (il numero si riassegna là).
-# PRIMA di incollare: verifica che NON restino nomi/paths/SHA di questo progetto.
+===== FRAMEWORK HARVEST =====
+# Re-propose each entry as an IMP in the framework repo (the number and the Origin's
+# [[session note]] are assigned there).
+# BEFORE pasting: check that NO names/paths/SHAs of this project are left.
 
-### <titolo della lezione>            (era IMP-<nnn> in questo progetto)
-- Origine: <contesto generico e anonimo>
-- Problema osservato: <...>
-- Proposta: <cosa cambiare NEL framework: CLAUDE.md / docs/NN / comando / hook / processo>
-- Beneficio atteso / rischio: <...>
+### <title of the lesson>              (was IMP-<nnn> in this project)
+- Origin: <generic and anonymous context>
+- Observed problem: <...>
+- Proposal: <what to change IN the framework: CLAUDE.md / docs/NN / command / hook / process>
+- Expected benefit / risk: <...>
 
-### <titolo della lezione successiva> (era IMP-<nnn> in questo progetto)
+### <title of the next lesson>         (was IMP-<nnn> in this project)
 - ...
-===== FINE RACCOLTA =====
+===== END OF HARVEST =====
 ```
 
-## 5. Chiudi
-- Ricorda che il passo successivo è UMANO: aprire il repo del framework e registrare le
-  voci come proposte IMP, una per una, secondo le regole del framework, dopo aver
-  riverificato l'anonimizzazione.
-- NON marcare nulla come "già risalito" e NON modificare `LEARNINGS.md`: il comando non
-  muta stato. La de-duplicazione tra harvest successivi è curatela umana — per non
-  ri-rastrellare le lezioni già portate a monte, restringi con `$ARGUMENTS` (es. a una
-  data) oppure annota tu a mano le voci già risalite.
-- Poi FERMATI.
+## 5. Close
+- Recall that the next step is HUMAN: open the framework repo and register the
+  entries as IMP proposals, one by one, according to the framework's rules, after
+  re-checking the anonymisation.
+- Do NOT mark anything as "already carried upstream" and do NOT modify `LEARNINGS.md`: the
+  command does not mutate state. De-duplication between successive harvests is human
+  curation — to avoid raking up again the lessons already carried upstream, narrow with
+  `$ARGUMENTS` (e.g. to a date) or annotate by hand the entries already carried upstream.
+- Then STOP.

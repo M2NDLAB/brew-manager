@@ -1,121 +1,128 @@
-# 06 — Auto-miglioramento continuo (configurazione e processo)
+# 06 — Continuous self-improvement (configuration and process)
 
-Il progetto migliora se stesso: non solo il codice, ma la **configurazione di lavoro**
-(doc, regole, comandi, memoria). Questo protocollo definisce COME, con un confine
-netto tra ciò che Claude Code corregge da solo e ciò che PROPONE soltanto.
+The project improves itself: not only the code, but the **working configuration**
+(docs, rules, commands, memory). This protocol defines HOW, with a sharp boundary
+between what Claude Code fixes on its own and what it only PROPOSES.
 
-## Il backlog: `.claude/memory/LEARNINGS.md`
+## The backlog: `.claude/memory/LEARNINGS.md`
 
-È il registro delle proposte di miglioramento (IMP-nnn). La numerazione parte da 001.
-Il formato è documentato nel file stesso (sezioni: APERTE / Applicate / Rimandate /
-Rifiutate).
+It is the register of improvement proposals (IMP-nnn). Numbering starts at 001. The
+format is documented in the file itself (sections: OPEN / Applied / Deferred /
+Rejected).
 
-## LIVELLO 1 — Correzioni fattuali: applica direttamente
+## LEVEL 1 — Factual corrections: apply directly
 
-Quando la documentazione è in DISACCORDO DIMOSTRABILE con la realtà del codice o
-dell'ambiente (un comando che non esiste più, un path spostato, una versione errata,
-un nome cambiato):
-1. Allinea la doc alla realtà (mai il contrario — salvo che la realtà violi una
-   regola, e allora è un bug, non una correzione doc).
-2. Annota la correzione nella nota di sessione.
-3. Includila nel commit del task corrente (scope: `docs`).
+When the documentation is in DEMONSTRABLE DISAGREEMENT with the reality of the code
+or the environment (a command that no longer exists, a moved path, a wrong version, a
+changed name):
+1. Align the doc with reality (never the other way round — unless reality violates a
+   rule, and then it is a bug, not a doc correction).
+2. Note the correction in the session note.
+3. Include it in the current task's commit (scope: `docs`).
 
-Qui non c'è giudizio: c'è solo sincronizzazione. Una doc che mente è peggio di una
-doc che manca.
+There is no judgement here: there is only synchronisation. A doc that lies is worse
+than a doc that is missing.
 
-> **Perimetro del LIVELLO 1.** Riguarda la doc del METODO e del progetto GESTITO
-> con questo framework. Durante un INNESTO su un progetto esistente (brownfield),
-> la doc preesistente dell'ospite in
-> disaccordo con la realtà NON si corregge d'ufficio: si registra in `STATE.md`
-> ("Debito documentazione") e si corregge solo come task deciso dall'utente —
-> prevale l'igiene di scope di `00-overview.md` (un cambiamento alla volta).
-> A innesto COMPLETATO la doc dell'ospite È la doc del progetto gestito e rientra
-> nel LIVELLO 1; restano fuori solo i debiti già registrati in `STATE.md`
-> durante l'innesto, che si smaltiscono come task decisi dall'utente.
+> **Scope of LEVEL 1.** It concerns the documentation of the METHOD and of the
+> project MANAGED with this framework. During a GRAFT onto an existing project
+> (brownfield), the host's pre-existing
+> documentation that disagrees with reality is NOT corrected as a matter of course:
+> it is recorded in `STATE.md` ("Documentation debt") and corrected only as a task
+> decided by the user — the scope hygiene of `00-overview.md` prevails (one change at
+> a time). Once the graft is COMPLETE the host's documentation IS the documentation
+> of the managed project and falls under LEVEL 1; only the debts already recorded in
+> `STATE.md` during the graft stay outside, and they are worked off as tasks decided
+> by the user.
 
-## LIVELLO 2 — Miglioramenti di regole e processo: PROPONI soltanto
+## LEVEL 2 — Rule and process improvements: only PROPOSE
 
-Quando osservi: attrito ricorrente (stessa domanda/errore in più sessioni), una
-regola ambigua o in conflitto con un'altra, un passo di processo che fa perdere tempo
-senza beneficio, una convenzione mancante che avrebbe evitato un bug, l'opportunità di
-un nuovo slash command o hook:
-1. NON modificare `CLAUDE.md`, le regole nei doc, i comandi o `settings.json`.
-2. Registra una proposta IMP-nnn in `LEARNINGS.md` (problema → proposta → beneficio).
-3. Se è urgente o bloccante: segnalala all'utente a fine task; altrimenti resta nel
-   backlog per la retrospettiva (`/retro`).
+When you observe: recurring friction (the same question/error across several
+sessions), a rule that is ambiguous or in conflict with another, a process step that
+wastes time without benefit, a missing convention that would have prevented a bug,
+the opportunity for a new slash command or hook:
+1. Do NOT modify `CLAUDE.md`, the rules in the docs, the commands or `settings.json`.
+2. Record an IMP-nnn proposal in `LEARNINGS.md` (problem → proposal → benefit).
+3. If it is urgent or blocking: flag it to the user at the end of the task; otherwise
+   it stays in the backlog for the retrospective (`/retro`).
 
-Il motivo del vincolo: le regole sono il contratto con l'utente. Un sistema che
-riscrive le proprie regole da solo diverge (drift), e dopo N sessioni nessuno sa più
-quale configurazione è in vigore né perché. **Claude Code propone, l'umano dispone.**
+The reason for the constraint: the rules are the contract with the user. A system
+that rewrites its own rules drifts, and after N sessions nobody knows any more which
+configuration is in force, or why. **The agent proposes, the human disposes.**
 
-## Quando GUARDARE per i miglioramenti (trigger)
+## When to LOOK for improvements (triggers)
 
-- Hai sbagliato qualcosa che una regola/doc avrebbe potuto prevenire → IMP.
-- Hai riletto 3 volte la stessa cosa per capirla → la doc è migliorabile → IMP.
-- Un'escalation (`ESC-...`) si è risolta → la lezione va in `LEARNINGS.md` oltre che
-  nella nota di sessione: le escalation sono la fonte migliore di miglioramenti.
-- Una security review (`/security-review`) ha trovato qualcosa di sistemico → IMP.
-- **A fine deliverable, il passo `/retro`** (ciclo in `00-overview.md`): 30 secondi di
-  riflessione — c'è stato attrito? una regola/doc che avrebbe aiutato? → registra
-  l'IMP. Va PRIMA del `/checkpoint`, che poi lo persiste nel commit.
+- You got something wrong that a rule/doc could have prevented → IMP.
+- You re-read the same thing three times to understand it → the doc can be improved →
+  IMP.
+- An escalation (`ESC-...`) was resolved → the lesson goes into `LEARNINGS.md` on top
+  of the session note: escalations are the best source of improvements.
+- A security review (`/security-review`) found something systemic → IMP.
+- **At the end of a deliverable, the `/retro` step** (the cycle in `00-overview.md`):
+  30 seconds of reflection — was there friction? a rule/doc that would have helped? →
+  record the IMP. It goes BEFORE `/checkpoint`, which then persists it in the commit.
 
-## Applicazione delle proposte approvate
+## Applying approved proposals
 
-Quando l'utente approva una IMP (direttamente o via risposta di escalation):
-1. Applica la modifica nel file giusto (`CLAUDE.md` / doc / comando / config).
-2. Sposta la IMP in "Applicate" con data e sha del commit.
-3. Commit dedicato: `chore(claude): apply IMP-nnn — <titolo>`.
-4. Se la modifica cambia una regola numerata di `CLAUDE.md`: verifica che le altre
-   regole e i doc restino coerenti (niente riferimenti orfani).
+When the user approves an IMP (directly or through an escalation answer):
+1. Apply the change in the right file (`CLAUDE.md` / doc / command / config).
+2. Move the IMP into "Applied" with the date and the commit sha.
+3. A dedicated commit: `chore(claude): apply IMP-nnn — <title>`.
+4. If the change alters a numbered rule of `CLAUDE.md`: check that the other rules
+   and the docs stay coherent (no orphan references).
 
-## Il ponte verso il framework — lezioni "framework-bound"
+## The bridge to the framework — "framework-bound" lessons
 
-Finora ogni IMP è trattata come una lezione su QUESTO progetto. Ma quando il progetto
-USA il framework (non È il framework), una parte delle lezioni non riguarda il progetto:
-riguarda il METODO — una regola ambigua, un comando che manca, un passo di processo che
-fa attrito ovunque, non solo qui. Quelle lezioni hanno una seconda destinazione, il repo
-del framework, così da migliorare ANCHE il prossimo progetto che lo usa: è il "loop" che
-fa evolvere il framework a partire dai progetti su cui è innestato.
+So far every IMP is treated as a lesson about THIS project. But when the project USES
+the framework (rather than IS the framework), some of the lessons are not about the
+project: they are about the METHOD — an ambiguous rule, a missing command, a process
+step that creates friction everywhere, not only here. Those lessons have a second
+destination, the framework repo, so that they improve the NEXT project that uses it
+too: it is the "loop" that makes the framework evolve from the projects it is grafted
+onto.
 
-**Come si marca.** Una IMP che riguarda il framework porta, nel suo corpo in
-`LEARNINGS.md`, la riga `- Destinazione: framework` (vedi il formato IMP nell'header di
-`LEARNINGS.md`). È un attributo di DESTINAZIONE, non un terzo livello: la lezione resta di
-Livello 2 (si PROPONE, non si applica in autonomia) e segue il suo normale ciclo NEL
-progetto; il marcatore aggiunge solo "questa, oltre che qui, va fatta risalire". Criterio
-per marcarla: è utile a QUALSIASI progetto che usi il framework, non solo a questo. Riga
-fisica singola, così `/harvest-framework` la raccoglie via grep.
+**How it is marked.** An IMP that concerns the framework carries, in its body in
+`LEARNINGS.md`, the line `- Destination: framework` (see the IMP format in the header
+of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: the lesson stays
+a Level 2 one (it is PROPOSED, not applied autonomously) and follows its normal cycle
+IN the project; the marker only adds "this one, besides here, must be sent upstream".
+The criterion for marking it: it is useful to ANY project using the framework, not
+only to this one. A single physical line, so that `/harvest-framework` collects it via
+grep.
 
-**Come risale — `/harvest-framework`.** Il comando raccoglie dal backlog le IMP marcate
-`Destinazione: framework` e ne STAMPA un blocco copiabile (problema → proposta →
-beneficio), pronto per essere riproposto come IMP nel repo del framework. Il comando
-**solo legge e stampa**: non clona, non copia file tra repo, non esegue git/push verso il
-framework. Il travaso è **curatela umana**: chi lo esegue incolla il blocco, lo
-**anonimizza** (nessun nome di questo progetto/cliente/ambiente nella storia condivisa del
-framework — `04-git-workflow.md`) e lo registra come nuova proposta nel framework, dove
-sarà valutata come un qualsiasi contributo secondo le sue regole.
+**How it goes upstream — `/harvest-framework`.** The command collects from the backlog
+the IMPs marked `Destination: framework` and PRINTS a copyable block for them (problem
+→ proposal → benefit), ready to be re-proposed as an IMP in the framework repo. The
+command **only reads and prints**: it does not clone, does not copy files between
+repos, does not run git/push towards the framework. The transfer is **human
+curation**: whoever runs it pastes the block, **anonymises** it (no name of this
+project/client/environment in the framework's shared history —
+`04-git-workflow.md`) and records it as a new proposal in the framework, where it will
+be assessed like any other contribution, according to its own rules.
 
-**Perché questo confine.** Un comando che scrivesse davvero nel repo del framework
-violerebbe due regole insieme: il confine di esecuzione — la storia condivisa la muove
-l'umano, non l'agente (`04-git-workflow.md`) — e l'agnosticità: il template non sa nulla,
-e non deve sapere nulla, dell'istanza concreta che lo usa (non conosce dove vive il repo
-del framework rispetto al progetto). Il blocco copiabile è deliberatamente l'unico output:
-rende il travaso esplicito, revisionabile e sotto controllo umano.
+**Why this boundary.** A command that actually wrote into the framework repo would
+violate two rules at once: the execution boundary — shared history is moved by the
+human, not by the agent (`04-git-workflow.md`) — and agnosticism: the template knows
+nothing, and must know nothing, about the concrete instance using it (it does not know
+where the framework repo lives relative to the project). The copyable block is
+deliberately the only output: it makes the transfer explicit, reviewable and under
+human control.
 
-> Nel REPO DEL FRAMEWORK stesso l'attributo è moot: qui ogni IMP è già una lezione sul
-> framework (regime ibrido dichiarato), quindi non si marca nulla e `/harvest-framework`
-> non ha materiale da rastrellare. Il comando serve nei progetti-cliente.
+> In the FRAMEWORK REPO itself the attribute is moot: here every IMP is already a
+> lesson about the framework (declared hybrid regime), so nothing is marked and
+> `/harvest-framework` has no material to rake in. The command is for client projects.
 
-## Cosa questo protocollo NON è
+## What this protocol is NOT
 
-- Non è refactoring continuo del codice applicativo (quello segue `02-code-quality.md`
-  e si fa nei task, non di nascosto).
-- Non è licenza di aggiungere tool/dipendenze "perché migliorano" — quelle passano
-  dalla registrazione di una decisione.
-- Non è auto-valutazione verbosa a ogni messaggio: è UN momento di riflessione a fine
-  deliverable (il passo `/retro`) + la registrazione quando l'attrito si presenta.
-- Non è il lint della memoria. La coerenza della base di conoscenza (stato
-  disallineato dalla realtà, note contraddittorie, pagine orfane, link rotti) è un
-  health-check separato — `/lint-memory` — dove una contraddizione è un BUG da
-  CORREGGERE, non un miglioramento da proporre. La retro guarda al PROCESSO, il lint
-  alla salute dei DATI; il ponte tra i due è l'IMP che il lint apre quando un
-  disallineamento rivela un buco di processo.
+- It is not continuous refactoring of the application code (that follows
+  `02-code-quality.md` and happens inside tasks, not on the sly).
+- It is not a licence to add tools/dependencies "because they improve things" — those
+  go through recording a decision.
+- It is not verbose self-assessment on every message: it is ONE moment of reflection
+  at the end of a deliverable (the `/retro` step) + recording whenever friction shows
+  up.
+- It is not the memory lint. The coherence of the knowledge base (state misaligned
+  with reality, contradictory notes, orphan pages, broken links) is a separate
+  health-check — `/lint-memory` — where a contradiction is a BUG to be FIXED, not an
+  improvement to be proposed. The retro looks at the PROCESS, the lint at the health
+  of the DATA; the bridge between the two is the IMP the lint opens when a
+  misalignment reveals a process gap.

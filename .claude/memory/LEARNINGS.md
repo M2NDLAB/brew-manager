@@ -1,15 +1,16 @@
 ---
 type: learnings
-updated: 2026-07-12
+updated: 2026-09-24
 tags: [improvement]
 ---
-# Learnings & proposte di miglioramento
+# Learnings & improvement proposals
 
-> **Cos'è questo file.** Il backlog dell'auto-miglioramento di processo (vedi
-> `.claude/docs/06-self-improvement.md`). Qui Claude Code registra le proposte di
-> modifica a regole, doc, comandi e configurazione (IMP-nnn) — ma NON le applica
-> da solo: le applica solo dopo approvazione dell'utente. Le correzioni puramente
-> FATTUALI alla doc (Livello 1) non passano da qui, si applicano subito.
+> **What this file is.** The backlog of process self-improvement (see
+> `.claude/docs/06-self-improvement.md`). Here Claude Code records the proposed
+> changes to rules, docs, commands and configuration (IMP-nnn) — but it does NOT
+> apply them on its own: it applies them only after the user approves. Purely
+> FACTUAL corrections to the docs (Level 1) do not go through here, they are
+> applied immediately.
 >
 > La numerazione delle IMP di brew-manager parte da **001**. Le IMP del
 > claude-code-framework (001–026 nel repo del framework) NON si ereditano: questo
@@ -18,13 +19,14 @@ tags: [improvement]
 > questo progetto: sono annotate in
 > [[sessions/2026-07-11-innesto-note]].
 >
-> **Attributo `Destinazione: framework`.** In un progetto-CLIENTE una IMP può
-> riguardare il FRAMEWORK invece che questo progetto: si marca con la riga
-> `- Destinazione: framework` (riga fisica singola, così `/harvest-framework` la
-> raccoglie via grep). Omessa = lezione-di-questo-progetto, che resta nel cliente.
-> È un attributo di DESTINAZIONE, non un livello: la lezione resta di Livello 2 —
-> vedi `docs/06-self-improvement.md`, *"Il ponte verso il framework"*. NEL REPO DEL
-> FRAMEWORK l'attributo è moot (ogni IMP è già framework) e non si usa sulle voci.
+> **The `Destination: framework` attribute.** In a CLIENT project an IMP may concern
+> the FRAMEWORK rather than this project: it is marked with the line
+> `- Destination: framework` (a single physical line, so `/harvest-framework` picks
+> it up via grep). Omitted = a lesson about this project, which stays in the client.
+> It is a DESTINATION attribute, not a level: the lesson stays a Level 2 one — see
+> `docs/06-self-improvement.md`, *"The bridge to the framework"*. IN THE FRAMEWORK
+> REPO the attribute is moot (every IMP is already about the framework) and is not
+> used on the entries.
 
 ## Proposte APERTE (in attesa di decisione utente)
 
@@ -296,15 +298,186 @@ tags: [improvement]
 - Trigger di ripresa: decisione utente, o prossimo gate su un comando esterno.
 - Destinazione: framework
 
-<!-- Formato di una proposta:
-### IMP-001 — <titolo breve>
-- Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>
-- Problema osservato: <attrito ricorrente, errore ripetuto, gap, regola ambigua>
-- Proposta: <cosa cambiare e dove: CLAUDE.md / docs/NN / comando / hook / processo>
-- Beneficio atteso / rischio:
-- Trigger di ripresa: <se non è applicabile subito: quale evento la fa tornare in gioco>
-- Destinazione: framework   (OPZIONALE — solo se la lezione va fatta risalire al
-                             framework; riga fisica singola per il grep di /harvest-framework)
+### IMP-012 — `hooks-install.sh` cannot run from a linked worktree, while the method recommends worktrees
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — `HOOKS_DIR="${REPO_ROOT}/.git/hooks"` is hard-coded
+- Observed problem: in a linked worktree `.git` is a file (`gitdir:`), so the script
+  fails with `mkdir: …/.git: Not a directory` (every version from v0.2.0 to v1.2.0).
+  Worse, running Step 4 from the main worktree while the upgrade branch lives in a
+  linked one executes the OLD script and exits 0 with the old hooks: a false green.
+  docs/00 ("separate branch (or worktree)") and brew's IMP-006 both recommend
+  worktrees.
+- Proposal: resolve the hooks directory with `git -C "$REPO_ROOT" rev-parse
+  --git-path hooks` (it returns the common hooks dir from a linked worktree —
+  verified); until then, state in the upgrade procedure that Step 4 runs from the
+  main worktree.
+- Expected benefit / risk: removes a silent false green from Step 4. Risk: low, one
+  line plus a self-test case.
+- Resumption trigger: next framework release touching `hooks-install.sh`.
+- Destination: framework
+
+### IMP-013 — The edge-case-4 rollback does not work across a hook-marker change
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — the vX script treats the vY hooks as foreign
+- Observed problem: SETUP (edge case 4) says to re-run `make hooks-install` from vX if
+  the upgrade is abandoned after Step 4. For any upgrade from ≤v1.0.0 to ≥v1.1.0 that
+  fails with rc=1 ("a hook not installed by this script already exists"): the old
+  script only knows the Italian marker. It needs `FORCE_OVERWRITE=1`, which in turn
+  overwrites the `.bak` saved by Step 4 (harmless: the originals are regenerable).
+  brew's own session notes of the two previous upgrades prescribe the failing command.
+- Proposal: document the rollback with `FORCE_OVERWRITE=1` (or "restore the `.bak`
+  first, then a plain run") in edge case 4, and mention that the first vY run
+  produces the expected WARNING + `.bak` pair.
+- Expected benefit / risk: a rollback that works as written. Risk: none.
+- Resumption trigger: next revision of the SETUP upgrade section.
+- Destination: framework
+
+### IMP-014 — docs/05 escalation delimiters changed without the legacy reader the CHANGELOG promises
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — `FINE RESPONSE` → `END OF RESPONSE`
+- Observed problem: CHANGELOG [1.1.0] lists the escalation delimiters among the strings
+  switched "with backward compatibility", but no reader accepts the Italian closing
+  delimiters: docs/05 shows only `END OF REPORT/RESPONSE`, and its rule 1 asks to
+  re-paste a block that "looks incomplete". An external Architect still using the old
+  format would be bounced. Low impact for brew (no escalation ever opened).
+- Proposal: either add one line to docs/05 ("the legacy `FINE REPORT/RESPONSE`
+  delimiters are accepted") or correct the CHANGELOG claim.
+- Expected benefit / risk: the documented compatibility becomes true. Risk: none.
+- Resumption trigger: next framework release.
+- Destination: framework
+
+### IMP-015 — A new slot that lives only in an example blockquote does not resurface in the Step 4 grep
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — "Interaction language" has no marker of its own
+- Observed problem: v1.1.0 adds the "Interaction language" slot as a bullet of the
+  CLAUDE.md example blockquote, covered only by the marker on the section heading.
+  A project that replaced the whole blockquote at setup gets no marker back from the
+  3-way, so Step 4's grep never shows the new slot; only a checklist catches it.
+  Related: the check-10 sentinel (`TO BE DEFINED AT$|DA DEFINIRE AL$`) catches only a
+  wrap before "SETUP", not `[TO BE DEFINED⏎AT`, `[TO⏎BE`, or a trailing space.
+- Proposal: every release that adds a slot lists it in its CHANGELOG entry under
+  "New slots to fill on upgrade", and Step 4 reads that list besides the grep; widen
+  the sentinel to every internal break of the marker.
+- Expected benefit / risk: new slots cannot be skipped silently. Risk: none.
+- Resumption trigger: next release that adds a slot.
+- Destination: framework
+
+### IMP-016 — A translation release breaks name-cited section titles between method and non-English memory
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — 13 method citations vs Italian headings
+- Observed problem: v1.1.0 translated the STATE/LEARNINGS template headings and the
+  method files that cite them by name ("Caution & open issues", "Active branches",
+  "Applied", …), without listing them among the behaviour-bearing strings and while
+  stating "upgrading needs no migration". A project whose memory stays in its
+  language (as rule 9 itself allows for existing content) ends up with 13 citations
+  that match no heading, including the /checkpoint "critical debt" check; the reverse
+  direction (memory → renamed method titles) dangles too, and edge case 3 covers only
+  renamed FILES. On such a release the Step-3 3-way also degenerates into "take vY and
+  re-apply" (conflicts on 80-100% of each file), which the procedure does not say.
+  brew solved it with a title map in the technical rules (D1). Evidence for the
+  framework's IMP-043/046/048, not a duplicate of them.
+- Proposal: in the upgrade procedure, a "translation release" note: (1) run the
+  IMP-043 old/new grep in BOTH directions, memory included; (2) offer the title-map
+  pattern as the standard answer when the memory keeps another language; (3) state
+  that the 3-way degenerates into a rebuild and must be declared as such.
+- Expected benefit / risk: the next language change does not break name-cited
+  contracts silently. Risk: none.
+- Resumption trigger: the retro deciding IMP-043/048 in the framework.
+- Destination: framework
+
+### IMP-017 — An upgrade touching the security baseline needs a written gate verdict
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — the gate was silently skipped in two previous upgrades
+- Observed problem: upgrades rewrite `hooks-install.sh` (the gitleaks baseline),
+  `settings.json` (permissions) and `reset-task.sh` (a destructive guard). None of
+  them is a sensitive component, and the SETUP procedure never mentions
+  /security-review, so the question was never asked (0 verdicts in the notes of the
+  two previous upgrades). Also, `reset-task.sh` is classified METHOD although it
+  carries a slot a project fills (`PROTECTED_BRANCHES`): an overwrite would have
+  dropped brew's `dev` protection.
+- Proposal: Step 5 of the upgrade asks for (1) the diff of the EXECUTABLE lines of the
+  baseline scripts and (2) a written gate verdict with its reason; reclassify
+  `reset-task.sh` as HYBRID.
+- Expected benefit / risk: the baseline cannot weaken unnoticed across an upgrade.
+  Risk: a few minutes per upgrade.
+- Resumption trigger: next revision of the SETUP upgrade section.
+- Destination: framework
+
+### IMP-018 — Read the framework ONLY through its tag, and always with `-C`
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — tag shadowing and a moving HEAD
+- Observed problem: two traps met in this upgrade. (1) brew has its own `v1.2.0` tag:
+  `git show v1.2.0:<path>` run inside the project silently returns the PROJECT's file
+  (a different blob), with no error. (2) The framework's HEAD moved during the
+  assessment (a parallel commit): anything read from its working tree was no longer
+  v1.2.0.
+- Proposal: the SETUP procedure prescribes reading vX/vY exclusively as
+  `git -C <framework> show "vY:<path>"`, never from the working tree or HEAD, plus a
+  sanity check (`git -C <framework> rev-parse vY:<file>` against a known blob).
+- Expected benefit / risk: removes two silent wrong-source reads. Risk: none.
+- Resumption trigger: next revision of the SETUP upgrade section.
+- Destination: framework
+
+### IMP-019 — The `wip:` prefix prescribed by the method is rejected by commitlint
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — found by a FASE 1 verifier
+- Observed problem: docs/04 ("WHEN to commit", point 4) and /checkpoint prescribe a
+  `wip:` commit before closing a session with partial work, but `wip` is not in the
+  commitlint type enum: the commit-msg hook rejects it (`type must be one of …`).
+- Proposal: either add `wip` to the enum (feature branches only) or prescribe
+  `chore: wip …`.
+- Expected benefit / risk: an instruction of the method becomes executable. Risk: none.
+- Resumption trigger: next framework release.
+- Destination: framework
+
+### IMP-020 — Make the Step-5 memory invariant content-based and ship its checks
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — "empty diff on memory/" cannot hold on a format release
+- Observed problem: with Exception A active (IMP-046) the invariant becomes "only these
+  files, only these lines", which a plain `git diff` cannot prove. brew needed a
+  script: allowed-path diff, a body normaliser for LEARNINGS (from the first `## ` to
+  the end, minus the format comment — 289 lines), CONTENT comparison of the guide
+  READMEs with their expected files (not hunk headers: Apple diff and git diff print
+  them differently), no-backfill and checkpoint-scope checks. It was run on a clone
+  with one positive and eight negative branches: all caught.
+- Proposal: contribute these checks to the framework as the verification half of
+  IMP-046 (a `scripts/verify-memory-invariant.sh` or a Step-5 recipe).
+- Expected benefit / risk: the memory guarantee stays mechanical on every upgrade.
+  Risk: the script must stay generic (paths of the template only).
+- Resumption trigger: the framework's decision on IMP-046.
+- Destination: framework
+
+### IMP-021 — A delegation brief must carry the user's decisions verbatim
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — FASE 1 agents flagged a "blocking" non-issue
+- Observed problem: the FASE 1 assessment brief given to the review agents paraphrased
+  only one of the user's language decisions (the level rule) and left out the
+  already-decided rule-9 block. Several agents and verifiers then reported rule 9 as
+  "undecided, blocking", and the finding had to be retracted in the report. The same
+  run lost 2 of 27 agents to stalls: declaring the uncovered items explicitly, and
+  re-checking them by hand, kept the report honest.
+- Proposal: in the method (docs/00, effort/delegation hygiene): a brief for delegated
+  agents quotes the user's decisions and constraints VERBATIM, never summarised; a
+  multi-agent report states its coverage gaps (stalled or skipped agents) explicitly.
+- Expected benefit / risk: fewer false findings and no silent coverage holes. Risk:
+  longer briefs.
+- Resumption trigger: next multi-agent assessment.
+- Destination: framework
+
+### IMP-022 — Add `lib/selection.sh` to the sensitive components
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — STATE calls it sensitive, rule 8 does not list it
+- Observed problem: STATE ("What exists", `lib/selection.sh`) and the component note
+  call it the shared dispatch infrastructure, "sensitive", and the input parsing that
+  docs/03 attributes to `brew_manager.sh` moved there (`_resolve_selection`,
+  `_resolve_cli`). But it is in none of the sensitive lists (CLAUDE.md rule 8 and
+  technical rules, docs/03, docs/00, the 2026-07-12 decision), so a branch touching
+  only it would skip the gate.
+- Proposal: add it to the four lists and to the decision note (Level 2: a rule
+  change, after approval).
+- Expected benefit / risk: the selection resolver — whose defects already produced
+  MEDIUM fail-open findings in BM-08b — stays under the gate. Risk: none.
+- Resumption trigger: user decision; at the latest before the next change to
+  `lib/selection.sh`.
+
+<!-- Format of a proposal:
+### IMP-001 — <short title>
+- Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
+- Observed problem: <recurring friction, repeated error, gap, ambiguous rule>
+- Proposal: <what to change and where: CLAUDE.md / docs/NN / command / hook / process>
+- Expected benefit / risk:
+- Resumption trigger: <if it is not applicable now: which event brings it back into play>
+- Destination: framework   (OPTIONAL — only if the lesson must be sent upstream to the
+                            framework; a single physical line, for the grep of /harvest-framework)
 -->
 
 ## Applicate

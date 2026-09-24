@@ -1,37 +1,37 @@
-# Comandi di processo del framework — agnostici allo stack.
-# `make` o `make help` per la lista.
-# I target specifici di brew-manager sono nella sezione in fondo.
+# Framework process commands — stack-agnostic.
+# `make` or `make help` for the list.
+# The brew-manager-specific targets are in the section at the bottom.
 
 .DEFAULT_GOAL := help
 
-help: ## Mostra questo help
+help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Installa gli hook git (gitleaks + commitlint; formattazione da abilitare)
+hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be enabled)
 	bash scripts/hooks-install.sh
 
-reset-task: ## Scarta il mezzo-task interrotto, preservando branch e commit (task planning)
+reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
 	bash scripts/reset-task.sh
 
-test-scripts: ## Self-test degli script del framework (hooks-install, ...)
+test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
 	bash scripts/test-hooks-install.sh
 
 # ============================================================================
-# Target specifici di brew-manager (zsh, nessuna build).
+# brew-manager-specific targets (zsh, no build).
 # ============================================================================
 
-run: ## Avvia la TUI di brew-manager
+run: ## Start the brew-manager TUI
 	./brew_manager.sh
 
-check: ## Check di sintassi zsh su tutti gli script (fallisce al primo errore)
+check: ## zsh syntax check on every script (fails at the first error)
 	@for f in brew_manager.sh lib/*.sh modules/*.sh tests/*.zsh; do \
 		zsh -n "$$f" && echo "  ok  $$f" || exit 1; \
 	done
 
-# Harness zsh a mano, zero dipendenze (niente bats da installare): coerente con
-# la filosofia del progetto (nessun tool obbligatorio). Ogni file tests/*.zsh è
-# eseguibile da solo e ritorna non-zero se un check fallisce → gate bloccante.
-test: ## Esegue i test (harness zsh, nessuna dipendenza)
+# Hand-rolled zsh harness, zero dependencies (no bats to install): consistent with
+# the project's philosophy (no mandatory tool). Every tests/*.zsh file runs on
+# its own and returns non-zero if a check fails → blocking gate.
+test: ## Run the tests (zsh harness, no dependency)
 	@fail=0; \
 	for t in tests/*.zsh; do \
 		echo "── $$t"; \
@@ -39,31 +39,31 @@ test: ## Esegue i test (harness zsh, nessuna dipendenza)
 	done; \
 	exit $$fail
 
-# Il file VERSION è la fonte autorevole (funziona anche senza .git: tarball,
-# copia). Questo target è il guard-rail che impedisce il drift che c'era prima
-# (costante ferma a 1.1.0 mentre i tag erano a v1.1.2): al momento di taggare
-# una release, VERSION e tag devono coincidere.
-version-check: ## Verifica che VERSION coincida con l'ultimo tag vX.Y.Z
+# The VERSION file is the authoritative source (it works even without .git:
+# tarball, copy). This target is the guard-rail against the drift there was
+# before (a constant stuck at 1.1.0 while the tags were at v1.1.2): when a
+# release is tagged, VERSION and the tag must match.
+version-check: ## Check that VERSION matches the latest vX.Y.Z tag
 	@v="$$(tr -d '[:space:]' < VERSION)"; \
 	t="$$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1)"; \
 	if [ -z "$$t" ]; then \
-		echo "  skip: nessun tag vX.Y.Z ancora presente (VERSION = $$v)"; \
+		echo "  skip: no vX.Y.Z tag present yet (VERSION = $$v)"; \
 	elif [ "v$$v" = "$$t" ]; then \
-		echo "  ok  VERSION ($$v) allineato al tag $$t"; \
+		echo "  ok  VERSION ($$v) aligned with tag $$t"; \
 	else \
-		echo "  ERRORE: VERSION ($$v) diverge dall'ultimo tag ($$t)." >&2; \
-		echo "          Alla release: aggiorna VERSION e taggala nello stesso commit." >&2; \
+		echo "  ERROR: VERSION ($$v) diverges from the latest tag ($$t)." >&2; \
+		echo "         At release time: update VERSION and tag it in the same commit." >&2; \
 		exit 1; \
 	fi
 
-# shellcheck non ha un dialetto zsh (solo sh/bash/dash/ksh): forzare --shell=bash
-# su script zsh produce falsi positivi sui costrutti zsh-only (${(P)var}, read -rA,
-# typeset -A). Per questo il target è ADVISORY: mostra i finding ma non fallisce —
-# non può fare da gate finché il progetto è zsh. Skip pulito se non installato.
-lint: ## Shellcheck advisory se installato (skip pulito altrimenti; mai bloccante)
+# shellcheck has no zsh dialect (only sh/bash/dash/ksh): forcing --shell=bash
+# on zsh scripts yields false positives on zsh-only constructs (${(P)var}, read -rA,
+# typeset -A). That is why the target is ADVISORY: it shows the findings but does
+# not fail — it cannot be a gate while the project is zsh. Clean skip if not installed.
+lint: ## Advisory shellcheck if installed (clean skip otherwise; never blocking)
 	@if command -v shellcheck >/dev/null 2>&1; then \
 		shellcheck --shell=bash --severity=warning brew_manager.sh lib/*.sh modules/*.sh \
-			|| echo "  nota: finding ADVISORY (shellcheck non supporta zsh, attesi falsi positivi)"; \
+			|| echo "  note: ADVISORY findings (shellcheck does not support zsh, false positives expected)"; \
 	else \
-		echo "  skip: shellcheck non installato (opzionale: brew install shellcheck)"; \
+		echo "  skip: shellcheck not installed (optional: brew install shellcheck)"; \
 	fi

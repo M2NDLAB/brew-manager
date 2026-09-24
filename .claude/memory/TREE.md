@@ -1,6 +1,6 @@
 ---
 type: tree
-updated: 2026-07-21
+updated: 2026-09-24
 generated-by: /checkpoint
 tags: [structure]
 ---
@@ -72,7 +72,7 @@ tags: [structure]
 | Path | Cosa contiene |
 |---|---|
 | .claude/docs/ | documentazione di processo (il "metodo") — caricare solo i file rilevanti |
-| .claude/commands/ | slash command del metodo — l'elenco autorevole è in `CLAUDE.md`, "Comandi rapidi" |
+| .claude/commands/ | the method's slash commands — the authoritative list is in `CLAUDE.md`, "Quick commands" |
 | .claude/memory/ | questa memoria: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
 | lib/ | infrastruttura condivisa sourcata dal main: TUI + guard-rail ([[lib-common]]) + registry/resolver di selezione ([[lib-selection]]) |
 | modules/ | i 18 moduli (funzioni sourcate): 14 numerici `mod_00`–`mod_13` (sequenza `go`) + 4 speciali per nome (`bk`, `las`, `log`, `mas`) |
@@ -83,9 +83,9 @@ tags: [structure]
 | agents/ (ignorata) | conf e activity log dei LaunchAgent del modulo `las` |
 
 ## Note
-- `tree` non mostra i dotfile: esistono anche `.claude/`, `.gitignore`,
-  `.claude/settings.local.json` (locale, non versionato) e
-  `.claude/framework-version` (provenance pin dell'innesto framework, v1.0.0).
+- `tree` does not show dotfiles: there are also `.claude/`, `.gitignore`,
+  `.claude/settings.local.json` (local, not versioned) and
+  `.claude/framework-version` (provenance pin of the framework graft, v1.2.0).
 - `logs/`, `backups/`, `agents/` sono directory RUNTIME create dai moduli:
   git-ignorate, mai committate.
 - Solo `brew_manager.sh` è eseguibile; `lib/` e `modules/` vengono sourcati.

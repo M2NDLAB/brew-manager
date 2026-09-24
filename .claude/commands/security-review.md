@@ -1,28 +1,27 @@
 ---
-description: Security review del codice modificato
+description: Security review of the modified code
 ---
-Esegui una security review dei file modificati (`git diff`). Controlli minimi,
-agnostici allo stack — adatta/estendi quelli specifici della tua tecnologia
-(vedi @.claude/docs/03-security-gate.md):
+Run a security review of the modified files (`git diff`). Minimum checks,
+stack-agnostic — adapt/extend those specific to your technology
+(see @.claude/docs/03-security-gate.md):
 
-1. **Secret** hardcodati o in config committati (anche codificati base64).
-2. **Injection** (SQL/NoSQL/comando/template): query o comandi costruiti per
-   concatenazione invece che parametrizzati.
-3. **Authorization**: endpoint/handler/azioni privi del controllo di autorizzazione,
-   o esclusi per errore dal filtro auth; broken access control / IDOR (accesso a
-   risorse di altri tramite id manipolato).
-4. **Dati sensibili / PII nei log** (es. log di oggetti di dominio interi).
-5. **Input non validato** al bordo (validazione mancante sui DTO/richieste in
-   ingresso).
-6. **Idempotency** mancante su endpoint mutativi dove la doppia esecuzione fa danno
-   (pagamenti, ordini, operazioni non reversibili) — se applicabile.
-7. **CORS / CSRF** con configurazione troppo permissiva.
-8. **Esposizione di dettagli** negli errori (stacktrace, path interni, query, versioni)
-   verso il client.
-9. **Superficie di management/diagnostica** (endpoint admin, actuator, debug) esposta
-   senza autenticazione o su superficie pubblica.
-10. **Dipendenze nuove**: verifica licenza e CVE note.
+1. **Secrets** hardcoded or in committed config (including base64-encoded ones).
+2. **Injection** (SQL/NoSQL/command/template): queries or commands built by
+   concatenation instead of parameterised.
+3. **Authorization**: endpoints/handlers/actions lacking the authorization check,
+   or mistakenly excluded from the auth filter; broken access control / IDOR (access
+   to other people's resources via a manipulated id).
+4. **Sensitive data / PII in the logs** (e.g. logging whole domain objects).
+5. **Unvalidated input** at the edge (missing validation on incoming DTOs/requests).
+6. **Idempotency** missing on mutating endpoints where double execution does damage
+   (payments, orders, non-reversible operations) — where applicable.
+7. **CORS / CSRF** with an overly permissive configuration.
+8. **Exposure of details** in errors (stacktraces, internal paths, queries, versions)
+   towards the client.
+9. **Management/diagnostics surface** (admin, actuator, debug endpoints) exposed
+   without authentication or on a public surface.
+10. **New dependencies**: check the licence and known CVEs.
 
-Report: tabella severity (CRITICAL/HIGH/MEDIUM/LOW) + fix proposto per ciascun
-finding. Ricorda la meccanica del gate (docs/03): HIGH/CRITICAL risolti prima della
-PR, MEDIUM risolti o accettati in STATE.md, LOW almeno registrati.
+Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
+finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
+PR, MEDIUM resolved or accepted in STATE.md, LOW at least recorded.

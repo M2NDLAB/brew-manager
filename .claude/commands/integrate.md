@@ -1,107 +1,107 @@
 ---
-description: Genera il blocco "PRONTO PER INTEGRAZIONE" — comandi pronti da incollare per merge + tag, senza eseguirli
+description: Generates the "READY FOR INTEGRATION" block — paste-ready commands for merge + tag, without running them
 ---
-A fine deliverable, prepara il blocco PRONTO PER INTEGRAZIONE per: $ARGUMENTS
-(se vuoto: per il branch corrente).
+At the end of a deliverable, prepare the READY FOR INTEGRATION block for: $ARGUMENTS
+(if empty: for the current branch).
 
-Claude Code **non pusha e non mergia** — è azione umana (vedi
-@.claude/docs/04-git-workflow.md). Qui RACCOGLIE lo stato con comandi di sola lettura
-e PRODUCE un blocco di comandi esatti, pronti da incollare. Esegui SOLO i comandi di
-lettura dei passi 1-2 e l'aggiornamento del CHANGELOG del passo 3 (commit locale);
-tutto il resto va STAMPATO, non eseguito.
+Claude Code **does not push and does not merge** — that is a human action (see
+@.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
+and PRODUCES a block of exact commands, ready to paste. Run ONLY the read commands of
+steps 1-2 and the CHANGELOG update of step 3 (local commit); everything else must be
+PRINTED, not executed.
 
-## 1. Raccogli lo stato (read-only)
-- Branch corrente (feature): `git branch --show-current`.
-- Branch di integrazione `<integrazione>` e branch stabile `<stabile>`: sono i RUOLI
-  di docs/04 (default di esempio `develop`/`main`; nomi effettivi
-  [DA DEFINIRE AL SETUP]). Sostituisci i segnaposto coi nomi reali del progetto.
-- Commit del branch non ancora nell'integrazione: `git log --oneline origin/<integrazione>..HEAD`
-  (fallback senza remote: `<integrazione>..HEAD`).
-- Versione corrente e distanza: `git describe --tags --long` (se non esistono tag,
-  parti da `v0.0.0`).
-- Guardia sulla BASE: `git describe --tags` accetta anche tag leggeri e nomi
-  non-SemVer (tipico di una storia ereditata da un innesto su repo esistente). Se
-  il tag base non è nel formato `vX.Y.Z`, FERMATI e segnala: la base del
-  versioning va decisa con l'utente (candidata tipica: il tag SemVer più alto,
-  `git tag --list 'v*' --sort=-v:refname | head -1`).
+## 1. Collect the state (read-only)
+- Current branch (feature): `git branch --show-current`.
+- Integration branch `<integration>` and stable branch `<stable>`: they are the ROLES
+  of docs/04 (example defaults `develop`/`main`; actual names
+  [TO BE DEFINED AT SETUP]). Replace the placeholders with the project's real names.
+- Branch commits not yet in the integration branch: `git log --oneline origin/<integration>..HEAD`
+  (fallback without a remote: `<integration>..HEAD`).
+- Current version and distance: `git describe --tags --long` (if no tags exist,
+  start from `v0.0.0`).
+- Guard on the BASE: `git describe --tags` also accepts lightweight tags and
+  non-SemVer names (typical of a history inherited from a graft onto an existing
+  repo). If the base tag is not in the `vX.Y.Z` format, STOP and flag it: the
+  versioning base must be decided with the user (typical candidate: the highest
+  SemVer tag, `git tag --list 'v*' --sort=-v:refname | head -1`).
 
-## 2. Calcola il bump e la prossima versione
-Applica le regole di *Versioning* di docs/04 al set di commit del branch:
-- il bump è il PIÙ ALTO tra quelli dei commit: `feat`→MINOR, `fix`→PATCH,
-  breaking (`tipo!`/`BREAKING CHANGE:`)→MAJOR;
-- se ci sono solo `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` o commit di
-  sola memoria/doc → **nessun tag** (è lavoro interno, non un rilascio: dichiaralo
-  esplicitamente nel blocco e ometti i comandi di tag);
-- rispetta il regime: **pre-1.0** (`0.y.z`) si tagga sul branch di integrazione
-  (`<integrazione>`); **post-1.0** il merge feature→`<integrazione>` NON si tagga — il
-  tag arriva alla release `<integrazione>`→`<stabile>` (vedi nota in fondo). Calcola la
-  prossima versione dal `git describe` del passo 1.
+## 2. Compute the bump and the next version
+Apply the *Versioning* rules of docs/04 to the branch's set of commits:
+- the bump is the HIGHEST among those of the commits: `feat`→MINOR, `fix`→PATCH,
+  breaking (`type!`/`BREAKING CHANGE:`)→MAJOR;
+- if there are only `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` or
+  memory/doc-only commits → **no tag** (it is internal work, not a release: state it
+  explicitly in the block and omit the tag commands);
+- respect the regime: **pre-1.0** (`0.y.z`) tags on the integration branch
+  (`<integration>`); **post-1.0** the feature→`<integration>` merge is NOT tagged — the
+  tag comes at the `<integration>`→`<stable>` release (see the note at the bottom).
+  Compute the next version from step 1's `git describe`.
 
-## 3. Aggiorna il CHANGELOG (se il progetto ne tiene uno)
+## 3. Update the CHANGELOG (if the project keeps one)
 
-Se alla root esiste un `CHANGELOG.md` (formato Keep a Changelog):
-- bump = "nessun tag" → NON toccarlo (il lavoro interno non è una release);
-- altrimenti: sposta il contenuto di `## [Unreleased]` sotto una nuova voce
-  `## [X.Y.Z] — YYYY-MM-DD` (versione calcolata al passo 2, data di oggi),
-  integrandolo con ciò che emerge dai commit del branch, e COMMITTA sul feature
-  branch PRIMA di stampare il blocco: così il changelog entra nel merge.
+If a `CHANGELOG.md` exists at the root (Keep a Changelog format):
+- bump = "no tag" → do NOT touch it (internal work is not a release);
+- otherwise: move the content of `## [Unreleased]` under a new entry
+  `## [X.Y.Z] — YYYY-MM-DD` (version computed at step 2, today's date),
+  integrating it with what emerges from the branch commits, and COMMIT on the feature
+  branch BEFORE printing the block: this way the changelog goes into the merge.
 
-## 4. Stampa il blocco PRONTO PER INTEGRAZIONE
-Un unico blocco di codice copiabile, con i segnaposto già sostituiti dai valori reali
-calcolati. NON eseguirlo:
+## 4. Print the READY FOR INTEGRATION block
+A single copyable code block, with the placeholders already replaced by the real
+computed values. Do NOT run it:
 ```
-# 1. allinea la feature sull'integrazione aggiornata (i conflitti si risolvono QUI)
+# 1. rebase the feature onto the updated integration branch (conflicts are resolved HERE)
 git checkout <feature>
 git fetch origin
-git rebase origin/<integrazione>
+git rebase origin/<integration>
 
-# 2. porta l'integrazione locale al pari del remoto, poi merge esplicito non-fast-forward
-git checkout <integrazione>
-git merge --ff-only origin/<integrazione>
-git merge --no-ff <feature> -m "<tipo>(<scope>): merge <feature> in <integrazione>"
+# 2. bring the local integration branch level with the remote, then explicit non-fast-forward merge
+git checkout <integration>
+git merge --ff-only origin/<integration>
+git merge --no-ff <feature> -m "<type>(<scope>): merge <feature> into <integration>"
 
-# 3. tag annotato col bump calcolato   (se "nessun tag": ometti questo passo)
-#    digita il -m a mano, breve e ASCII puro (niente em-dash/accenti incollati)
-git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <sintesi del deliverable>"
+# 3. annotated tag with the computed bump   (if "no tag": omit this step)
+#    type the -m by hand, short and pure ASCII (no pasted em-dashes/accents)
+git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>"
 
-# 4. verifica PRIMA del push: il tag esiste ed e' sano, e pubblichi solo i commit attesi
+# 4. verify BEFORE the push: the tag exists and is sound, and you publish only the expected commits
 git rev-parse v<X.Y.Z>
-git log --oneline origin/<integrazione>..<integrazione>
+git log --oneline origin/<integration>..<integration>
 
-# 5. push esplicito di branch e tag (lo lanci TU: è l'azione umana)
-git push origin <integrazione>
+# 5. explicit push of branch and tag (YOU run it: it is the human action)
+git push origin <integration>
 git push origin v<X.Y.Z>
 
-# 6. elimina il feature branch ormai mergiato (safe: -d, mai -D)
+# 6. delete the now-merged feature branch (safe: -d, never -D)
 git branch -d <feature>
 ```
 
-Se (e SOLO se) `git rev-parse v<X.Y.Z>` fallisce — tag corrotto, tipicamente da un
-copia-incolla — stampa ANCHE questo blocco di recupero, SEPARATO da quello sopra
-(docs/04, "Confine di esecuzione"): mai `tag -d` su un tag sano.
+If (and ONLY if) `git rev-parse v<X.Y.Z>` fails — corrupted tag, typically from a
+copy-paste — ALSO print this recovery block, SEPARATE from the one above
+(docs/04, "Execution boundary and blocks for the user"): never `tag -d` on a sound tag.
 ```
-# SOLO se 'git rev-parse v<X.Y.Z>' e' fallito al passo 4:
+# ONLY if 'git rev-parse v<X.Y.Z>' failed at step 4:
 git tag -d v<X.Y.Z>
-# poi ricrea il tag digitandolo a mano (passo 3) e riverifica (passo 4)
+# then recreate the tag by typing it by hand (step 3) and re-verify (step 4)
 ```
 
-## 5. Verifica finale (stampala come checklist)
-- l'header del merge commit è entro il limite del commit-linter: **100 caratteri**
-  (default conventional, non sovrascritto in `commitlint.config.cjs`);
-- il tipo del merge commit è un tipo valido (`feat`/`fix`/...), MAI `merge:`;
-- la versione del tag è coerente col bump calcolato e con `git describe`;
-- gli argomenti git usano **spazi normali** e trattini ASCII: niente spazi
-  non-breaking/unicode né trattini "lunghi" copiati da un editor — un `--no-ff` con un
-  carattere sbagliato fallisce in modo oscuro;
-- il blocco contiene le due verifiche PRE-push: `git rev-parse` del tag e
-  `git log origin/<integrazione>..<integrazione>` (cosa diventa pubblico);
-- ogni comando distruttivo (es. `tag -d`) è in blocco SEPARATO con la sua
-  condizione, mai inline (docs/04, "Confine di esecuzione").
+## 5. Final verification (print it as a checklist)
+- the merge commit header is within the commit-linter limit: **100 characters**
+  (conventional default, not overridden in `commitlint.config.cjs`);
+- the merge commit type is a valid type (`feat`/`fix`/...), NEVER `merge:`;
+- the tag version is consistent with the computed bump and with `git describe`;
+- the git arguments use **normal spaces** and ASCII hyphens: no non-breaking/unicode
+  spaces nor "long" dashes copied from an editor — a `--no-ff` with a wrong character
+  fails obscurely;
+- the block contains the two PRE-push checks: `git rev-parse` of the tag and
+  `git log origin/<integration>..<integration>` (what becomes public);
+- every destructive command (e.g. `tag -d`) is in a SEPARATE block with its
+  condition, never inline (docs/04, "Execution boundary and blocks for the user").
 
-## Variante release (1.0.0 e post-1.0)
-Per la promozione `<integrazione>`→`<stabile>` la sequenza è la stessa ma sul branch
-stabile, e il tag (`v1.0.0` o il bump MAJOR/MINOR/PATCH) va su `<stabile>` dopo il
-merge di release — vedi *Versioning* in docs/04.
+## Release variant (1.0.0 and post-1.0)
+For the `<integration>`→`<stable>` promotion the sequence is the same but on the
+stable branch, and the tag (`v1.0.0` or the MAJOR/MINOR/PATCH bump) goes on
+`<stable>` after the release merge — see *Versioning* in docs/04.
 
-NON eseguire push/merge/tag: il blocco è per l'utente. A integrazione avvenuta,
-l'utente può lanciare `/checkpoint` per riconciliare `STATE.md` e i branch attivi.
+Do NOT run push/merge/tag: the block is for the user. Once integration has happened,
+the user can run `/checkpoint` to reconcile `STATE.md` and the active branches.
