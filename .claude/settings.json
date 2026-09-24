@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== MEMORIA PROGETTO (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memoria non inizializzata: vedi .claude/memory/'"
+            "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: see .claude/memory/'"
           }
         ]
       }
