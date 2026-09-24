@@ -3,13 +3,14 @@ type: learnings
 updated: 2026-07-12
 tags: [improvement]
 ---
-# Learnings & proposte di miglioramento
+# Learnings & improvement proposals
 
-> **Cos'è questo file.** Il backlog dell'auto-miglioramento di processo (vedi
-> `.claude/docs/06-self-improvement.md`). Qui Claude Code registra le proposte di
-> modifica a regole, doc, comandi e configurazione (IMP-nnn) — ma NON le applica
-> da solo: le applica solo dopo approvazione dell'utente. Le correzioni puramente
-> FATTUALI alla doc (Livello 1) non passano da qui, si applicano subito.
+> **What this file is.** The backlog of process self-improvement (see
+> `.claude/docs/06-self-improvement.md`). Here Claude Code records the proposed
+> changes to rules, docs, commands and configuration (IMP-nnn) — but it does NOT
+> apply them on its own: it applies them only after the user approves. Purely
+> FACTUAL corrections to the docs (Level 1) do not go through here, they are
+> applied immediately.
 >
 > La numerazione delle IMP di brew-manager parte da **001**. Le IMP del
 > claude-code-framework (001–026 nel repo del framework) NON si ereditano: questo
@@ -18,13 +19,14 @@ tags: [improvement]
 > questo progetto: sono annotate in
 > [[sessions/2026-07-11-innesto-note]].
 >
-> **Attributo `Destinazione: framework`.** In un progetto-CLIENTE una IMP può
-> riguardare il FRAMEWORK invece che questo progetto: si marca con la riga
-> `- Destinazione: framework` (riga fisica singola, così `/harvest-framework` la
-> raccoglie via grep). Omessa = lezione-di-questo-progetto, che resta nel cliente.
-> È un attributo di DESTINAZIONE, non un livello: la lezione resta di Livello 2 —
-> vedi `docs/06-self-improvement.md`, *"Il ponte verso il framework"*. NEL REPO DEL
-> FRAMEWORK l'attributo è moot (ogni IMP è già framework) e non si usa sulle voci.
+> **The `Destination: framework` attribute.** In a CLIENT project an IMP may concern
+> the FRAMEWORK rather than this project: it is marked with the line
+> `- Destination: framework` (a single physical line, so `/harvest-framework` picks
+> it up via grep). Omitted = a lesson about this project, which stays in the client.
+> It is a DESTINATION attribute, not a level: the lesson stays a Level 2 one — see
+> `docs/06-self-improvement.md`, *"The bridge to the framework"*. IN THE FRAMEWORK
+> REPO the attribute is moot (every IMP is already about the framework) and is not
+> used on the entries.
 
 ## Proposte APERTE (in attesa di decisione utente)
 
@@ -296,15 +298,15 @@ tags: [improvement]
 - Trigger di ripresa: decisione utente, o prossimo gate su un comando esterno.
 - Destinazione: framework
 
-<!-- Formato di una proposta:
-### IMP-001 — <titolo breve>
-- Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>
-- Problema osservato: <attrito ricorrente, errore ripetuto, gap, regola ambigua>
-- Proposta: <cosa cambiare e dove: CLAUDE.md / docs/NN / comando / hook / processo>
-- Beneficio atteso / rischio:
-- Trigger di ripresa: <se non è applicabile subito: quale evento la fa tornare in gioco>
-- Destinazione: framework   (OPZIONALE — solo se la lezione va fatta risalire al
-                             framework; riga fisica singola per il grep di /harvest-framework)
+<!-- Format of a proposal:
+### IMP-001 — <short title>
+- Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
+- Observed problem: <recurring friction, repeated error, gap, ambiguous rule>
+- Proposal: <what to change and where: CLAUDE.md / docs/NN / command / hook / process>
+- Expected benefit / risk:
+- Resumption trigger: <if it is not applicable now: which event brings it back into play>
+- Destination: framework   (OPTIONAL — only if the lesson must be sent upstream to the
+                            framework; a single physical line, for the grep of /harvest-framework)
 -->
 
 ## Applicate
