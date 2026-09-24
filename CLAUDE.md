@@ -91,9 +91,10 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   artifact. Runtime dependencies: Homebrew (built-in installer), `script(1)`,
   `python3` (JSON parsing in mod_03), `mas` (optional, mas module), `launchctl`,
   `mdfind`, `tput`, `open(1)`.
-- **Run**: `./brew_manager.sh` (interactive TUI). Flags: `--dry-run`, `--yes|-y`,
-  `--adopt=n|all|1,2`, `--upgrade=y|n`, `--version|-V`. Only `brew_manager.sh` is
-  executable: `lib/` and `modules/` are sourced.
+- **Run**: `./brew_manager.sh` (interactive TUI; `make run`). CLI selection: the
+  positional `[modules]` (a list of ids, or `go`) plus `--only=`/`--skip=`. Flags:
+  `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`, `--upgrade=y|n`, `--version|-V`.
+  Only `brew_manager.sh` is executable: `lib/` and `modules/` are sourced.
 - **Version**: the `VERSION` file at the root is the authoritative source;
   `git describe` only enriches it when there is a work tree. At release time
   `VERSION` and the tag are updated in the SAME commit — `make version-check` fails
@@ -101,22 +102,29 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
 - **Standard structure of a component** (= module, for /new-component): see
   `.claude/commands/new-component.md`. In short: a `modules/mod_NN_slug.sh` file
   (loaded automatically by the `mod_*.sh` glob), a `_module_NN` function (number
-  without zero-padding), an entry in `MODULE_DESC` (mandatory: without it the module
-  cannot be selected), if needed an addition to `MODULE_IDS` for the `go` sequence, a
-  menu line; for the special modules also an alias in the parsing and dispatch case.
+  without zero-padding; `_module_14`/`_module_15`/`_module_16` are currently taken by
+  bk/las/mas — see STATE.md), and an entry in every registry of `lib/selection.sh`:
+  `MODULE_DESC` (mandatory: without it the module cannot be selected), `MODULE_NAME`,
+  `MODULE_RISK` and `MODULE_DRYRUN` (kept in lockstep by the tests), plus
+  `MODULE_IDS` for the `go` sequence. The menu rows are generated from the
+  registries; for the special modules also an alias in the `_resolve_selection` case
+  and a branch in the dispatch case of `brew_manager.sh`.
 - **Code conventions**: internal functions prefixed with `_`; constants and shared
   state in UPPERCASE; TUI output only through the `lib/common.sh` utilities
-  (`_section`, `_ok`, `_warn`, `_err`, `_info`, `_item`, `_stat_row`); prompts ONLY
+  (`_section`, `_ok`, `_warn`, `_err`, `_info`, `_item`, `_stat_row`), plus
+  `_about_risk` from `lib/selection.sh` for the About block; prompts ONLY
   through `_ask`/`_read_choice` (never a bare `read` for confirmations). Beware of zsh
   arrays: they are 1-based (a source of off-by-one errors already present in the
   code). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
   `BREW_MANAGER_YES`** — it is the by-convention rule that prevents the most
   widespread class of defects that emerged from the assessment (see STATE.md).
-  Formatter/linter: none active (candidates: `shfmt`/`shellcheck`, not installed;
-  block prepared but commented out in `scripts/hooks-install.sh`). Zero-cost syntax
-  check: `zsh -n <file>`.
-- **Tests**: none. No test framework; the debt is recorded in STATE.md (future
-  candidate: bats). Minimal verification for every change: `zsh -n` on the touched
+  Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not
+  installed; block prepared but commented out in `scripts/hooks-install.sh`);
+  `make lint` runs shellcheck as ADVISORY when installed. Syntax gate: `make check`
+  (`zsh -n` on every script); zero-cost check on a single file: `zsh -n <file>`.
+- **Tests**: a hand-rolled zsh harness in `tests/`, zero dependencies, run by
+  `make test` (a blocking gate); bats remains a future candidate. Minimal
+  verification for every change: `zsh -n` on the touched
   files + smoke run `./brew_manager.sh --dry-run` of the module concerned.
 - **Sensitive components** (rule 8): `mod_00_audit` (app adoption),
   `mod_05_cleanup` (autoremove/cleanup), `mod_bk_brewfile` (restore, plist),

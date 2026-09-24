@@ -67,7 +67,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   in this project: NONE active — the block stays commented out in
   `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not
   installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the
-  touched files.
+  touched files; project-wide gates: `make check` (`zsh -n` on every script,
+  blocking) and `make test`; `make lint` runs shellcheck as advisory only.
 - Testing configuration: do not build configuration objects by hand in tests with
   long lists of positional/`null` values — adding a field would break every call
   site, including the ones that do not use it. Use builders/fixtures or binding from

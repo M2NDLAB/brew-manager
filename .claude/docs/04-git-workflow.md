@@ -268,4 +268,5 @@ what Claude Code may run without asking. Keep them **clean and specific**:
 
 > The stack-specific read-only commands added to this project's `allow`:
 > `zsh -n` (syntax check), `shellcheck` (if installed), `brew list`,
-> `brew info`, `git tag` (listing), `git describe`.
+> `brew info`, `git tag` (listing), `git describe`, `git show` (IMP-001: review
+> agents read files at a revision).

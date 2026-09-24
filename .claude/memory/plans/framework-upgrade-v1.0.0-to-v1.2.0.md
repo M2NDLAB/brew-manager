@@ -67,7 +67,7 @@ change, no tag.
 - [x] 8. docs/06 rebuild — commit: 12d1afb
 - [x] 9. commands: checkpoint, harvest-framework, lint-memory, new-component rebuild — commit: 13a569c
 - [x] 10. M1 `docs(memory)`: sessions/decisions/components/plans guide READMEs → v1.2.0 — commit: 452632c
-- [ ] 11. M2 `docs(memory)`: LEARNINGS header template lines + IMP format comment → v1.2.0 — commit: —
+- [x] 11. M2 `docs(memory)`: LEARNINGS header template lines + IMP format comment → v1.2.0 — commit: d13a632
 - [ ] 12. Level-1 correction of the stale claims (CLAUDE.md, new-component, docs/02, docs/04) — commit: —
 - [ ] 13. Provenance pin → v1.2.0 (Step 6) — commit: —
 

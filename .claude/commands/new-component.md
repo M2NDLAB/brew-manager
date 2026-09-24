@@ -11,26 +11,41 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    number) or `modules/mod_<alias>_slug.sh` (a special module invoked by name). The
    file is loaded automatically by the `mod_*.sh` glob: no loading registration.
 3. Define the `_module_NN` function (number WITHOUT zero-padding, e.g. `_module_5`)
-   or `_module_<alias>`. Standard internal structure:
+   or `_module_<alias>` (today only `log` uses it: bk/las/mas are `_module_14`,
+   `_module_15` and `_module_16`, so a new module 14 would be shadowed by bk — fix
+   that collision first, see STATE.md). Standard internal structure:
    - opening with `_section "NN" "Title"`;
    - an "About this module" block in plain language BEFORE any action (what it does,
-     what it checks, what it may modify);
+     what it checks, what it may modify), with `_about_risk "<id>"` (from
+     `lib/selection.sh`) for its risk line;
    - output ONLY through the `lib/common.sh` utilities (`_ok`, `_warn`, `_err`,
      `_info`, `_item`); confirmations ONLY via `_ask`/`_read_choice`;
    - **every mutating action gated by `BREW_MANAGER_DRY_RUN` and compatible with
      `BREW_MANAGER_YES`** (safe default = do not act). A non-negotiable rule: it is
      the project's historical class of defects (see STATE.md);
-   - any temporary files in `/tmp/brew_*.log` (they are cleaned up by the main
-     script), shared state for the summary in UPPERCASE global variables.
-4. Register the module in `brew_manager.sh`:
-   - an entry in `MODULE_DESC` (MANDATORY: without it the module cannot be selected);
+   - any temporary files in `/tmp/brew_*.log` (the main script removes only the
+     files listed in its final `rm -f`: add yours there; fixed /tmp paths are a
+     known debt, see STATE.md), shared state for the summary in UPPERCASE global
+     variables.
+4. Register the module in the registries of `lib/selection.sh` (`brew_manager.sh`
+   only consumes them):
+   - an entry in `MODULE_DESC` (MANDATORY: without it the module cannot be selected)
+     and, in the same commit, in `MODULE_NAME` (short menu name), `MODULE_RISK`
+     (`ro`/`write`/`danger` badge) and `MODULE_DRYRUN` (1 only if a `--dry-run` run
+     changes nothing; a 0 must also be listed in `_KNOWN_UNGATED` of
+     `tests/test_run_summary.zsh`) — the tests keep all four in lockstep with
+     `MODULE_DESC`;
    - if it must run in the `go` sequence: add the number to `MODULE_IDS`;
-   - a print line in the menu (for the special ones: a dedicated printf after
-     `_hline`);
-   - for the special modules only: an alias in the input-parsing case and a branch in
-     the dispatch case (alias → function).
-5. Minimal verification (there is no test suite):
+     `tests/test_menu_registry.zsh` pins the key set and the count, update it too;
+   - the menu rows are generated from the registries (`_menu_row`): no dedicated
+     printf;
+   - for the special modules only: an alias in the `_resolve_selection` case of
+     `lib/selection.sh`, the name in the `for tid in log bk las mas` menu loop, a
+     branch in the dispatch case of `brew_manager.sh` (alias → function) and in
+     its "Valid modules" error message.
+5. Minimal verification:
    - `zsh -n` on every touched file;
+   - `make test` (the registry tests fail if step 4 is incomplete);
    - smoke run `./brew_manager.sh --dry-run` selecting the new module: it must show
      up in the menu, start, and NOT perform mutating actions;
    - if the module is mutating: check that with the default answer to the prompts it
