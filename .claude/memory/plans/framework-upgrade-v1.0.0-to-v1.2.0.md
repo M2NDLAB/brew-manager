@@ -64,7 +64,7 @@ change, no tag.
 - [x] 5. CLAUDE.md rebuild (rule 9, language slot + prospective bullet, D1 title map) + the checkpoint-step-3 functional check — commit: 0fbddb3
 - [x] 6. docs/00, 01, 02 rebuild — commit: 499213d
 - [x] 7. docs/03, 04 rebuild (public contract preserved) — commit: 3866cba
-- [ ] 8. docs/06 rebuild — commit: —
+- [x] 8. docs/06 rebuild — commit: 12d1afb
 - [ ] 9. commands: checkpoint, harvest-framework, lint-memory, new-component rebuild — commit: —
 - [ ] 10. M1 `docs(memory)`: sessions/decisions/components/plans guide READMEs → v1.2.0 — commit: —
 - [ ] 11. M2 `docs(memory)`: LEARNINGS header template lines + IMP format comment → v1.2.0 — commit: —

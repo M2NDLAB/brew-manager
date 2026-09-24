@@ -1,83 +1,85 @@
 ---
-description: Health-check di coerenza della memoria/wiki — trova contraddizioni e disallineamenti e propone la correzione
+description: Consistency health-check of the memory/wiki — finds contradictions and misalignments and proposes the correction
 ---
-Esegui un LINT della memoria persistente (`.claude/memory/`) e dei rimandi di
-processo: un health-check della COERENZA della base di conoscenza, su: $ARGUMENTS
-(se vuoto: su tutta la memoria).
+Run a LINT of the persistent memory (`.claude/memory/`) and of the process
+pointers: a health-check of the CONSISTENCY of the knowledge base, on: $ARGUMENTS
+(if empty: on the whole memory).
 
-Questo NON è una retrospettiva di processo (`/retro`, vedi @.claude/docs/06-self-improvement.md):
-la retro propone COSA MIGLIORARE nel workflow; il lint verifica la SALUTE dei DATI.
-**Quando si esegue** (vedi il ciclo in @.claude/docs/00-overview.md): NON a ogni
-deliverable — periodicamente, di norma insieme alla retrospettiva periodica sul
-backlog IMP, e dopo eventi che toccano molte note in una volta (merge grossi,
-ristrutturazioni della memoria, riscritture ampie di `STATE.md`).
-**Criterio di risoluzione**: questo è un framework per software — una contraddizione
-è un BUG, non una tensione da preservare. Il lint SEGNALA e PROPONE la correzione,
-allineando sempre lo stato alla realtà (mai il contrario — salvo che la realtà violi
-una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP).
+This is NOT a process retrospective (`/retro`, see @.claude/docs/06-self-improvement.md):
+the retro proposes WHAT TO IMPROVE in the workflow; the lint verifies the HEALTH of the DATA.
+**When to run it** (see the cycle in @.claude/docs/00-overview.md): NOT at every
+deliverable — periodically, normally together with the periodic retrospective on the
+IMP backlog, and after events that touch many notes at once (big merges,
+restructurings of the memory, wide rewrites of `STATE.md`).
+**Resolution criterion**: this is a framework for software — a contradiction
+is a BUG, not a tension to preserve. The lint FLAGS and PROPOSES the correction,
+always aligning the state to reality (never the other way round — unless reality violates
+a rule: then it is a process bug, not a memory bug, and it goes to escalation/IMP).
 
-## Controlli
-1. **Stato vs realtà.** `STATE.md` (avanzamento, "Branch attivi", "Cosa esiste")
-   allineato con git? Verifica con `git branch`, `git branch --merged <integrazione>`,
-   `git log --oneline -10`: branch dati per esistenti ma già mergiati/eliminati,
-   feature "in corso" che risultano già committate, "ultimo" stantio.
-2. **Contraddizioni tra note.** Decisioni (`decisions/`), note di componente
-   (`components/`) e di sessione (`sessions/`) che si contraddicono tra loro o con
+## Checks
+1. **State vs reality.** Is `STATE.md` (progress, "Active branches", "What exists")
+   aligned with git? Verify with `git branch`, `git branch --merged <integration>`,
+   `git log --oneline -10`: branches given as existing but already merged/deleted,
+   features "in progress" that turn out to be already committed, a stale "last".
+2. **Contradictions between notes.** Decisions (`decisions/`), component notes
+   (`components/`) and session notes (`sessions/`) that contradict each other or
    `STATE.md`.
-3. **Claim stantii.** Affermazioni rese obsolete da fatti più recenti (una decisione
-   superata da una successiva senza che la prima sia marcata come tale).
-4. **Pagine orfane.** Note senza alcun riferimento entrante (non citate da `INDEX.md`
-   né da `[[wikilink]]` di altre note): o sono da collegare, o sono morte.
-5. **Concetti senza pagina.** Concetti/componenti citati ripetutamente nelle note ma
-   privi di una pagina propria — candidati a una nota dedicata.
-6. **Cross-reference mancanti.** Note chiaramente correlate non collegate da
-   `[[wikilink]]`; `INDEX.md` che non elenca note realmente esistenti.
-7. **Link rotti.** `[[wikilink]]` che puntano a note inesistenti.
-8. **Coerenza di `TREE.md`.** Allineato alla struttura reale del filesystem
-   (rigenerabile come da `/checkpoint`).
-9. **Coerenza `LEARNINGS` ↔ `STATE`.** Gli item registrati sono allineati tra i
-   file: una IMP rimandata il cui trigger è vicino o bloccante compare anche tra i
-   problemi aperti di `STATE.md` (e viceversa); il debito accettato dal security
-   gate (docs/03) vive in `STATE.md` col motivo; ogni voce di debito ha il suo
-   TRIGGER esplicito, non è generica.
-10. **Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili.** Nessuno *slot* da compilare
-    è spezzato dal word-wrap su due righe fisiche: sfuggirebbe al `grep -rn "DA
-    DEFINIRE AL SETUP" .` che li individua, restando non compilato in silenzio.
-    Sentinella: `grep -rn "DA DEFINIRE AL$" .` — ogni hit è un candidato. Falsi
-    positivi NOTI da ignorare (prosa che *discute* il marcatore, non uno slot): i
-    record IMP di `LEARNINGS.md`. Un hit altrove, o che è davvero uno slot fillable,
-    va ricompattato su una sola riga fisica.
-11. **Inventari vs realtà.** Le liste-inventario ENUMERATE qui sotto corrispondono
-    al filesystem? Confronto insiemistico nei DUE versi: voce che ESISTE ma manca
-    dall'inventario; voce ELENCATA ma inesistente. Si controllano SOLO le liste
-    enumerate — mai le menzioni in prosa altrove (è l'enumerazione a evitare i
-    falsi positivi lista-vs-prosa):
-    (a) file in `.claude/commands/` ↔ elenco "Comandi rapidi" di `CLAUDE.md` e,
-        dove presente, la riga `commands/` della "Struttura" del `README.md`;
-    (b) target di PROCESSO del `Makefile` ↔ gli stessi elenchi. Di processo = la
-        ricetta invoca uno script di `scripts/` (ancoraggio STRUTTURALE, non
-        posizionale: regge anche quando il setup compila o rimuove il banner
-        `[DA DEFINIRE AL SETUP]`); `help` è escluso (meta-target che stampa la
-        lista) e i target di PROGETTO (build/test/run dello stack) sono FUORI
-        perimetro — mai segnalarli;
-    (c) file in `scripts/` ↔ tabella di `scripts/README.md`.
-    Una voce vale anche in forma equivalente (`make reset-task` ≡
-    `./scripts/reset-task.sh`). Mismatch = BUG (semantica del lint): si allinea la
-    doc alla realtà. Esclusi per dichiarazione, come nel controllo 10 (registrano
-    stati PASSATI, non inventari dello stato corrente): i documenti append-only
-    (`CHANGELOG.md`) e i record IMP di `LEARNINGS.md`. Nei progetti-cliente
-    valgono i soli file copiati dal template (il `README.md` del framework non è
-    tra questi).
+3. **Stale claims.** Statements made obsolete by more recent facts (a decision
+   superseded by a later one without the first being marked as such).
+4. **Orphan pages.** Notes with no incoming reference (not cited by `INDEX.md`
+   nor by a `[[wikilink]]` from other notes): either they are to be linked, or they are dead.
+5. **Concepts without a page.** Concepts/components cited repeatedly in the notes but
+   lacking a page of their own — candidates for a dedicated note.
+6. **Missing cross-references.** Clearly related notes not linked by a
+   `[[wikilink]]`; `INDEX.md` not listing notes that actually exist.
+7. **Broken links.** `[[wikilink]]` pointing at non-existent notes.
+8. **Consistency of `TREE.md`.** Aligned with the real structure of the filesystem
+   (regenerable as per `/checkpoint`).
+9. **`LEARNINGS` ↔ `STATE` consistency.** The recorded items are aligned between the
+   files: a deferred IMP whose trigger is near or blocking also appears among the
+   open issues of `STATE.md` (and vice versa); the debt accepted by the security
+   gate (docs/03) lives in `STATE.md` with its reason; every debt entry has its
+   explicit TRIGGER, it is not generic.
+10. **Grep-visible `[TO BE DEFINED AT SETUP]` markers.** No *slot* to be filled in
+    is broken by word-wrap across two physical lines: it would escape the
+    `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` that finds them,
+    silently staying unfilled. Sentinel: `grep -rnE "TO BE DEFINED AT$|DA DEFINIRE AL$" .`
+    — every hit is a candidate. The Italian form is recognised as LEGACY: projects
+    grafted before the release that introduced the English marker do not break. KNOWN
+    false positives to ignore (prose that *discusses* the marker, not a slot): the IMP
+    records of `LEARNINGS.md`. A hit elsewhere, or one that really is a fillable slot,
+    must be recompacted onto a single physical line.
+11. **Inventories vs reality.** Do the inventory-lists ENUMERATED below correspond
+    to the filesystem? Set comparison in BOTH directions: an entry that EXISTS but is missing
+    from the inventory; an entry LISTED but non-existent. ONLY the enumerated
+    lists are checked — never the prose mentions elsewhere (it is the enumeration that avoids
+    list-vs-prose false positives):
+    (a) files in `.claude/commands/` ↔ the "Quick commands" list of `CLAUDE.md` and,
+        where present, the `commands/` line of the "Structure" of `README.md`;
+    (b) PROCESS targets of the `Makefile` ↔ the same lists. Process ones = the
+        recipe invokes a script from `scripts/` (STRUCTURAL anchoring, not
+        positional: it holds even when the setup fills in or removes the
+        `[TO BE DEFINED AT SETUP]` banner); `help` is excluded (a meta-target that prints the
+        list) and the PROJECT targets (build/test/run of the stack) are OUT OF
+        scope — never flag them;
+    (c) files in `scripts/` ↔ the table of `scripts/README.md`.
+    An entry counts also in an equivalent form (`make reset-task` ≡
+    `./scripts/reset-task.sh`). A mismatch = BUG (lint semantics): the doc is aligned
+    to reality. Excluded by declaration, as in check 10 (they record PAST
+    states, not inventories of the current state): the append-only documents
+    (`CHANGELOG.md`) and the IMP records of `LEARNINGS.md`. In client projects
+    only the files copied from the template count (the `README.md` of the framework is not
+    among them).
 
-## Output e risoluzione
-Una tabella: **Area | Problema rilevato | Tipo** (disallineamento / contraddizione /
-orfano / link rotto / claim stantio) **| Correzione proposta**.
+## Output and resolution
+A table: **Area | Problem found | Type** (misalignment / contradiction /
+orphan / broken link / stale claim) **| Proposed correction**.
 
-- **Correzioni meccaniche e a basso rischio** (rigenerare `TREE.md`, riconciliare
-  "Branch attivi" con git, aggiungere un `[[wikilink]]` mancante, fixare un link
-  rotto): APPLICALE e dichiaralo.
-- **Casi che richiedono giudizio** (quale di due note contraddittorie è quella
-  giusta, quale claim è quello vero): PROPONI e chiedi conferma, non indovinare.
+- **Mechanical, low-risk corrections** (regenerating `TREE.md`, reconciling
+  "Active branches" with git, adding a missing `[[wikilink]]`, fixing a broken
+  link): APPLY them and say so.
+- **Cases that require judgement** (which of two contradictory notes is the right
+  one, which claim is the true one): PROPOSE and ask for confirmation, do not guess.
 
-Se un disallineamento rivela un buco di PROCESSO (non solo di dati), registralo come
-IMP in `LEARNINGS.md` (docs/06): è l'unico ponte tra il lint e la retrospettiva.
+If a misalignment reveals a PROCESS hole (not just a data one), record it as an
+IMP in `LEARNINGS.md` (docs/06): it is the only bridge between the lint and the retrospective.
