@@ -1,46 +1,47 @@
-# components/ — conoscenza durevole sui componenti
+# components/ — durable knowledge about the components
 
-Una nota per ogni **componente/modulo significativo** del progetto (un servizio,
-una libreria, un'app, un sottosistema). Cattura la conoscenza che NON si deduce a
-colpo d'occhio dal codice: cosa espone, le invarianti, le insidie (gotcha), i
-vincoli per chi lo usa, le decisioni locali. È la documentazione "viva" che Claude
-Code carica all'inizio di una sessione **solo per i componenti toccati dal task**
-(vedi la sezione memoria di `CLAUDE.md`) — per questo va tenuta densa e aggiornata.
+One note for each **significant component/module** of the project (a service, a
+library, an app, a subsystem). It captures the knowledge that canNOT be inferred at
+a glance from the code: what it exposes, the invariants, the gotchas, the
+constraints for those who use it, the local decisions. It is the "living"
+documentation that Claude Code loads at the start of a session **only for the
+components touched by the task** (see the memory section of `CLAUDE.md`) — which is
+why it must be kept dense and up to date.
 
-A differenza delle sessioni (append-only), queste note si **aggiornano**: devono
-riflettere lo stato attuale del componente, non la sua storia (la storia è in
-`sessions/` e in git).
+Unlike the session notes (append-only), these notes are **updated**: they must
+reflect the current state of the component, not its history (the history is in
+`sessions/` and in git).
 
-## Quando si scrive / aggiorna
-Alla nascita del componente e a ogni modifica sostanziale, dentro `/checkpoint`.
+## When to write / update it
+At the birth of the component and at every substantial change, inside `/checkpoint`.
 
 ## Naming
-`<componente>.md` — es. `auth.md`, `core-lib.md`, `web-app.md`.
+`<component>.md` — e.g. `auth.md`, `core-lib.md`, `web-app.md`.
 
-## Formato
+## Format
 ```markdown
 ---
 type: component
-component: <nome>
+component: <name>
 updated: YYYY-MM-DD
 tags: [component]
 ---
-# <nome>
+# <name>
 
-<una riga: cos'è e a cosa serve.>
+<one line: what it is and what it is for.>
 
-## Stato attuale
-<creato quando, livello di maturità, test, ecc.>
+## Current state
+<created when, maturity level, tests, etc.>
 
-## Cosa espone / responsabilità
-<API pubbliche, contratti, eventi, configurazione rilevante.>
+## What it exposes / responsibilities
+<public APIs, contracts, events, relevant configuration.>
 
-## Vincoli e insidie (per chi lo usa o lo modifica)
-<gotcha, ordini di inizializzazione delicati, assunzioni implicite,
- cose che sembrano modificabili ma non lo sono — col PERCHÉ.>
+## Constraints and gotchas (for those who use or modify it)
+<gotchas, delicate initialisation orders, implicit assumptions,
+ things that look modifiable but are not — with the WHY.>
 
-## Sessioni che l'hanno toccato
+## Sessions that touched it
 - [[sessions/YYYY-MM-DD-<slug>]]
 ```
 
-> Questo README resta come guida; le note di componente vivono accanto ad esso.
+> This README stays as a guide; the component notes live alongside it.

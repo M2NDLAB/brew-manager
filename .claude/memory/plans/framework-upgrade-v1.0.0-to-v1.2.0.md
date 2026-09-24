@@ -65,7 +65,7 @@ change, no tag.
 - [x] 6. docs/00, 01, 02 rebuild — commit: 499213d
 - [x] 7. docs/03, 04 rebuild (public contract preserved) — commit: 3866cba
 - [x] 8. docs/06 rebuild — commit: 12d1afb
-- [ ] 9. commands: checkpoint, harvest-framework, lint-memory, new-component rebuild — commit: —
+- [x] 9. commands: checkpoint, harvest-framework, lint-memory, new-component rebuild — commit: 13a569c
 - [ ] 10. M1 `docs(memory)`: sessions/decisions/components/plans guide READMEs → v1.2.0 — commit: —
 - [ ] 11. M2 `docs(memory)`: LEARNINGS header template lines + IMP format comment → v1.2.0 — commit: —
 - [ ] 12. Level-1 correction of the stale claims (CLAUDE.md, new-component, docs/02, docs/04) — commit: —

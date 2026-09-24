@@ -1,55 +1,55 @@
-# plans/ — piani di task per i prompt onerosi
+# plans/ — task plans for heavy prompts
 
-Un piano per ogni **prompt oneroso**, secondo il protocollo di task planning
-(`.claude/docs/01-task-planning.md`). Un prompt grande non si esegue "tutto d'un
-fiato": si spezza in **task atomici, ognuno con un commit**. Il piano è la
-checklist che rende l'esecuzione **resiliente alle interruzioni** — se la sessione
-muore al task N, i task 1..N-1 sono salvi su branch e si riprende dal task N, senza
-ricostruire nulla a mano.
+One plan for every **heavy prompt**, according to the task planning protocol
+(`.claude/docs/01-task-planning.md`). A big prompt is not executed "in one
+breath": it is broken into **atomic tasks, each with its own commit**. The plan is
+the checklist that makes execution **resilient to interruptions** — if the session
+dies at task N, tasks 1..N-1 are safe on the branch and work resumes from task N,
+without rebuilding anything by hand.
 
-## Quando si crea
-All'avvio di un prompt che Claude Code valuta oneroso (≈ più di 8-10 file, o ~400
-righe, o che tocca più layer). Per i task piccoli NON serve un piano. Il piano si
-crea e si **committa subito**, prima di iniziare i task, così sopravvive anche a un
-crash immediato.
+## When it is created
+At the start of a prompt that Claude Code judges heavy (≈ more than 8-10 files, or
+~400 lines, or touching several layers). Small tasks do NOT need a plan. The plan is
+created and **committed immediately**, before starting the tasks, so it survives even
+an immediate crash.
 
-## Ciclo di vita
-`status: in-progress` durante l'esecuzione → `status: completed` quando tutti i task
-sono spuntati. All'inizio di ogni sessione, un piano `in-progress` segnala dove
-riprendere.
+## Life cycle
+`status: in-progress` during execution → `status: completed` when all the tasks
+are ticked. At the start of every session, an `in-progress` plan signals where to
+resume.
 
 ## Naming
-`<id-prompt>.md` — es. `01-scaffold.md`, `03-modulo-x.md`.
+`<id-prompt>.md` — e.g. `01-scaffold.md`, `03-modulo-x.md`.
 
-## Formato
+## Format
 ```markdown
 ---
 type: plan
 prompt: <id-prompt>
-branch: <feature branch dedicato>
+branch: <dedicated feature branch>
 created: YYYY-MM-DD
 status: in-progress | completed
 tags: [plan, <area>]
 ---
-# Piano: <prompt>
+# Plan: <prompt>
 
-## Obiettivo
-<1-2 righe: cosa deve esistere a piano completato>
+## Goal
+<1-2 lines: what must exist once the plan is complete>
 
-## Task
-- [ ] 1. <task atomico, committabile da solo> — commit: —
+## Tasks
+- [ ] 1. <atomic task, committable on its own> — commit: —
 - [ ] 2. <...> — commit: —
 - [ ] 3. <...> — commit: —
 
-## Note di ripresa
-<vuoto all'inizio; qui si annotano stato e decisioni utili a una sessione futura>
+## Resumption notes
+<empty at the start; state and decisions useful to a future session go here>
 
-## Collegamenti
-[[<componente>]] · [[STATE]]
+## Links
+[[<component>]] · [[STATE]]
 ```
 
-Regole sui task (sintesi — dettaglio in `docs/01`): ogni task atomico e
-committabile, ordinati per dipendenza, 6-12 task è il range sano, un commit per
-task con `[task N/T]` nel messaggio, si spunta il task col suo sha.
+Rules about tasks (summary — detail in `docs/01`): every task atomic and
+committable, ordered by dependency, 6-12 tasks is the healthy range, one commit per
+task with `[task N/T]` in the message, the task is ticked with its sha.
 
-> Questo README resta come guida; i piani vivono accanto ad esso.
+> This README stays as a guide; the plans live alongside it.

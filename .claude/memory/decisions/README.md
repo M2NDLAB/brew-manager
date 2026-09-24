@@ -1,40 +1,41 @@
-# decisions/ — registro delle decisioni
+# decisions/ — decision log
 
-Una nota per ogni **decisione che vale la pena tracciare**: cosa è stato deciso,
-perché, quali alternative sono state scartate e con quale motivo. Serve a non
-ri-discutere all'infinito le stesse scelte e a capire, mesi dopo, il razionale
-dietro qualcosa che oggi sembra strano.
+One note for every **decision worth tracking**: what was decided, why, which
+alternatives were discarded and for what reason. It serves to avoid re-discussing
+the same choices endlessly and to understand, months later, the rationale behind
+something that today looks strange.
 
-## Due livelli di decisione
+## Two levels of decision
 
-- **Decisioni architetturali significative** (impattano la struttura, sono costose
-  da invertire): brew-manager NON adotta ADR formali — tutte le decisioni si
-  registrano qui per intero (il progetto è piccolo e a sviluppatore singolo).
-- **Decisioni leggere** (una libreria minore, una convenzione di naming, una scelta
-  di struttura): si registrano direttamente qui, per intero.
+- **Significant architectural decisions** (they affect the structure, they are
+  costly to reverse): brew-manager does NOT adopt formal ADRs — all the decisions
+  are recorded here in full (the project is small and single-developer).
+- **Lightweight decisions** (a minor library, a naming convention, a structural
+  choice): they are recorded directly here, in full.
 
-Se il progetto non adotta ADR formali, va benissimo tenere TUTTE le decisioni qui.
+If the project does not adopt formal ADRs, keeping ALL the decisions here is
+perfectly fine.
 
 ## Naming
-`YYYY-MM-DD-<slug>.md`. Se sono rimandi ad ADR numerati:
+`YYYY-MM-DD-<slug>.md`. If they are pointers to numbered ADRs:
 `YYYY-MM-DD-adr-NNNN-<slug>.md`.
 
-## Formato — decisione leggera
+## Format — lightweight decision
 ```markdown
 ---
 type: decision
 updated: YYYY-MM-DD
 tags: [decision]
 ---
-# <titolo della decisione>
+# <title of the decision>
 
-- **Contesto**: <quale problema/forza ha richiesto una scelta>
-- **Decisione**: <cosa è stato deciso>
-- **Alternative scartate**: <e perché>
-- **Conseguenze**: <impatto, trade-off accettati>
+- **Context**: <which problem/force required a choice>
+- **Decision**: <what was decided>
+- **Discarded alternatives**: <and why>
+- **Consequences**: <impact, accepted trade-offs>
 ```
 
-## Formato — rimando a un ADR formale
+## Format — pointer to a formal ADR
 ```markdown
 ---
 type: decision
@@ -42,11 +43,11 @@ adr: NNNN
 updated: YYYY-MM-DD
 tags: [decision, adr-pointer]
 ---
-# Rimando → ADR NNNN — <titolo>
+# Pointer → ADR NNNN — <title>
 
-Il testo autorevole è in <percorso dell'ADR>. Qui solo la sintesi e i collegamenti.
-- **Sintesi**: <2-3 righe>
-- **Impatto / collegamenti**: [[<altra-decisione>]], [[<componente>]]
+The authoritative text is in <path of the ADR>. Here only the summary and the links.
+- **Summary**: <2-3 lines>
+- **Impact / links**: [[<other-decision>]], [[<component>]]
 ```
 
-> Questo README resta come guida; le note di decisione vivono accanto ad esso.
+> This README stays as a guide; the decision notes live next to it.
