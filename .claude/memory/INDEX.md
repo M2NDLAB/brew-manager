@@ -141,7 +141,7 @@ tags: [moc]
   v1.0.0 → v1.2.0 (third upgrade; the method goes English, model/turns in session
   notes): FASE 1 multi-agent assessment, decisions D1–D14, 13 task commits, memory
   invariant V1–V7, hooks proven, retro IMP-012…022. The first note in English and
-  with model/turns. Awaiting integration (no tag).
+  with model/turns. INTEGRATED (merge `0725ae6`, pushed; no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -160,14 +160,14 @@ tags: [moc]
   headings frozen and mapped in CLAUDE.md
 
 ## Piani
-- [[plans/roadmap-v2]] — backlog atomizzato post-innesto (BM-01…BM-20: fix
-  sicurezza M1, resolver di selezione M2, TUI M3, feature M4, doc M5). Status:
-  **M1 CHIUSO** (v1.2.0 rilasciata); **M2 CHIUSO** (v1.3.0 rilasciata 2026-07-18);
-  **M3 CHIUSO** (BM-09→BM-12, tutta la TUI, INTEGRATA in main) + micro-task
-  dry-run integrato. **Release v1.4.0 RILASCIATA** (2026-07-23, merge `ab45323`,
-  tag annotato `v1.4.0`): impacchetta M3 + micro-task, bump MINOR, debito #15/#16
-  dichiarato. Fuori roadmap integrati: upgrade framework → v1.0.0. Prossimo:
-  hardening #15/#16 (sensibili) o M4.
+- [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
+  fixes, M2 selection resolver, M3 TUI, M4 features, M5 docs). Status: **M1 CLOSED**
+  (v1.2.0 released); **M2 CLOSED** (v1.3.0 released 2026-07-18); **M3 CLOSED**
+  (BM-09→BM-12, the whole TUI) + the dry-run micro-task. **Release v1.4.0 RELEASED**
+  (2026-07-23, merge `ab45323`, annotated tag `v1.4.0`): M3 + micro-task, MINOR bump,
+  debt #15/#16 declared. Integrated outside the roadmap: framework upgrades → v1.0.0
+  and → v1.2.0 (merge `0725ae6`). Next: hardening #15/#16 (sensitive) or M4, whose
+  prerequisite is the `_module_14` collision (STATE #18).
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.

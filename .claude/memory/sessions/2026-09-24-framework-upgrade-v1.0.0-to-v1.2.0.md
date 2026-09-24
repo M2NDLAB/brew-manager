@@ -137,6 +137,20 @@ keep the Italian names (their entries are frozen): read them through this table.
   is a prerequisite of M4; #19 (`lib/selection.sh` sensitive, IMP-022) awaits a
   decision; README "Adding a new module" drift on a future docs branch.
 
+## Integration (post-merge checkpoint)
+- Merged by the user: `0725ae6` "chore(claude): merge
+  framework-upgrade-v1.0.0-to-v1.2.0 into main" (`--no-ff`, parents `e7c3a56` +
+  `9b813e7`), pushed (`main` == `origin/main` == `0725ae6`), branch deleted. No tag
+  (process-only upgrade). Framework v1.2.0 is active on main.
+- Post-merge check on main: the public contract of docs/04 passes its inventory greps
+  (C04-3: flags 2/2, frozen ids 6/6, references 5/5, exit codes 0/1/2, no "tooling"
+  bullet), with teeth against the v1.2.0 template, and it matches the code (the seven
+  flags of the parser, exit codes pinned by `tests/test_exit_codes.zsh`).
+- The installed git hooks (English marker, from the upgrade branch) are the ones main's
+  `hooks-install.sh` now generates: no rollback needed. `.git/hooks/*.bak` keep the old
+  Italian hooks (untracked; the user may delete them).
+- The integration is not counted in `turns` (sessions/README).
+
 ## Links
 [[STATE]] · [[LEARNINGS]] · [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] ·
 [[decisions/2026-09-24-language-rule-prospective]] ·

@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-09-24
-branch: chore/framework-upgrade-v1.0.0-to-v1.2.0
+branch: chore/checkpoint-post-fw-v1.2.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-09-24 | Last: **framework upgrade v1.0.0 → v1.2.0** on `chore/framework-upgrade-v1.0.0-to-v1.2.0` — plan + 13 task commits + closing, process only, **no tag**, **awaiting the user's integration**. The method is now in English (rule 9: artifacts English, interaction Italian; the Italian memory is kept, headings frozen and mapped in CLAUDE.md — [[decisions/2026-09-24-language-rule-prospective]]); new session notes carry `model`/`turns`. Memory touched only as the declared exception (guide READMEs + LEARNINGS format; invariant V1–V7 green); 268 tests green. New priority debt: Caution #18 (`_module_14` collision, M4 prerequisite). → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] | Index: [[INDEX]]
+> Updated: 2026-09-24 | Last: **framework upgrade v1.0.0 → v1.2.0 INTEGRATED** — merge `0725ae6` into main (parents `e7c3a56` + `9b813e7`), pushed by the user, branch deleted; no tag (process-only). **Framework v1.2.0 is active**: the method is in English (rule 9: artifacts English, interaction Italian; the Italian memory is kept, headings frozen and mapped in CLAUDE.md — [[decisions/2026-09-24-language-rule-prospective]]); new session notes carry `model`/`turns`. Post-merge check: the public contract of docs/04 passes its inventory greps (C04-3) on main. No work branch open; only this post-merge memory checkpoint (`chore/checkpoint-post-fw-v1.2.0`), to integrate. Priority debt: Caution #18 (`_module_14` collision, M4 prerequisite). → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] | Index: [[INDEX]]
 
 > **Previous**: release v1.4.0 (2026-07-23) — merge `ab45323` into main, annotated tag `v1.4.0` (object `d4901b3`), pushed by the user; it packages M3 (BM-09→12) and the dry-run micro-task; debt #15/#16 shipped as a declared Known limitation. → [[sessions/2026-07-23-release-v1.4.0]].
 
@@ -170,7 +170,7 @@ tags: [state]
   13 task commits, hooks reinstalled and proven (gitleaks blocks, commitlint rejects),
   translation fidelity reviewed adversarially. Stale claims corrected in a separate
   Level-1 commit; security gate not applicable (verdict in the note). 268 tests green.
-  **Awaiting the user's integration** (no tag). →
+  **INTEGRATED into main** (merge `0725ae6`, pushed; no tag). →
   [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
   [[plans/framework-upgrade-v1.0.0-to-v1.2.0]].
 
@@ -509,18 +509,20 @@ tags: [state]
   sensitive components (project).
 
 ## Branch attivi
-- **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) = plan
-  + 13 task commits + a review-fix commit (`3a4fe9b`) + this checkpoint, in the main
-  worktree. **READY for the user's
-  integration** (`/integrate` block, no tag). The git hooks were already reinstalled
-  from this branch (English marker): if the branch is abandoned, restore them from
-  `main` with `FORCE_OVERWRITE=1 make hooks-install` (the old script does not
-  recognise the English marker and stops with rc=1).
-- **main** = integration + stable (trunk-based); HEAD `e7c3a56` (merge of the
-  post-v1.4.0 checkpoint; below it the release merge `ab45323`), aligned with
+- **chore/checkpoint-post-fw-v1.2.0** (this post-merge checkpoint, memory only) = STATE
+  "integrated" + the merge SHA in the session note. **READY for the user's
+  integration** (`/integrate` block, no tag: memory only).
+- **main** = integration + stable (trunk-based); HEAD `0725ae6` (merge of the
+  framework upgrade v1.0.0 → v1.2.0; below it `e7c3a56`, the post-v1.4.0 checkpoint
+  merge, and the release merge `ab45323`), aligned with
   `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` → `ab45323`) + `v1.3.0`
   + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`:
   empty. `make version-check` green.
+- **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) =
+  **INTEGRATED into main** (merge `0725ae6`, pushed; no tag), branch deleted. The git
+  hooks installed from it (English marker) are the ones `main` now generates: no
+  rollback needed; the two `.bak` in `.git/hooks` hold the old Italian hooks and can
+  be deleted by the user.
 - **chore/checkpoint-post-v1.4.0** (post-release memory checkpoint) = **INTEGRATED into
   main** (merge `e7c3a56`), branch deleted.
 - **chore/release-v1.4.0** (release) = **INTEGRATO in main** (merge `ab45323`,
