@@ -1,29 +1,30 @@
 ---
-description: Retrospettiva - rivedi i learnings e proponi miglioramenti di processo
+description: Retrospective - review the learnings and propose process improvements
 ---
-Esegui una retrospettiva di miglioramento secondo
-@.claude/docs/06-self-improvement.md su: $ARGUMENTS
-(se $ARGUMENTS è vuoto: sulle ultime sessioni registrate in memoria).
+Run an improvement retrospective according to
+@.claude/docs/06-self-improvement.md on: $ARGUMENTS
+(if $ARGUMENTS is empty: on the latest sessions recorded in memory).
 
-Due intensità d'uso (vedi il ciclo in @.claude/docs/00-overview.md):
-- **A fine deliverable** (passo fisso del ciclo, PRIMA di `/checkpoint`): riflessione
-  LEGGERA — esegui i passi 1-3 e REGISTRA gli eventuali IMP; senza attrito è un no-op
-  di pochi secondi. Le decisioni (passi 4-6) si possono rimandare.
-- **Periodica / on-demand**: review COMPLETA del backlog accumulato — tutti i passi,
-  con le decisioni dell'utente sulle IMP aperte.
+Two intensities of use (see the cycle in @.claude/docs/00-overview.md):
+- **At the end of a deliverable** (fixed step of the cycle, BEFORE `/checkpoint`):
+  LIGHT reflection — run steps 1-3 and RECORD any IMPs; without friction it is a no-op
+  of a few seconds. The decisions (steps 4-6) can be deferred.
+- **Periodic / on-demand**: FULL review of the accumulated backlog — all the steps,
+  with the user's decisions on the open IMPs.
 
-1. Leggi .claude/memory/LEARNINGS.md e le note di sessione recenti in
+1. Read .claude/memory/LEARNINGS.md and the recent session notes in
    .claude/memory/sessions/.
-2. Cerca pattern: errori ripetuti, escalation risolte le cui lezioni non sono ancora
-   diventate proposte, attriti di processo, doc rilette/fraintese, finding di
-   security review sistemici.
-3. Per ogni pattern trovato: crea o aggiorna una proposta IMP-nnn nel backlog
-   (problema osservato → proposta concreta → beneficio/rischio).
-4. Presenta all'utente le proposte APERTE in una tabella:
-   ID | Problema | Proposta | Impatto stimato | Consigliata sì/no e perché.
-5. ATTENDI la decisione dell'utente per ciascuna: approva / rifiuta / rimanda.
-6. Applica le approvate (commit dedicato per ciascuna), sposta le rifiutate in
-   "Rifiutate" col motivo e le rimandate in "Rimandate" col trigger di ripresa.
+2. Look for patterns: repeated errors, resolved escalations whose lessons have not yet
+   become proposals, process friction, docs re-read/misunderstood, systemic security
+   review findings.
+3. For every pattern found: create or update an IMP-nnn proposal in the backlog
+   (observed problem → concrete proposal → benefit/risk).
+4. Present the OPEN proposals to the user in a table:
+   ID | Problem | Proposal | Estimated impact | Recommended yes/no and why.
+5. WAIT for the user's decision on each one: approve / reject / defer.
+6. Apply the approved ones (a dedicated commit for each), move the rejected ones to
+   "Rejected" with the reason and the deferred ones to "Deferred" with the resumption
+   trigger.
 
-NON modificare regole o config senza approvazione esplicita — solo le correzioni
-fattuali di Livello 1 sono auto-applicabili.
+Do NOT change rules or config without explicit approval — only the Level 1 factual
+corrections are auto-applicable.

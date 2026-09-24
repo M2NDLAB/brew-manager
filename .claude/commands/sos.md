@@ -1,16 +1,16 @@
 ---
-description: Genera un Escalation Report per un interlocutore esperto esterno
+description: Produce an Escalation Report for an external expert interlocutor
 ---
-Genera SUBITO un ESCALATION REPORT secondo il formato definito in
-@.claude/docs/05-escalation-protocol.md riguardo a: $ARGUMENTS
-(se $ARGUMENTS è vuoto: riguardo al problema corrente della sessione).
+Produce RIGHT NOW an ESCALATION REPORT following the format defined in
+@.claude/docs/05-escalation-protocol.md about: $ARGUMENTS
+(if $ARGUMENTS is empty: about the session's current problem).
 
-Checklist obbligatoria prima di stampare il report:
-1. Raccogli: branch e ultimo commit (`git log -1 --oneline`), errore verbatim,
-   estratti pertinenti dei file coinvolti, versioni ambiente rilevanti.
-2. MASCHERA ogni valore sensibile (ambiente, token, password → `***`).
-3. Compila TUTTE le sezioni del formato — un report con sezioni vuote è inutile per
-   chi non vede questo ambiente.
-4. Stampa il report in un unico blocco di codice facilmente copiabile.
-5. Registra l'ID nella nota di sessione di memoria.
-6. Poi FERMATI e attendi la ARCHITECT RESPONSE.
+Mandatory checklist before printing the report:
+1. Collect: branch and last commit (`git log -1 --oneline`), verbatim error,
+   relevant excerpts of the files involved, relevant environment versions.
+2. MASK every sensitive value (environment, token, password → `***`).
+3. Fill in ALL the sections of the format — a report with empty sections is useless
+   for someone who does not see this environment.
+4. Print the report in a single, easily copyable code block.
+5. Record the ID in the session note in memory.
+6. Then STOP and wait for the ARCHITECT RESPONSE.
