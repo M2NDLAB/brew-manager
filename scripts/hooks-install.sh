@@ -1,75 +1,80 @@
 #!/usr/bin/env bash
-# Installa i git hook locali del framework:
-#   - pre-commit : secret scanning (gitleaks) — SEMPRE
-#   - commit-msg : Conventional Commits (commitlint) — SEMPRE
-#   - pre-commit : formattazione automatica del codice — ESEMPIO da adattare allo stack
-# Idempotente sui PROPRI hook (riconosciuti dal marcatore nel file generato); se
-# un proprio hook contiene modifiche locali (es. blocco formattazione adattato),
-# ne salva prima una copia .bak invece di distruggerle.
-# Hook preesistenti di ALTRA origine (incl. symlink di un hook manager): lo script
-# si FERMA invece di sovrascriverli; override esplicito con FORCE_OVERWRITE=1, che
-# prima ne salva una copia .bak (un symlink dangling, senza contenuto, si rimuove
-# senza .bak). Se core.hooksPath è impostato (es. husky), si
-# ferma: git ignorerebbe .git/hooks e questi hook risulterebbero installati ma inerti.
+# Installs the framework's local git hooks:
+#   - pre-commit : secret scanning (gitleaks) — ALWAYS
+#   - commit-msg : Conventional Commits (commitlint) — ALWAYS
+#   - pre-commit : automatic code formatting — EXAMPLE to adapt to your stack
+# Idempotent on its OWN hooks (recognised by the marker in the generated file); if
+# one of its own hooks contains local changes (e.g. an adapted formatting block),
+# it first saves a .bak copy instead of destroying them.
+# Pre-existing hooks of OTHER origin (incl. a hook manager's symlink): the script
+# STOPS instead of overwriting them; explicit override with FORCE_OVERWRITE=1, which
+# first saves a .bak copy (a dangling symlink, with no content, is removed without a
+# .bak). If core.hooksPath is set (e.g. husky), it stops: git would ignore .git/hooks
+# and these hooks would end up installed but inert.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HOOKS_DIR="${REPO_ROOT}/.git/hooks"
 
-# --- Prerequisiti -----------------------------------------------------------
+# --- Prerequisites ----------------------------------------------------------
 if ! command -v gitleaks >/dev/null 2>&1; then
-  echo "ERRORE: gitleaks non installato (è la regola 1 di CLAUDE.md, non opzionale)." >&2
-  echo "  macOS: brew install gitleaks   |   altri: https://github.com/gitleaks/gitleaks" >&2
+  echo "ERROR: gitleaks not installed (it is rule 1 of CLAUDE.md, not optional)." >&2
+  echo "  macOS: brew install gitleaks   |   others: https://github.com/gitleaks/gitleaks" >&2
   exit 1
 fi
 if ! command -v npx >/dev/null 2>&1; then
-  echo "ERRORE: npx (Node.js) non installato — serve per commitlint." >&2
+  echo "ERROR: npx (Node.js) not installed — it is needed for commitlint." >&2
   exit 1
 fi
 
-# --- Guardie per un repo con hook preesistenti (innesto su progetto esistente) --
-# 1. core.hooksPath attivo (es. husky): git NON legge .git/hooks, quindi gli hook
-#    scritti qui sotto non verrebbero MAI eseguiti — installati ma inerti. Meglio
-#    fermarsi e far decidere l'utente che dare falsa sicurezza.
+# --- Guards for a repo with pre-existing hooks (graft onto an existing project) --
+# 1. core.hooksPath active (e.g. husky): git does NOT read .git/hooks, so the hooks
+#    written below would NEVER run — installed but inert. Better to stop and let the
+#    user decide than to give false confidence.
 hooks_path="$(git -C "${REPO_ROOT}" config --get core.hooksPath || true)"
 if [[ -n "${hooks_path}" ]]; then
-  echo "ERRORE: core.hooksPath è impostato a '${hooks_path}': git ignora .git/hooks," >&2
-  echo "  quindi gli hook del framework non verrebbero mai eseguiti. Scegli:" >&2
-  echo "  - integra i comandi di questi hook nel tuo hook manager (es. husky), oppure" >&2
-  echo "  - rimuovi l'override e rilancia. Individua PRIMA da dove viene (local," >&2
-  echo "    global o system): git config --show-origin --get core.hooksPath" >&2
-  echo "    poi: git config --unset core.hooksPath   (aggiungi --global se viene da lì)" >&2
+  echo "ERROR: core.hooksPath is set to '${hooks_path}': git ignores .git/hooks," >&2
+  echo "  so the framework hooks would never run. Choose one:" >&2
+  echo "  - integrate these hooks' commands into your hook manager (e.g. husky), or" >&2
+  echo "  - remove the override and re-run. FIRST find out where it comes from (local," >&2
+  echo "    global or system): git config --show-origin --get core.hooksPath" >&2
+  echo "    then: git config --unset core.hooksPath   (add --global if it comes from there)" >&2
   exit 1
 fi
 
-# 2. Hook preesistenti NON generati da questo script: non si sovrascrivono alla
-#    cieca — potrebbero appartenere alla pipeline del progetto ospite. Un SYMLINK
-#    è sempre "di altra origine" (gli hook manager linkano .git/hooks altrove):
-#    scriverci attraverso corromperebbe il file bersaglio FUORI da .git/hooks.
-#    Con FORCE_OVERWRITE=1 si procede: backup .bak del contenuto (saltato se il
-#    symlink è dangling — niente da salvare), poi rimozione del file/symlink così la
-#    scrittura crea un file regolare.
-MARKER="Hook generato da scripts/hooks-install.sh"
+# 2. Pre-existing hooks NOT generated by this script: they are not overwritten
+#    blindly — they may belong to the host project's pipeline. A SYMLINK is always
+#    "of other origin" (hook managers link .git/hooks elsewhere): writing through it
+#    would corrupt the target file OUTSIDE .git/hooks.
+#    With FORCE_OVERWRITE=1 it proceeds: .bak backup of the content (skipped if the
+#    symlink is dangling — nothing to save), then removal of the file/symlink so that
+#    the write creates a regular file.
+#    The marker recognised is the ENGLISH one; the Italian one stays accepted as
+#    LEGACY, otherwise a hook installed by an earlier version of the framework would
+#    be mistaken for a foreign one and the script would stop on a healthy graft.
+MARKER="Hook generated by scripts/hooks-install.sh"
+LEGACY_MARKER="Hook generato da scripts/hooks-install.sh"
 for hook in pre-commit commit-msg; do
   target="${HOOKS_DIR}/${hook}"
-  if [[ -L "${target}" ]] || { [[ -f "${target}" ]] && ! grep -q "${MARKER}" "${target}"; }; then
+  if [[ -L "${target}" ]] || { [[ -f "${target}" ]] && ! grep -qF -e "${MARKER}" -e "${LEGACY_MARKER}" "${target}"; }; then
     if [[ "${FORCE_OVERWRITE:-0}" == "1" ]]; then
-      # Un symlink DANGLING (bersaglio inesistente) farebbe fallire `cp -L` sotto
-      # `set -e`, abortendo PRIMA della rimozione — ma non ha contenuto da salvare.
-      # `-e` segue il link → FALSO sul solo dangling (VERO su symlink valido e su
-      # file regolare estraneo): il backup si fa dove ha senso, la rimozione del link
-      # è comune ai due rami così la scrittura crea poi un file regolare.
+      # A DANGLING symlink (non-existent target) would make `cp -L` fail under
+      # `set -e`, aborting BEFORE the removal — but it has no content to save.
+      # `-e` follows the link → FALSE only on a dangling one (TRUE on a valid symlink
+      # and on a foreign regular file): the backup happens where it makes sense, the
+      # removal of the link is common to both branches so that the write then creates
+      # a regular file.
       if [[ -e "${target}" ]]; then
         cp -L "${target}" "${target}.bak"
-        echo "AVVISO: hook '${hook}' preesistente salvato in ${target}.bak (FORCE_OVERWRITE=1)." >&2
+        echo "WARNING: pre-existing hook '${hook}' saved to ${target}.bak (FORCE_OVERWRITE=1)." >&2
       else
-        echo "AVVISO: hook '${hook}' era un symlink dangling (nessun contenuto da salvare): rimosso (FORCE_OVERWRITE=1)." >&2
+        echo "WARNING: hook '${hook}' was a dangling symlink (no content to save): removed (FORCE_OVERWRITE=1)." >&2
       fi
       rm -f "${target}"
     else
-      echo "ERRORE: esiste già un hook '${hook}' non installato da questo script." >&2
-      echo "  Integra a mano i suoi comandi con quelli del framework, oppure rilancia con" >&2
-      echo "  FORCE_OVERWRITE=1 per sovrascriverlo (prima viene salvato in ${hook}.bak)." >&2
+      echo "ERROR: a hook '${hook}' not installed by this script already exists." >&2
+      echo "  Merge its commands with the framework's by hand, or re-run with" >&2
+      echo "  FORCE_OVERWRITE=1 to overwrite it (it is saved to ${hook}.bak first)." >&2
       exit 1
     fi
   fi
@@ -77,15 +82,15 @@ done
 
 mkdir -p "${HOOKS_DIR}"
 
-# Installa un hook generato: se il target esiste (è per forza NOSTRO, gli estranei
-# sono gestiti sopra) ma il contenuto differisce, contiene personalizzazioni locali
-# (es. il blocco formattazione adattato, come chiedono i commenti dell'hook):
-# se ne salva un .bak prima di riscriverlo, così il rilancio non le distrugge.
+# Installs a generated hook: if the target exists (it is necessarily OURS, foreign
+# ones are handled above) but the content differs, it contains local customisations
+# (e.g. the adapted formatting block, as the hook's own comments ask for):
+# a .bak of it is saved before rewriting, so that a re-run does not destroy them.
 install_generated() {
   local target="$1"
   if [[ -f "${target}" ]] && ! cmp -s "${target}" "${target}.new"; then
     cp "${target}" "${target}.bak"
-    echo "AVVISO: ${target##*/} conteneva modifiche locali: salvate in ${target}.bak prima della riscrittura." >&2
+    echo "WARNING: ${target##*/} contained local changes: saved to ${target}.bak before rewriting." >&2
   fi
   mv "${target}.new" "${target}"
   chmod +x "${target}"
@@ -94,37 +99,37 @@ install_generated() {
 # --- pre-commit -------------------------------------------------------------
 cat > "${HOOKS_DIR}/pre-commit.new" <<'HOOK'
 #!/usr/bin/env bash
-# Hook generato da scripts/hooks-install.sh — non modificare a mano.
+# Hook generated by scripts/hooks-install.sh — do not edit by hand.
 set -euo pipefail
 
-# 1. Secret scanning sui file staged (regola 1: nessun secret committato). SEMPRE.
+# 1. Secret scanning on the staged files (rule 1: no secret committed). ALWAYS.
 gitleaks protect --staged --redact -v
 
-# 2. FORMATTAZIONE AUTOMATICA — predisposta ma NON attiva in questo progetto
-#    (decisione all'innesto del framework: shfmt/shellcheck non installati; se in
-#    futuro si adotta shfmt, decommentare il blocco e verificare che il diff di
-#    riformattazione iniziale sia un commit dedicato). L'idea: applicare il
-#    formatter ai SOLI file staged e ri-stagearli, così non si accumula drift e non
-#    servono commit di sola formattazione.
+# 2. AUTOMATIC FORMATTING — prepared but NOT active in this project
+#    (decision taken at the framework graft: shfmt/shellcheck not installed; if
+#    shfmt is adopted in the future, uncomment the block and make sure the initial
+#    reformatting diff is a dedicated commit). The idea: apply the formatter to the
+#    staged files ONLY and re-stage them, so no drift accumulates and no
+#    formatting-only commits are needed.
 #
-#    # --- Esempio per questo progetto: shfmt sugli script zsh staged ---
-#    # (shfmt non ha un dialetto zsh nativo: usare -ln bash è un'approssimazione
-#    #  accettabile per questo codice; verificare il diff prima di adottarlo.)
+#    # --- Example for this project: shfmt on the staged zsh scripts ---
+#    # (shfmt has no native zsh dialect: -ln bash is an acceptable approximation
+#    #  for this code; check the diff before adopting it.)
 #    # staged="$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.sh$' || true)"
 #    # if [[ -n "${staged}" ]]; then
 #    #   echo "${staged}" | xargs shfmt -w -i 4 -ln bash
-#    #   echo "${staged}" | xargs git add                 # ri-stagea i file riformattati
+#    #   echo "${staged}" | xargs git add                 # re-stage the reformatted files
 #    # fi
 #
-#    Nota: il linter (per shell: shellcheck) resta fuori dall'hook — qui si fa solo
-#    la formattazione (veloce, deterministica). Check di sintassi manuale: zsh -n.
+#    Note: the linter (for shell: shellcheck) stays out of the hook — here we only
+#    do formatting (fast, deterministic). Manual syntax check: zsh -n.
 HOOK
 install_generated "${HOOKS_DIR}/pre-commit"
 
 # --- commit-msg -------------------------------------------------------------
 cat > "${HOOKS_DIR}/commit-msg.new" <<'HOOK'
 #!/usr/bin/env bash
-# Hook generato da scripts/hooks-install.sh — non modificare a mano.
+# Hook generated by scripts/hooks-install.sh — do not edit by hand.
 # Conventional Commits, config in commitlint.config.cjs.
 set -euo pipefail
 npx --yes --package @commitlint/cli --package @commitlint/config-conventional \
@@ -132,5 +137,5 @@ npx --yes --package @commitlint/cli --package @commitlint/config-conventional \
 HOOK
 install_generated "${HOOKS_DIR}/commit-msg"
 
-echo "OK: hook pre-commit (gitleaks) e commit-msg (commitlint) installati."
-echo "    Ricorda di abilitare la formattazione automatica nell'hook pre-commit (vedi commenti)."
+echo "OK: pre-commit (gitleaks) and commit-msg (commitlint) hooks installed."
+echo "    Remember to enable automatic formatting in the pre-commit hook (see comments)."

@@ -57,7 +57,7 @@ change, no tag.
 - Security gate not applicable (no sensitive component touched): write the verdict.
 
 ## Tasks
-- [ ] 1. Pure METHOD files → v1.2.0 (docs/05, integrate, retro, security-review, sos, scripts/README.md, commitlint.config.cjs) — commit: —
+- [x] 1. Pure METHOD files → v1.2.0 (docs/05, integrate, retro, security-review, sos, scripts/README.md, commitlint.config.cjs) — commit: e64be5b
 - [ ] 2. `hooks-install.sh` (3-way, brew formatting block in EN) + `test-hooks-install.sh`, same commit, mode 100755, `make test-scripts` green — commit: —
 - [ ] 3. `settings.json` (3-way, hook fallback pruned) + `reset-task.sh` (3-way, `main dev`) — commit: —
 - [ ] 4. Makefile (process part = v1.2.0, product section Level 1 in EN, recipes identical) — commit: —
