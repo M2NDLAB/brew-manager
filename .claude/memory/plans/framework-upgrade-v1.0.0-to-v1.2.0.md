@@ -61,7 +61,7 @@ change, no tag.
 - [x] 2. `hooks-install.sh` (3-way, brew formatting block in EN) + `test-hooks-install.sh`, same commit, mode 100755, `make test-scripts` green — commit: c9f1a8b
 - [x] 3. `settings.json` (3-way, hook fallback pruned) + `reset-task.sh` (3-way, `main dev`) — commit: 5ca991a
 - [x] 4. Makefile (process part = v1.2.0, product section Level 1 in EN, recipes identical) — commit: 91cd45d
-- [ ] 5. CLAUDE.md rebuild (rule 9, language slot + prospective bullet, D1 title map) + the checkpoint-step-3 functional check — commit: —
+- [x] 5. CLAUDE.md rebuild (rule 9, language slot + prospective bullet, D1 title map) + the checkpoint-step-3 functional check — commit: 0fbddb3
 - [ ] 6. docs/00, 01, 02 rebuild — commit: —
 - [ ] 7. docs/03, 04 rebuild (public contract preserved) — commit: —
 - [ ] 8. docs/06 rebuild — commit: —

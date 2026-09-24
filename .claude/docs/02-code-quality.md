@@ -1,123 +1,120 @@
-# 02 — Code quality: commenti, error handling, Definition of Done
+# 02 — Code quality: comments, error handling, Definition of Done
 
-Regole PERMANENTI valide in ogni sessione e per ogni linguaggio del progetto. Sono
-principi agnostici allo stack: le convenzioni specifiche del linguaggio scelto
-vanno in `CLAUDE.md` (*"Regole tecniche specifiche del progetto"*).
+PERMANENT rules, valid in every session and for every language in the project. They
+are stack-agnostic principles: the conventions specific to the chosen language go in
+`CLAUDE.md` (*"Project-specific technical rules"*).
 
-## Commenti — il codice spiega il COSA, i commenti spiegano il PERCHÉ
+## Comments — the code explains the WHAT, the comments explain the WHY
 
-- Ogni unità pubblica (classe, modulo, funzione esportata): un commento di
-  documentazione con responsabilità, perché esiste, invarianti, esempio d'uso se
-  l'API non è ovvia. *(Lo strumento in questo progetto: blocco di commenti `#`
-  prima della funzione, come già in uso in `lib/common.sh` e nei moduli — zsh non
-  ha doc comment nativi.)*
-- Ogni funzione pubblica non banale: cosa fa, parametri con vincoli (range, null),
-  cosa lancia/ritorna in errore e quando, side effect.
-- Blocchi di logica complessa: un commento PRIMA del blocco che spiega l'intento e
-  il motivo dell'approccio scelto rispetto alle alternative.
-- Workaround o scelte forzate: commento `// NOTA:` con il motivo e il link (issue,
-  decisione, doc esterna). Mai un workaround silenzioso.
-- VIETATO: commenti che ripetono il codice (`i++ // incrementa i`); codice
-  commentato lasciato nei file (git è la storia, non i commenti); TODO senza
-  riferimento (`// TODO(#issue): ...` è il formato accettato).
-- Migrazioni di schema / SQL: ogni indice e ogni vincolo con un commento sul perché.
+- Every public unit (class, module, exported function): a documentation comment with
+  its responsibility, why it exists, its invariants, and a usage example if the API
+  is not obvious. *(The tool in this project: a block of `#` comments before the
+  function, as already used in `lib/common.sh` and in the modules — zsh has no
+  native doc comments.)*
+- Every non-trivial public function: what it does, parameters with their constraints
+  (range, null), what it throws/returns on error and when, side effects.
+- Blocks of complex logic: a comment BEFORE the block explaining the intent and why
+  this approach was chosen over the alternatives.
+- Workarounds or forced choices: a `// NOTE:` comment with the reason and the link
+  (issue, decision, external doc). Never a silent workaround.
+- FORBIDDEN: comments that repeat the code (`i++ // increment i`); commented-out code
+  left in the files (git is the history, not the comments); TODOs without a reference
+  (`// TODO(#issue): ...` is the accepted format).
+- Schema migrations / SQL: every index and every constraint with a comment on the why.
 
-## Error handling — nessun errore non gestito, mai
+## Error handling — no unhandled error, ever
 
-- Niente catch vuoti o che si limitano a stampare lo stacktrace. Ogni gestione di
-  errore: o gestisce davvero (retry, fallback, compensazione), o arricchisce e
-  rilancia come errore di dominio, o logga con contesto e correlation-id e propaga.
-  Mai inghiottire un errore.
-- Gerarchia degli errori: gli errori di dominio estendono basi comuni; il bordo
-  dell'applicazione li traduce in un formato di risposta uniforme. Esporre al client
-  un formato d'errore strutturato e stabile *(in questo progetto il "client" è il
-  terminale: errori SOLO tramite `_err`/`_warn` di `lib/common.sh`, con messaggio
-  azionabile; l'output grezzo dei comandi falliti va nel log di sessione, non a
-  video)*, mai
-  stacktrace/query/path interni/versioni librerie: il dettaglio va nel log (con
-  correlation-id), al client va il messaggio sintetico.
-- Risorse: sempre rilasciate in modo sicuro (costrutto idiomatico del linguaggio).
-  Operazioni I/O: timeout SEMPRE esplicito (mai default infiniti); retry solo su
-  operazioni idempotenti.
-- Validazione: input validato AL BORDO (sui DTO/richieste in ingresso). Dentro il
-  dominio si assume input valido — fail-fast con un errore di programmazione se
-  un'invariante è violata (segnala un bug, non un errore utente).
-- Interfacce utente: ogni chiamata gestita, stato d'errore esplicito, messaggi
-  comprensibili + un correlation-id visibile per il supporto.
+- No empty catches, and none that merely print the stacktrace. Every error handler
+  either genuinely handles (retry, fallback, compensation), or enriches and rethrows
+  as a domain error, or logs with context and a correlation id and propagates. Never
+  swallow an error.
+- Error hierarchy: domain errors extend common bases; the application edge translates
+  them into a uniform response format. Expose a structured, stable error format to
+  the client *(in this project the "client" is the terminal: errors ONLY through
+  `_err`/`_warn` of `lib/common.sh`, with an actionable message; the raw output of
+  failed commands goes to the session log, not to the screen)*, never
+  stacktraces/queries/internal paths/library versions: the detail goes to the log
+  (with a correlation id), the client gets the concise message.
+- Resources: always released safely (the language's idiomatic construct). I/O
+  operations: timeout ALWAYS explicit (never infinite defaults); retries only on
+  idempotent operations.
+- Validation: input validated AT THE EDGE (on incoming DTOs/requests). Inside the
+  domain, input is assumed valid — fail fast with a programming error if an invariant
+  is violated (it signals a bug, not a user error).
+- User interfaces: every call handled, an explicit error state, understandable
+  messages + a visible correlation id for support.
 
-## Best practices e pattern
+## Best practices and patterns
 
-- SOLID applicato pragmaticamente: in particolare dependency inversion (il dominio
-  non importa MAI l'infrastruttura) e single responsibility (un'unità troppo grande
-  è un segnale di refactor).
-- Introduci un design pattern solo quando c'è un problema concreto da risolvere: un
-  pattern senza problema è complessità gratuita.
-- Immutabilità di default: tipi/valori immutabili dove possibile, stato mutabile
-  solo dove serve davvero.
-- Null safety: rendi esplicito nei tipi/firme ciò che può mancare; non usare valori
-  "vuoti" ambigui dove il linguaggio offre un'alternativa migliore.
-- Naming: il nome dice l'intento. Funzioni = verbi, predicati = is/has/can. Niente
-  abbreviazioni salvo quelle universali (id, url).
-- Magic numbers/strings: SEMPRE costanti nominate o configurazione esternalizzata.
-- Concorrenza: stato condiviso mutabile = ultima risorsa; preferire immutabilità +
-  message passing.
-- Ogni nuova dipendenza: motiva nel commit perché serve, verifica licenza e
-  manutenzione attiva. Preferire ciò che già c'è nel progetto.
-- Formattazione: applicata in automatico dall'hook pre-commit (`make hooks-install`),
-  così non si accumula drift e non servono commit di sola formattazione. Lo
-  strumento in questo progetto: NESSUNO attivo — il blocco resta commentato in
-  `scripts/hooks-install.sh` con un esempio `shfmt` pronto (shfmt/shellcheck non
-  sono installati; decisione registrata all'innesto). Verifica minima manuale:
-  `zsh -n` sui file toccati.
-- Test della configurazione: non costruire gli oggetti di configurazione a mano nei
-  test con lunghe liste di valori posizionali/`null` — aggiungere un campo
-  romperebbe tutti i call-site, anche quelli che non lo usano. Usa builder/fixture o
-  binding da una mappa, così l'aggiunta di una property non si propaga ai test
-  esistenti.
-- Verifica su artefatti REALI prima di decidere: mai derivare una decisione o un
-  fix dalla sola memoria o da un debito registrato quando l'artefatto (codice,
-  dati, config) è su disco — un debito può essere stato registrato con la CAUSA
-  sbagliata. Verificarla (grep/lettura) costa poco; eseguire alla lettera una
-  diagnosi errata costa molto.
+- SOLID applied pragmatically: in particular dependency inversion (the domain NEVER
+  imports the infrastructure) and single responsibility (a unit that grew too large
+  is a refactor signal).
+- Introduce a design pattern only when there is a concrete problem to solve: a
+  pattern without a problem is free complexity.
+- Immutability by default: immutable types/values where possible, mutable state only
+  where it is genuinely needed.
+- Null safety: make what can be absent explicit in the types/signatures; do not use
+  ambiguous "empty" values where the language offers something better.
+- Naming: the name states the intent. Functions = verbs, predicates = is/has/can. No
+  abbreviations except the universal ones (id, url).
+- Magic numbers/strings: ALWAYS named constants or externalised configuration.
+- Concurrency: mutable shared state = last resort; prefer immutability + message
+  passing.
+- Every new dependency: justify in the commit why it is needed, check its licence and
+  that it is actively maintained. Prefer what is already in the project.
+- Formatting: applied automatically by the pre-commit hook (`make hooks-install`), so
+  that drift does not accumulate and formatting-only commits are not needed. The tool
+  in this project: NONE active — the block stays commented out in
+  `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not
+  installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the
+  touched files.
+- Testing configuration: do not build configuration objects by hand in tests with
+  long lists of positional/`null` values — adding a field would break every call
+  site, including the ones that do not use it. Use builders/fixtures or binding from
+  a map, so that adding a property does not propagate to existing tests.
+- Verify against REAL artifacts before deciding: never derive a decision or a fix
+  from memory alone, or from a recorded debt, when the artifact (code, data, config)
+  is on disk — a debt may have been recorded with the wrong CAUSE. Verifying it
+  (grep/read) is cheap; carrying out a wrong diagnosis to the letter is expensive.
 
-## Test che dimostrano (non solo test verdi)
+## Tests that demonstrate (not just green tests)
 
-- Un test verde può passare per la ragione SBAGLIATA. Un fix si prova in modo che
-  DIMOSTRI la catena reale: riproduci il difetto (RED), applica il fix isolando la
-  variabile, mostra il passaggio a GREEN — non un generico "i test passano", che
-  potrebbero passare anche col bug.
-- Dove conta davvero (sicurezza, compliance, invarianti di dominio): test scritti
-  come INVARIANTI riapplicate per COSTRUZIONE, non come asserzioni sullo stato noto
-  oggi — es. un test che via reflection/introspezione asserisce una proprietà su
-  TUTTE le entità, con controllo anti-vacuità (fallisce se l'insieme scandito è
-  vuoto). Così una regressione futura rompe il build da sola, invece di aspettare
-  che qualcuno si ricordi di aggiornare il test.
+- A green test can pass for the WRONG reason. A fix is proven in a way that
+  DEMONSTRATES the real chain: reproduce the defect (RED), apply the fix isolating
+  the variable, show the transition to GREEN — not a generic "the tests pass", which
+  they might do with the bug still in place.
+- Where it really matters (security, compliance, domain invariants): tests written as
+  INVARIANTS re-applied BY CONSTRUCTION, not as assertions about the state known
+  today — e.g. a test that, through reflection/introspection, asserts a property over
+  ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
+  That way a future regression breaks the build by itself, instead of waiting for
+  someone to remember to update the test.
 
-## Definition of Done di ogni task
+## Definition of Done for every task
 
-1. Codice commentato secondo le regole sopra.
-2. Errori tutti gestiti, nessun path che inghiotte eccezioni.
-3. Test verdi (unit + integrazione dove applicabile). Per un componente con
-   dipendenze reali, includere uno **smoke del sistema completo**: un test che avvia
-   l'intero componente cablato (non solo unità isolate con mock) e verifica che le
-   parti si "wirino" davvero — i gap di wiring che gli unit non vedono emergono qui.
-   Per una UI deployabile l'analogo è uno smoke del MOUNT completo dell'app (es. un
-   test end-to-end, o che renda l'app reale con la rete mockata): gli unit di
-   componente usano provider di test e non vedono i bug del wiring reale.
-4. Documentazione dell'API aggiornata se l'API è cambiata.
-5. Nessun warning nuovo del compilatore/linter.
-6. Migrazione di schema se lo schema dati è cambiato.
-7. Documentazione di progetto aggiornata se la modifica tocca funzionalità utente,
-   procedure operative, API o deploy *(dove vive la doc — `README.md`)*;
-   se la doc di progetto non esiste ancora, debito annotato in `memory/STATE.md`.
-8. Memoria aggiornata e commit fatto secondo `04-git-workflow.md` (il comando
-   `/checkpoint` copre i punti 7 e 8 insieme).
-9. Per un componente/app **deployabile** completato: esiste l'artefatto di
-   produzione (in questo progetto NON applicabile: gli script del repo SONO
-   l'artefatto, distribuito via `git clone`; l'equivalente pratico è: il modulo
-   funziona da una copia pulita del repo, senza dipendere da stato locale).
-   Questo NON emerge dai test eseguiti in ambiente di sviluppo: va verificato
-   esplicitamente.
+1. Code commented according to the rules above.
+2. All errors handled, no path that swallows exceptions.
+3. Green tests (unit + integration where applicable). For a component with real
+   dependencies, include a **smoke test of the complete system**: a test that boots
+   the whole wired component (not just isolated units with mocks) and checks that the
+   parts really do wire together — the wiring gaps unit tests cannot see surface
+   here. For a deployable UI the analogue is a smoke test of the app's full MOUNT
+   (e.g. an end-to-end test, or one that renders the real app with the network
+   mocked): component unit tests use test providers and do not see real wiring bugs.
+4. API documentation updated if the API changed.
+5. No new compiler/linter warnings.
+6. A schema migration if the data schema changed.
+7. Project documentation updated if the change touches user features, operational
+   procedures, APIs or deployment *(where the documentation lives — `README.md`)*;
+   if the project documentation does not exist yet, the debt is recorded in
+   `memory/STATE.md`.
+8. Memory updated and the commit made per `04-git-workflow.md` (the `/checkpoint`
+   command covers points 7 and 8 together).
+9. For a completed **deployable** component/app: the production artifact exists (in
+   this project NOT applicable: the repo's scripts ARE the artifact, distributed via
+   `git clone`; the practical equivalent is: the module works from a clean copy of
+   the repo, without depending on local state). This does NOT emerge from tests
+   run in a development environment: it must be verified explicitly.
 
-> Il gate di sicurezza per i componenti sensibili è un requisito AGGIUNTIVO alla
-> Definition of Done: vedi `03-security-gate.md`.
+> The security gate for sensitive components is an ADDITIONAL requirement on top of
+> the Definition of Done: see `03-security-gate.md`.
