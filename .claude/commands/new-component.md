@@ -52,12 +52,13 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    - `zsh -n` on every touched file;
    - `make test` (the registry tests fail if a registry entry of step 4 is missing;
      the special-module wiring — resolver checks, menu loop, dispatch — is not
-     covered by tests, the smoke run below checks it);
-   - smoke run with the new module selected on the CLI and the output redirected to
-     a file, filtered afterwards (`./brew_manager.sh <id> --dry-run > <file>`; never
-     input piped into the prompt, never `| head` — see the Tests rule of CLAUDE.md):
-     it must start and NOT perform mutating actions; that it shows up in the menu is
-     checked from a real terminal;
+     covered by tests: the CLI smoke below checks the resolver and the dispatch, the
+     menu loop is checked by the user from a real terminal);
+   - smoke run with the new module selected on the CLI, stdin from `/dev/null` and the
+     output in a per-run file, filtered afterwards (the command and its caveats are in
+     the Tests rule of CLAUDE.md; never input piped into the prompt, never `| head`):
+     it must start, end, and NOT perform mutating actions; ask the user to confirm
+     from a real terminal that its row shows up in the menu;
    - if the module is mutating: check that with the default answer to the prompts it
      changes nothing.
 6. If the module falls under the sensitivity criteria (it removes files/packages,

@@ -90,15 +90,16 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
   That way a future regression breaks the build by itself, instead of waiting for
   someone to remember to update the test.
-- When a suite pins a CONTRACT (a function extracted or moved for parity, an
-  exit-code or output contract, a new public surface), enumerate the contract's
-  surface BEFORE writing it — a proportional guide, not a ritual for every
-  micro-test: (a) the return value or exit code of EVERY outcome, measured at the
-  real edge the user invokes, not only at the inner unit; (b) every input class,
-  EDGES included (surrounding whitespace, empty tokens, case variants); (c) the
-  MULTIPLICITY of side effects (N events for N causes, not just "at least one");
-  (d) a MUTATION check: invert the contract and watch the suite fail before
-  declaring it done.
+- When a suite pins a CONTRACT — a function extracted or moved for parity, or code
+  built on the same contract, down to the exit code the user observes — enumerate the
+  contract's surface BEFORE writing the suite, as a proportional guide, not a ritual
+  for every micro-test: (a) the return value or exit code of EVERY outcome the
+  contract promises — where an outcome reaches the user, asserted at the real edge the
+  user invokes too, not only at the inner unit; (b) every input class, EDGES included
+  (surrounding whitespace, empty tokens, case variants); (c) the MULTIPLICITY of side
+  effects (N events for N causes, not just "at least one"); (d) a MUTATION check:
+  temporarily break the implementation against the contract (e.g. invert a return),
+  watch the suite fail, then restore it — before declaring the suite done.
 
 ## Definition of Done for every task
 

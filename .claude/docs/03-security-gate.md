@@ -61,12 +61,13 @@ green functional tests can still carry security defects the tests cannot see (a
 bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
 finds them before they reach integration.
 
-**Closing a CLASS of defect** (a pattern, not a one-off). Before declaring it closed,
-`grep` the pattern over the WHOLE code base, enumerate the sites, and fix or record
-each one — the usual miss is the twin in another module. When the fix touches a
-consent or safety guard-rail, the verification also asks *what does this now
-AUTHORISE?* (adversarially), not only *does it work?*. After a substantive fix to
-shared sensitive code, re-run the gate on the fixed diff.
+**Closing a CLASS of defect** (a pattern, not a one-off — in any module, gated or
+not). Before declaring it closed, `grep` the pattern over the WHOLE code base,
+enumerate the sites, and fix or record each one — the usual miss is the twin in
+another module. When the fix touches a consent or safety guard-rail, the verification
+also asks *what does this now AUTHORISE?* (adversarially), not only *does it work?*.
+After a substantive fix to shared sensitive code, re-run the gate on the whole branch
+diff, the fix included.
 
 ## When the review must be adversarial (author ≠ judge)
 
