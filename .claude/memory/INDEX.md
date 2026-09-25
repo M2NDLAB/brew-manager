@@ -154,7 +154,11 @@ tags: [moc]
 - [[sessions/2026-09-25-apply-project-imps]] — branch 2 of the debt cleanup: the
   facet-level re-audit of branch 1's STATE rewrite (no entry lost), IMP-003/004/007/002
   applied and corrected after an adversarial review, IMP-005 deferred, IMP-025 from
-  the retro. Ready for integration.
+  the retro. INTEGRATED (merge `9e4f2b4`).
+- [[sessions/2026-09-26-gitignore-and-launchd-plan]] — branch 3 of the debt cleanup:
+  LEARNINGS re-verified, the `.gitignore` patterns (#20), the IMP-002 hand-over, the
+  real-launchd verification plan for branch 4 (reviewed adversarially). Ready for
+  integration.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -189,4 +193,5 @@ tags: [moc]
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
 - [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
-  branches in order, one at a time; status: in-progress (branches 1–2 done).
+  branches in order, one at a time; status: in-progress (branches 1–3 done; the
+  launchd verification of task 4 awaits the user's go).
