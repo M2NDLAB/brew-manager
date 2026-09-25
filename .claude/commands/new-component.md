@@ -53,8 +53,11 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    - `make test` (the registry tests fail if a registry entry of step 4 is missing;
      the special-module wiring — resolver checks, menu loop, dispatch — is not
      covered by tests, the smoke run below checks it);
-   - smoke run `./brew_manager.sh --dry-run` selecting the new module: it must show
-     up in the menu, start, and NOT perform mutating actions;
+   - smoke run with the new module selected on the CLI and the output redirected to
+     a file, filtered afterwards (`./brew_manager.sh <id> --dry-run > <file>`; never
+     input piped into the prompt, never `| head` — see the Tests rule of CLAUDE.md):
+     it must start and NOT perform mutating actions; that it shows up in the menu is
+     checked from a real terminal;
    - if the module is mutating: check that with the default answer to the prompts it
      changes nothing.
 6. If the module falls under the sensitivity criteria (it removes files/packages,

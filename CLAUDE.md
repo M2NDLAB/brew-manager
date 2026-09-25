@@ -135,8 +135,12 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   (`zsh -n` on every script); zero-cost check on a single file: `zsh -n <file>`.
 - **Tests**: a hand-rolled zsh harness in `tests/`, zero dependencies, run by
   `make test` (a blocking gate); bats remains a future candidate. Minimal
-  verification for every change: `zsh -n` on the touched
-  files + smoke run `./brew_manager.sh --dry-run` of the module concerned.
+  verification for every change: `zsh -n` on the touched files + a smoke run of the
+  module concerned, selected on the CLI with the output redirected to a file that is
+  filtered afterwards: `./brew_manager.sh <id> --dry-run > <file>`. Never pipe input
+  into the prompt (under `script(1)` the menu reads EOF and falls back to its default
+  `go`: a full run) and never truncate the output with `| head` (SIGPIPE kills the run
+  and leaves a 0-byte session log). The menu itself is checked from a real terminal.
 - **Sensitive components** (rule 8): `mod_00_audit` (app adoption),
   `mod_05_cleanup` (autoremove/cleanup), `mod_bk_brewfile` (restore, plist),
   `mod_las_scheduler` (LaunchAgent persistence), plus `brew_manager.sh` and
