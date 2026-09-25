@@ -35,6 +35,7 @@ Icon?
 
 # JetBrains (IntelliJ, WebStorm, etc.)
 .idea/
+*.iml
 
 # Vim / Neovim
 *.swp
@@ -87,6 +88,8 @@ Icon?
 *.p12
 *.jks
 **/secrets/
+.vault-token
+vault-keys.json
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Do NOT ignore — these must be committed
