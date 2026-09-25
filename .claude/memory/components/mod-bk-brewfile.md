@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-bk-brewfile
-updated: 2026-07-21
+updated: 2026-09-25
 tags: [component]
 ---
 # mod-bk-brewfile (modules/mod_bk_brewfile.sh)
@@ -23,11 +23,16 @@ Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
 - Delete [6]: `rm -f` selettivo dei file di backup.
 
 ## Vincoli e insidie (per chi lo usa o lo modifica)
-- **BUG weekday (STATE Attenzione #2)**: `_days_map` 1-based indicizzata con
-  weekday {0..6} → giorni shiftati di +1 al restore (Sun→Mon), sabato degrada a
-  "daily". Il plist generato al momento dell'install è invece corretto.
+- ~~**BUG weekday (STATE Attenzione #2)**~~ CLOSED in BM-05a (checked 2026-09-24:
+  mod_bk:203-209 maps the 1-based `_days_map` with `i - 1`).
 - ~~**Restore [3]/[3b] NON rispetta `BREW_MANAGER_DRY_RUN`**~~ risolto in BM-03;
-  [3a] restore agenti non chiede NESSUNA conferma y/n (solo gate dry-run).
+  ~~[3a] restore agenti non chiede NESSUNA conferma~~ — false (checked 2026-09-24):
+  [3a] asks through `_ask_danger` (:486-489).
+- **Found by the debt inventory (2026-09-24)**: the menu ignores NONINTERACTIVE (bare
+  `read`s → STATE #21/#22); the agents-restore preview and restore diverge and the
+  restore degrades silently, zero-padded minutes included (#6b); no label prefix
+  enforcement (#13); wet previews trigger Homebrew's auto-update (#29); "success
+  printed anyway" (#4b) → branches 6, 9 and 11 of [[plans/debt-cleanup-pre-dashboard]].
 - **`[4] Check` esegue il Brewfile come DSL Ruby anche in `--dry-run`**
   (Attenzione #15, MEDIUM, trovato dal gate del micro-task dry-run 2026-07-21):
   `brew bundle check` (`:499`/`:503`) valuta il contenuto del file, mentre

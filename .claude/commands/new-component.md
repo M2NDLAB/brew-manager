@@ -58,9 +58,11 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    - if the module is mutating: check that with the default answer to the prompts it
      changes nothing.
 6. If the module falls under the sensitivity criteria (it removes files/packages,
-   installs, creates launchd persistence — see docs/03): add it to the list of
-   sensitive components in CLAUDE.md (rule 8) and in docs/03; its first merge goes
-   through the security gate.
+   installs, creates launchd persistence — see docs/03): add it to EVERY list of
+   sensitive components — CLAUDE.md (rule 8 and the technical rules), docs/03,
+   docs/00 (the end-of-deliverable cycle) and the decision note
+   `.claude/memory/decisions/2026-07-12-componenti-sensibili.md`; its first merge
+   goes through the security gate.
 7. Update the documentation: the module's card in the "Modules" section of README.md
    (rule 5).
 8. Create the note in .claude/memory/components/<module>.md and update INDEX.md,

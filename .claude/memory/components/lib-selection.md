@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-selection
-updated: 2026-07-21
+updated: 2026-09-25
 tags: [component]
 ---
 # lib-selection (lib/selection.sh)
@@ -12,8 +12,9 @@ inline da `brew_manager.sh`; esteso in BM-08b con la risoluzione CLI stretta
 
 ## Stato attuale
 BM-08a + BM-08b (2026-07-17). **Sensibile**: infrastruttura di dispatch condivisa —
-un difetto qui propaga a tutti i moduli. Coperto da `tests/test_selection.zsh`
-(74 check). Due gate adversariali passati (BM-08a; BM-08b con 2 MEDIUM fail-open
+un difetto qui propaga a tutti i moduli (in the security gate's lists since IMP-022,
+2026-09-25). Coperto da `tests/test_selection.zsh` (87 check; the old "74" was stale,
+corrected 2026-09-25). Due gate adversariali passati (BM-08a; BM-08b con 2 MEDIUM fail-open
 del tokenizer trovati e fixati).
 
 ## Cosa espone / responsabilità

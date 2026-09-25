@@ -8,7 +8,9 @@ Security has two levels in this framework:
    from the moment it is installed: on a repo with PRE-EXISTING history (like this one,
    grafted onto an already existing project) the baseline is COMPLETED by a one-off
    scan of the whole history — `gitleaks detect` — to be run once (in brew-manager it
-   is recorded as debt in `memory/STATE.md`, section «Attenzione / problemi aperti»).
+   was run on 2026-09-25: gitleaks 8.30.1 over every commit of every ref, each merge
+   diffed against its parents, 0 findings — `memory/STATE.md`, «Attenzione /
+   problemi aperti» #7).
    Findings on the history are the user's decisions: a secret that has already been
    pushed must be rotated/revoked anyway; rewriting history is a different matter and
    is not done lightly.
@@ -31,9 +33,14 @@ behalf of a client (e.g. a tool/automation server).
 > - `modules/mod_bk_brewfile.sh` — restore (installs packages, writes plists,
 >   `launchctl load`)
 > - `modules/mod_las_scheduler.sh` — LaunchAgent persistence in `~/Library/LaunchAgents`
-> - `brew_manager.sh` — dispatch, input parsing, execution with `--yes`
+> - `brew_manager.sh` — dispatch, flag parsing, execution with `--yes`
 > - `lib/common.sh` — shared guard-rail infrastructure (`_ask`, `_read_choice`,
 >   YES_MODE, DRY_RUN): a defect here propagates to ALL modules
+> - `lib/selection.sh` — the selection resolver (`_resolve_selection`,
+>   `_resolve_cli`, `_collect_module_tokens`, `_selection_is_valid`) and the per-id
+>   registries (`MODULE_IDS`, `MODULE_DESC`, `MODULE_RISK`, `MODULE_DRYRUN`, …): a
+>   defect here decides WHICH modules run — for the CLI, the menu and the
+>   LaunchAgents alike — and what the session summary attests about them
 >
 > Medium risk, outside the gate but to be handled with care (preview + confirmations):
 > `mod_04_updates`, `mod_10_greedy`, `mod_mas_mas` (global upgrades / mas install).

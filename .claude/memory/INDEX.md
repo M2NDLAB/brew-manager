@@ -142,11 +142,19 @@ tags: [moc]
   notes): FASE 1 multi-agent assessment, decisions D1–D14, 13 task commits, memory
   invariant V1–V7, hooks proven, retro IMP-012…022. The first note in English and
   with model/turns. INTEGRATED (merge `0725ae6`, pushed; no tag).
+- [[sessions/2026-09-24-debt-inventory-pre-dashboard]] — the read-only inventory of
+  every open debt before the Dashboard (10 agents: 5 analyses + 5 adversarial
+  verifiers): every item with files, risk, estimate, gate, contract and category;
+  new findings (non-TTY hangs, startup without Homebrew on PATH, agent-label trust,
+  `go --yes` widening); the user's classification and the release (v1.5.0).
+- [[sessions/2026-09-25-imp-022-and-history-scan]] — branch 1 of the debt cleanup:
+  IMP-022 applied (`lib/selection.sh` sensitive), the gitleaks history scan recorded
+  (#7 closed), the Level-1 memory corrections of the inventory. Ready for integration.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
-- [[2026-07-12-componenti-sensibili]] — criterio "raggio di impatto sul Mac" e
-  elenco dei sei componenti nel gate
+- [[2026-07-12-componenti-sensibili]] — the "blast radius on the Mac" criterion
+  and the components under the gate (seven since IMP-022: + `lib/selection.sh`)
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
@@ -158,6 +166,9 @@ tags: [moc]
 - [[2026-09-24-language-rule-prospective]] — rule 9 adopted: English artifacts from
   the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept, memory
   headings frozen and mapped in CLAUDE.md
+- [[2026-09-25-debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard:
+  categories, order, a new exit code for a failed environment precondition (MINOR →
+  v1.5.0), `lib/agents.sh`, bk [4]/las [c] in wet mode, the conditions on #17 and #3b
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -166,8 +177,11 @@ tags: [moc]
   (BM-09→BM-12, the whole TUI) + the dry-run micro-task. **Release v1.4.0 RELEASED**
   (2026-07-23, merge `ab45323`, annotated tag `v1.4.0`): M3 + micro-task, MINOR bump,
   debt #15/#16 declared. Integrated outside the roadmap: framework upgrades → v1.0.0
-  and → v1.2.0 (merge `0725ae6`). Next: hardening #15/#16 (sensitive) or M4, whose
-  prerequisite is the `_module_14` collision (STATE #18).
+  and → v1.2.0 (merge `0725ae6`). Next: the debt cleanup before the Dashboard
+  ([[plans/debt-cleanup-pre-dashboard]]), which closes #15/#16 and the `_module_14`
+  collision (STATE #18) before M4.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
+- [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
+  branches in order, one at a time; status: in-progress (branch 1 done).

@@ -1,6 +1,6 @@
 ---
 type: decision
-updated: 2026-07-12
+updated: 2026-09-25
 tags: [decision]
 ---
 # Componenti sensibili: criterio = raggio di impatto sul Mac dell'utente
@@ -23,3 +23,13 @@ tags: [decision]
 - **Conseguenze**: ogni branch che tocca uno dei sei componenti passa da
   /security-review PRIMA del merge; l'elenco vive in CLAUDE.md (regola 8) e in
   docs/03 e va aggiornato se un nuovo modulo diventa mutante.
+- **Amendment (2026-09-25, IMP-022, approved by the user)**: `lib/selection.sh`
+  joins the gate — SEVEN components, superseding the "six" above. The selection
+  parsing (`_resolve_selection`, `_resolve_cli`, `_collect_module_tokens`,
+  `_selection_is_valid`) and the per-id registries moved there out of
+  `brew_manager.sh` (BM-08a/b, then BM-10–12): a defect there decides which
+  modules run — it already produced two MEDIUM fail-opens in BM-08b, one of them
+  the `\065`→mod_05 bypass — and a branch touching only it would otherwise skip the
+  gate. The flag parsing stays in `brew_manager.sh`. The lists to keep in step:
+  CLAUDE.md (rule 8 and the technical rules), docs/03, docs/00, this note and
+  INDEX; `/new-component` step 6 names them.
