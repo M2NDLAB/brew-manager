@@ -149,7 +149,12 @@ tags: [moc]
   `go --yes` widening); the user's classification and the release (v1.5.0).
 - [[sessions/2026-09-25-imp-022-and-history-scan]] — branch 1 of the debt cleanup:
   IMP-022 applied (`lib/selection.sh` sensitive), the gitleaks history scan recorded
-  (#7 closed), the Level-1 memory corrections of the inventory. Ready for integration.
+  (#7 closed), the Level-1 memory corrections of the inventory. INTEGRATED (merge
+  `73bc5ee`).
+- [[sessions/2026-09-25-apply-project-imps]] — branch 2 of the debt cleanup: the
+  facet-level re-audit of branch 1's STATE rewrite (no entry lost), IMP-003/004/007/002
+  applied and corrected after an adversarial review, IMP-005 deferred, IMP-025 from
+  the retro. Ready for integration.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -184,4 +189,4 @@ tags: [moc]
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
 - [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
-  branches in order, one at a time; status: in-progress (branch 1 done).
+  branches in order, one at a time; status: in-progress (branches 1–2 done).

@@ -25,10 +25,11 @@ task; the (c) items tracked in STATE with their triggers.
   sensitive list) + #7 (the one-off gitleaks scan of the whole history, recorded);
   persists the inventory, this plan and the decision; Level-1 memory corrections.
   Gate: no (author-verifies, grep DoD with counter-proof). — commit: `6b1e5f6`,
-  `aa54a51`, `90cb34c`, `5fa7159` + the checkpoint; ready for integration.
-- [ ] 2. `chore/apply-project-imps` — IMP-003, IMP-004, IMP-007, IMP-002, one commit
+  `aa54a51`, `90cb34c`, `5fa7159`, checkpoint `2ef3c21`; merged in `73bc5ee`.
+- [x] 2. `chore/apply-project-imps` — IMP-003, IMP-004, IMP-007, IMP-002, one commit
   each; IMP-002/004 marked `Destination: framework`; IMP-005 → Deferred. Gate: no.
-  — commit: —
+  — commit: `a59d5eb`, `a7f309f`, `225cadd`, `53d4827`, review fixes `36aa1b2` + the
+  checkpoint; ready for integration.
 - [ ] 3. `chore/gitignore-d10` — #20 (`.vault-token`, `vault-keys.json`, `*.iml`).
   Gate: no. — commit: —
 - [ ] 4. `fix/startup-brew-env` — N1 + 4b-0: PATH bootstrap for launchd/GUI starts; the

@@ -1,12 +1,12 @@
 ---
 type: state
 updated: 2026-09-25
-branch: chore/imp-022-sensitive-selection
+branch: chore/apply-project-imps
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-09-25 | Last: **debt cleanup before the Dashboard — branch 1 of 16** (`chore/imp-022-sensitive-selection`): the read-only inventory of every open debt is persisted ([[sessions/2026-09-24-debt-inventory-pre-dashboard]]) and approved by the user with decisions ([[decisions/2026-09-25-debt-cleanup-pre-dashboard]]) and an ordered programme of one branch per item ([[plans/debt-cleanup-pre-dashboard]]); **IMP-022 applied** (`lib/selection.sh` is a sensitive component: seven in the gate); **#7 closed** (gitleaks over the whole history: 155 commits, 0 findings). Ready for integration (no tag). Next: branch 2 (the approved project IMPs), on the user's go. The cleanup ends with **release v1.5.0** (MINOR: a new exit code for a failed environment precondition). → [[sessions/2026-09-25-imp-022-and-history-scan]] | Index: [[INDEX]]
+> Updated: 2026-09-25 | Last: **debt cleanup before the Dashboard — branch 2 of 16** (`chore/apply-project-imps`): the approved project IMPs applied, one commit each — IMP-003 (never pass data through `echo`, CLAUDE.md), IMP-004 (close a defect class site by site and re-gate, docs/03), IMP-007 (module smoke via CLI selection, stdin from /dev/null and a file, CLAUDE.md + /new-component), IMP-002 (the contract-surface checklist, docs/02) — plus the fixes of an adversarial review (2 high findings upheld and fixed); IMP-002/004 marked `Destination: framework`, IMP-005 deferred (cut by the user); the critical-debt check of branch 1's STATE rewrite re-audited facet by facet (no entry lost; minor facets restored). Branch 1 INTEGRATED (merge `73bc5ee`). Ready for integration (no tag). Next: branch 3 (`.gitignore`), on the user's go. → [[sessions/2026-09-25-apply-project-imps]] | Index: [[INDEX]]
 
 > **Previous**: framework upgrade v1.0.0 → v1.2.0 INTEGRATED (merge `0725ae6`, post-merge checkpoint merged in `8ed9f5c`, pushed; no tag): the method in English, interaction in Italian → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]].
 
@@ -180,8 +180,13 @@ tags: [state]
   gate where marked, a printed /integrate after each; it ends with release **v1.5.0**.
   - [x] Branch 1 `chore/imp-022-sensitive-selection`: inventory persisted (`6b1e5f6`),
     plan and decisions (`aa54a51`), IMP-022 applied (`90cb34c`), #7 closed
-    (`5fa7159`), Level-1 memory corrections at the checkpoint. **Ready for
-    integration** (no tag). → [[sessions/2026-09-25-imp-022-and-history-scan]].
+    (`5fa7159`), Level-1 memory corrections at the checkpoint (`2ef3c21`).
+    **INTEGRATED** (merge `73bc5ee`; no tag). →
+    [[sessions/2026-09-25-imp-022-and-history-scan]].
+  - [x] Branch 2 `chore/apply-project-imps`: IMP-003 (`a59d5eb`), IMP-004 (`a7f309f`),
+    IMP-007 (`225cadd`), IMP-002 (`53d4827`), the adversarial review's fixes
+    (`36aa1b2`), checkpoint; IMP-005 deferred. **Ready for integration** (no tag). →
+    [[sessions/2026-09-25-apply-project-imps]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -363,15 +368,19 @@ tags: [state]
 3b. **Echo on data expands escapes** (LOW, BM-03 gate; scope measured by the debt
    inventory 2026-09-24): zsh's builtin `echo` expands `\e`/`\0NN`/`\x..` even
    without `-e`. The resolver instance was CLOSED in BM-08b (the MEDIUM `\065`→mod_05
-   bypass). The class is wide: 74 `echo "$var" |` sites in 14 module files (mostly
+   bypass; closed with parameter expansion, `${(@s:,:)}`/`${// /}`). The class is
+   wide: 74 `echo "$var" |` sites in 14 module files (mostly
    grep/counting, but mod_00:53/70 validate a token on the expanded value), the five
    renderers `_ok/_warn/_err/_info/_item` are `echo -e "$msg"` (59 calls interpolate
    data), ~38 `echo -e` lines with data, mod_05 on both the dry-run and the real path,
    bk `_restore_agents` and [5] View, las [v]; mod_02:88 and mas:46 rely on the
-   expansion (a palette inside `_item`); #26 (mod_03) is a live JSON corruption.
+   expansion (a palette inside `_item`); untrusted data also reaches the text of a
+   consent question (mod_00:208 puts the app name into `_ask_danger`, rendered by
+   `_ask` through `echo -e`); #26 (mod_03) is a live JSON corruption.
    Category (c) for the class, **deferrable ONLY if the JSON layer is built from
    structured data, never from the modules' screen output** (user condition,
-   2026-09-25). Prevention = IMP-003 (branch 2); the bk-restore half is fixed in
+   2026-09-25). Prevention = IMP-003, APPLIED in the CLAUDE.md Code conventions
+   (2026-09-25, branch 2); the bk-restore half is fixed in
    branch 11, mod_03 in branch 8. → TRIGGER: the JSON layer reuses screen output, or
    new code copies the pattern.
 4. ~~**mod_10 greedy**: scope globale + exit code non verificato~~ **RISOLTO** in
@@ -412,8 +421,9 @@ tags: [state]
    Dashboard design (a multi-day picker would be an M4 feat, MINOR).
 6b. **bk: the agents-restore preview does not mirror the restore, and the restore
    degrades silently** (INFO at BM-05a → LOW/MEDIUM, widened by the debt inventory
-   2026-09-24): the preview lists entries the restore skips (label shape, multi-day,
-   and an empty label skipped SILENTLY); an unknown day or a missing schedule becomes a
+   2026-09-24): the preview mirrors the skip of an invalid `modules=` value, but it
+   lists entries the restore skips (label shape, multi-day, and an empty label skipped
+   SILENTLY); an unknown day or a missing schedule becomes a
    DAILY agent; an out-of-range time is clamped in the plist while the conf keeps the
    raw value; and on AUTHENTIC backups the minute clamp rejects the zero-padded
    "00"–"09" brew-manager itself writes (an agent at 9:05 is restored at 9:00,
@@ -436,10 +446,12 @@ tags: [state]
    `BREW_MANAGER_YES` stale in env è sovrascritto. I LaunchAgent (--yes) eseguono
    la loro selezione. Decisione: [[2026-07-17-consent-vs-noninteractive]].
    INVARIANTE nuova: "non c'è tty" ≠ "consenso" — un modulo che muta SENZA passare
-   per `_ask` NON è coperto (vedi #12 mod_02).
+   per `_ask` NON è coperto (see #3: mod_02's `brew update` — the pointer said "#12",
+   a wrong number since it was written in 98cdbff).
 9. ~~Unknown CLI flags ignored silently~~ RESOLVED (0e48373). ~~A legacy plist with a
-   corrupt `modules` → exit 2 on every run~~ CLOSED (BM-08c: the scheduler and the bk
-   restore validate with `_selection_is_valid` and refuse or skip). RESIDUAL, OPEN and wider
+   corrupt `modules` → exit 2 on every run~~ CLOSED (BM-08c: the scheduler, the bk
+   restore and its preview validate with `_selection_is_valid` and refuse or skip).
+   RESIDUAL, OPEN and wider
    than recorded (debt inventory 2026-09-24): flag VALUES are not validated —
    `--upgrade=yes`/`Y`/`true` prints `[auto: yes]` and then declines (exit 0);
    `--upgrade=y` without --yes pre-answers nothing (README :166/:181 false); an EMPTY
@@ -463,16 +475,21 @@ tags: [state]
    the files; concurrent sessions (a GUI plus agents) delete each other's files and
    report false states. → branch 13 (`fix/per-run-paths`, with #25): a per-run
    `mktemp -d`.
-12. **Re-register/repair widen a scoped agent to `go --yes`** (LOW at BM-08c → MEDIUM
-   proposed; the recorded "the listing under-reports; it does not change execution"
+12. **Re-register/repair widen a scoped agent to `go --yes`** (PRE-EXISTING, found by
+   the BM-08c gate as LOW → MEDIUM proposed; the recorded "the listing under-reports; it
+   does not change execution"
    is FALSE, and so is the code comment mod_las:125-127 — debt inventory
    2026-09-24): the plist reader keeps only the first `<string>` (`35` for two strings
    on one line); an argv the current grammar accepts (`--only=1 --yes`) is flagged as
    legacy-corrupt; the re-register writes the placeholder `modules=go`; and a Repair —
    or a plain [4] Modify that keeps the shown value `go` — rewrites the plist as `go
-   --yes`. README :417 is false. → branch 12 (`fix/las-agent-trust`): read the whole
+   --yes`. Reachable today only through a plist not written by brew-manager; directly
+   reachable once the Dashboard or the BM-15 presets write agents with
+   `--only`/`--skip`. README :417 is false. → branch 12 (`fix/las-agent-trust`): read
+   the whole
    argv, validate it with the real grammar, drop the `go` placeholder.
-13. **Agent labels from untrusted data** (LOW at BM-08c → LOW/MEDIUM, widened
+13. **Agent labels from untrusted data** (PRE-EXISTING, found by the BM-08c gate as
+   LOW → LOW/MEDIUM, widened
    2026-09-24): no label validation on las's data paths (recreate, repair, Modify,
    Remove; the re-register only by shape) and no prefix enforcement in las or in the
    bk restore — a third-party LaunchAgent was overwritten on both paths in a sandbox,
@@ -487,7 +504,9 @@ tags: [state]
    confrontato l'INTERO registry col codice e li ha trovati falsi (#15, #16). Il
    summary li marca `⚠ ran anyway` — vero, e visibile a ogni dry-run.
    **Non flippare un valore a 1 senza fixare il modulo**: `test_run_summary.zsh`
-   fallisce (grep del gate nel sorgente + allow-list) e si tornerebbe alla falsa
+   fallisce on the allow-list only — its grep half just proves the gate is MENTIONED
+   (mod_bk mentions `BREW_MANAGER_DRY_RUN` 7 times, mod_las 6), so the behavioural
+   proof is the tripwire tests (debt inventory 2026-09-24) — e si tornerebbe alla falsa
    attestazione "nothing changed". L'allow-list è bidirezionale: un `0` fuori
    lista fallisce, e una voce che non è più debito fallisce pure — quindi al fix
    di #15/#16 va aggiornata `_KNOWN_UNGATED` in `tests/test_run_summary.zsh`.
@@ -513,8 +532,9 @@ tags: [state]
    `logs/agent_*.log` (`mod_las_scheduler.sh:817-819`) senza gate `--dry-run`,
    mentre `mod_log` gata gli `rm` equivalenti; l'audit trail degli agent è
    irreversibile. In più `mkdir -p "$HOME/Library/LaunchAgents"` (`:15`) gira
-   anche in dry-run e anche sul path che esce subito in non-interattivo (stesso
-   pattern LOW in `mod_log:15` e `mod_bk:18`, ma lì sono directory del tool).
+   anche in dry-run e anche sul path che esce subito in non-interattivo
+   (`mod_bk:18` creates the tool's own `backups/`; the `mod_log:15` case is a no-op,
+   see below).
    Dichiarato con `MODULE_DRYRUN[las]=0`. → TRIGGER: task dedicato su mod_las
    (o hardening #12/#13, che toccano lo stesso modulo).
    Debt inventory 2026-09-24: the "mkdir in mod_log:15" part is a no-op
@@ -522,7 +542,7 @@ tags: [state]
    `~/Library/LaunchAgents`; [c] has no confirmation in wet mode either. → branch 10
    (`fix/las-dryrun-clean`), with `_ask_danger` before [c] in wet mode (user decision).
 17. **`(( BREW_MANAGER_DRY_RUN ))` è aritmetica su una stringa d'ambiente**
-   (INFO, gate 2026-07-21, PRE-ESISTENTE su tutti i ~18 siti): in zsh
+   (INFO, gate 2026-07-21, PRE-ESISTENTE on every site — 27, see below): in zsh
    `y`/`yes`/`true` valgono "gate spento" e una stringa `NAME=value` in contesto
    aritmetico ESEGUE l'assegnazione. **Non raggiungibile oggi**: il core esporta
    `BREW_MANAGER_DRY_RUN` ∈ {0,1} da parsing dei flag (`brew_manager.sh:151`)
@@ -565,8 +585,9 @@ tags: [state]
    wrong module, the run HANGS without a tty (#21), and interactively bk's
    Restore/Delete menu appears. The visible headers `_section "15"`/`"16"` of las/mas
    belong to the same fix. README :565 ("any number is fine internally") is the trap.
-   → branch 5 (`refactor/module-fn-names`): `_module_bk/las/mas`, a generic dispatch, a
-   wiring guard test.
+   → branch 5 (`refactor/module-fn-names`, through the security gate — dispatch, bk,
+   las): `_module_bk/las/mas`, a generic dispatch, a wiring guard test. Details:
+   [[sessions/2026-09-24-debt-inventory-pre-dashboard]] (section B).
 19. ~~**`lib/selection.sh` missing from the sensitive components**~~ **CLOSED**: IMP-022
    applied on 2026-09-25 (`90cb34c`) — it is in CLAUDE.md rule 8 and the technical
    rules, docs/03, docs/00, [[2026-07-12-componenti-sensibili]] and INDEX, and
@@ -643,16 +664,18 @@ tags: [state]
   `90cb34c`). Retro of branch 1 of the debt cleanup (2026-09-25; OPEN): **IMP-023**
   delegated sandbox runs must not leave processes behind; **IMP-024** brief delegated
   agents in the artifact language when their output will be persisted — both
-  `Destination: framework`. Approved by the user, to apply in branch 2: IMP-002, 003,
-  004, 007 (IMP-005 cut → Deferred there).
+  `Destination: framework`. Branch 2 (2026-09-25): IMP-002, 003, 004, 007 APPLIED
+  (IMP-002/004 also `Destination: framework`), IMP-005 DEFERRED (cut by the user: the
+  code already complies); retro: **IMP-025** (applying an IMP: map the proposal, run
+  what the rule prescribes; `Destination: framework`), OPEN.
 
 ## Branch attivi
-- **chore/imp-022-sensitive-selection** (branch 1 of the debt cleanup: inventory, plan
-  and decisions persisted, IMP-022 applied, #7 closed; docs and memory only) = **READY
-  for the user's integration** (`/integrate` block, no tag).
-- **main** = integration + stable (trunk-based); HEAD `8ed9f5c` (merge of the
-  post-upgrade checkpoint; below it `0725ae6`, the framework upgrade v1.0.0 → v1.2.0,
-  `e7c3a56` and the release merge `ab45323`), aligned with
+- **chore/apply-project-imps** (branch 2 of the debt cleanup: IMP-003/004/007/002
+  applied and reviewed, IMP-005 deferred; rules, docs and memory only) = **READY for
+  the user's integration** (`/integrate` block, no tag).
+- **main** = integration + stable (trunk-based); HEAD `73bc5ee` (merge of branch 1 of
+  the debt cleanup; below it `8ed9f5c`, the post-upgrade checkpoint, `0725ae6`, the
+  framework upgrade v1.0.0 → v1.2.0, and the release merge `ab45323`), aligned with
   `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` → `ab45323`) + `v1.3.0`
   + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`:
   empty. `make version-check` green.
@@ -660,6 +683,8 @@ tags: [state]
   **INTEGRATED into main** (merge `0725ae6`, pushed; no tag), branch deleted. The git
   hooks installed from it (English marker) are the ones `main` now generates; the two
   `.bak` of the old Italian hooks have been removed by the user.
+- **chore/imp-022-sensitive-selection** (branch 1 of the debt cleanup) = **INTEGRATED
+  into main** (merge `73bc5ee`, pushed; no tag), branch deleted.
 - **chore/checkpoint-post-fw-v1.2.0** (post-merge memory checkpoint) = **INTEGRATED into
   main** (merge `8ed9f5c`, pushed; no tag), branch deleted.
 - **chore/checkpoint-post-v1.4.0** (post-release memory checkpoint) = **INTEGRATED into
