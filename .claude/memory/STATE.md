@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-09-25
-branch: chore/apply-project-imps
+updated: 2026-09-26
+branch: chore/gitignore-d10
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-09-25 | Last: **debt cleanup before the Dashboard — branch 2 of 16** (`chore/apply-project-imps`): the approved project IMPs applied, one commit each — IMP-003 (never pass data through `echo`, CLAUDE.md), IMP-004 (close a defect class site by site and re-gate, docs/03), IMP-007 (module smoke via CLI selection, stdin from /dev/null and a file, CLAUDE.md + /new-component), IMP-002 (the contract-surface checklist, docs/02) — plus the fixes of an adversarial review (2 high findings upheld and fixed); IMP-002/004 marked `Destination: framework`, IMP-005 deferred (cut by the user); the critical-debt check of branch 1's STATE rewrite re-audited facet by facet (no entry lost; minor facets restored). Branch 1 INTEGRATED (merge `73bc5ee`). Ready for integration (no tag). Next: branch 3 (`.gitignore`), on the user's go. → [[sessions/2026-09-25-apply-project-imps]] | Index: [[INDEX]]
+> Updated: 2026-09-26 | Last: **debt cleanup before the Dashboard — branch 3 of 16** (`chore/gitignore-d10`): `.vault-token`, `vault-keys.json` and `*.iml` added to `.gitignore` (#20 closed; `*.log` stays out by decision D10); LEARNINGS re-verified after branch 2 (IMP-001…025, each once, statuses coherent); the IMP-002 widening to output surfaces handed to the improvement's first task (user decision); the **real-launchd verification plan** for branch 4 written, reviewed adversarially and persisted in [[plans/debt-cleanup-pre-dashboard]] (task 4 section). Branch 2 INTEGRATED (merge `9e4f2b4`). Ready for integration (no tag). Next: branch 4 (N1 + 4b-0) ONLY on the user's go, starting with the launchd verification. → [[sessions/2026-09-26-gitignore-and-launchd-plan]] | Index: [[INDEX]]
 
 > **Previous**: framework upgrade v1.0.0 → v1.2.0 INTEGRATED (merge `0725ae6`, post-merge checkpoint merged in `8ed9f5c`, pushed; no tag): the method in English, interaction in Italian → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]].
 
@@ -185,8 +185,12 @@ tags: [state]
     [[sessions/2026-09-25-imp-022-and-history-scan]].
   - [x] Branch 2 `chore/apply-project-imps`: IMP-003 (`a59d5eb`), IMP-004 (`a7f309f`),
     IMP-007 (`225cadd`), IMP-002 (`53d4827`), the adversarial review's fixes
-    (`36aa1b2`), checkpoint; IMP-005 deferred. **Ready for integration** (no tag). →
-    [[sessions/2026-09-25-apply-project-imps]].
+    (`36aa1b2`), checkpoint `3d36cf4`; IMP-005 deferred. **INTEGRATED** (merge
+    `9e4f2b4`; no tag). → [[sessions/2026-09-25-apply-project-imps]].
+  - [x] Branch 3 `chore/gitignore-d10`: the three template patterns (`7ef025b`), the
+    IMP-002 hand-over and the reviewed real-launchd verification plan for branch 4
+    (memory), checkpoint. **Ready for integration** (no tag). →
+    [[sessions/2026-09-26-gitignore-and-launchd-plan]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -592,11 +596,14 @@ tags: [state]
    applied on 2026-09-25 (`90cb34c`) — it is in CLAUDE.md rule 8 and the technical
    rules, docs/03, docs/00, [[2026-07-12-componenti-sensibili]] and INDEX, and
    `/new-component` step 6 names every list.
-20. **`.gitignore` lacks three template patterns** (LOW, out of the upgrade's scope,
+20. ~~**`.gitignore` lacks three template patterns**~~ **CLOSED** (2026-09-26, `7ef025b`:
+   `.vault-token` and `vault-keys.json` in the secrets block, `*.iml` with `.idea/`;
+   `git check-ignore -v` now points at the repo's `.gitignore`) (LOW, out of the
+   upgrade's scope,
    D10): `.vault-token` and `vault-keys.json` (the template's secrets block) and
    `*.iml` were never added at the graft; nothing of the kind is tracked
-   (`git ls-files` empty). `*.log` is not debt (see Decisions). → branch 3 of the debt
-   cleanup (`chore/gitignore-d10`).
+   (`git ls-files` empty). `*.log` is not debt (see Decisions). Done in branch 3 of the
+   debt cleanup (`chore/gitignore-d10`).
 21. **Non-TTY runs of bk/log hang forever** (HIGH for the GUI, MEDIUM today — found by
    the debt inventory 2026-09-24): `script(1)` forwards ONE EOF when stdin is closed;
    the bare `read`s of the bk/log menus consume it, then `_handle_log`'s own bare
@@ -621,7 +628,9 @@ tags: [state]
    the first code branch: PATH bootstrap, the installer honours --dry-run and never
    starts without a terminal, a NEW exit code for the failed environment precondition
    added to the docs/04 contract (MINOR → v1.5.0), confirmed under a real launchd job
-   with the user before being declared.
+   with the user before being declared. The reviewed procedure (preflight, run, reading,
+   cleanup) is in [[plans/debt-cleanup-pre-dashboard]], section "Task 4 — the
+   real-launchd verification".
 24. **The las recreate fails on zero-padded minutes** (LOW, 2026-09-24): recreating a
    pending conf passes "00"–"09" to `_install_agent`, whose regex rejects them — the
    default agents at 09:00 included; an unknown day becomes a silent daily agent. →
@@ -667,15 +676,18 @@ tags: [state]
   `Destination: framework`. Branch 2 (2026-09-25): IMP-002, 003, 004, 007 APPLIED
   (IMP-002/004 also `Destination: framework`), IMP-005 DEFERRED (cut by the user: the
   code already complies); retro: **IMP-025** (applying an IMP: map the proposal, run
-  what the rule prescribes; `Destination: framework`), OPEN.
+  what the rule prescribes; `Destination: framework`), OPEN. Branch 3 (2026-09-26):
+  **IMP-026** (command blocks for the user: self-contained, literal, no inline comments;
+  `Destination: framework`), OPEN.
 
 ## Branch attivi
-- **chore/apply-project-imps** (branch 2 of the debt cleanup: IMP-003/004/007/002
-  applied and reviewed, IMP-005 deferred; rules, docs and memory only) = **READY for
-  the user's integration** (`/integrate` block, no tag).
-- **main** = integration + stable (trunk-based); HEAD `73bc5ee` (merge of branch 1 of
-  the debt cleanup; below it `8ed9f5c`, the post-upgrade checkpoint, `0725ae6`, the
-  framework upgrade v1.0.0 → v1.2.0, and the release merge `ab45323`), aligned with
+- **chore/gitignore-d10** (branch 3 of the debt cleanup: `.gitignore`, and memory: the
+  IMP-002 hand-over, the launchd verification plan) = **READY for the user's
+  integration** (`/integrate` block, no tag).
+- **main** = integration + stable (trunk-based); HEAD `9e4f2b4` (merge of branch 2 of
+  the debt cleanup; below it `73bc5ee` (branch 1), `8ed9f5c`, the post-upgrade
+  checkpoint, `0725ae6`, the framework upgrade, and the release merge `ab45323`),
+  aligned with
   `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` → `ab45323`) + `v1.3.0`
   + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`:
   empty. `make version-check` green.
@@ -683,6 +695,8 @@ tags: [state]
   **INTEGRATED into main** (merge `0725ae6`, pushed; no tag), branch deleted. The git
   hooks installed from it (English marker) are the ones `main` now generates; the two
   `.bak` of the old Italian hooks have been removed by the user.
+- **chore/apply-project-imps** (branch 2 of the debt cleanup) = **INTEGRATED into main**
+  (merge `9e4f2b4`, pushed; no tag), branch deleted.
 - **chore/imp-022-sensitive-selection** (branch 1 of the debt cleanup) = **INTEGRATED
   into main** (merge `73bc5ee`, pushed; no tag), branch deleted.
 - **chore/checkpoint-post-fw-v1.2.0** (post-merge memory checkpoint) = **INTEGRATED into

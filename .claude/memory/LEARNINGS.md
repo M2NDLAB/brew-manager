@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -368,6 +368,26 @@ tags: [improvement]
   minutes per IMP.
 - Destination: framework
 
+### IMP-026 — Command blocks for the user: self-contained, literal, with no inline comments
+- Date: 2026-09-26 | Origin: [[sessions/2026-09-26-gitignore-and-launchd-plan]] — the review of the real-launchd verification plan
+- Observed problem: the first draft of the plan had three traps in the blocks the user
+  would paste. A bare placeholder `P=<scratchpad>/…`, which zsh parses as redirections,
+  leaving `P` empty (docs/04 rule 1 already forbids placeholders). A cleanup block that
+  relied on shell variables set in an earlier block: run in a new shell it becomes
+  `launchctl bootout gui//` and `rm ""`. Inline `# expect …` comments: interactive zsh
+  has INTERACTIVE_COMMENTS off by default (so on this Mac), and the words after `#` reach
+  the command as arguments. The last two traps are written nowhere; the `/integrate`
+  template's own `# 1. …` lines give "command not found: #" in such a shell (harmless,
+  noisy).
+- Proposal: add to docs/04 "Execution boundary and blocks for the user": every block is
+  self-contained (no shell variable from another block — repeat the literal values), has
+  no comments inside (expected outputs and preconditions go in prose around it), and a
+  destructive block says its precondition; move the step titles of the `/integrate`
+  template out of the code block.
+- Expected benefit / risk: blocks that paste cleanly into any shell, in any order, with
+  no silent widening of a target. Risk: slightly longer blocks.
+- Destination: framework
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -523,6 +543,9 @@ tags: [improvement]
   it beyond the approved scope, so it was narrowed back to parity extractions and
   code built on the same contract, down to the exit code the user observes. Covering
   the Dashboard's JSON schema by the letter would need the user's go.
+- User decision (2026-09-25): not widened now; "extend IMP-002 to the output surfaces
+  when the schema is defined" is an item of the improvement's first task
+  ([[plans/debt-cleanup-pre-dashboard]], section "Handed to the improvement").
 - Destination: framework
 
 ### IMP-022 — Add `lib/selection.sh` to the sensitive components → applied on 2026-09-25 (explicit user approval), commit `90cb34c` on chore/imp-022-sensitive-selection
