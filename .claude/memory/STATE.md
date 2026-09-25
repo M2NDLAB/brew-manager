@@ -621,14 +621,16 @@ tags: [state]
 23. **Startup without Homebrew on PATH; the built-in installer** (MEDIUM, 2026-09-24):
    no PATH bootstrap (`/opt/homebrew/bin`, `/usr/local/bin`) — under launchd or from a
    GUI launched by the Finder (PATH=/usr/bin:/bin:/usr/sbin:/sbin) the tool says
-   "Homebrew is not installed" and exits **0**, so the installed LaunchAgents most
-   likely never run brew and look successful (simulated with `env -i`, NOT yet observed
-   under a real launchd job); the installer (brew_manager.sh:185-235) ignores
+   "Homebrew is not installed" and exits **0**, so the installed LaunchAgents never run
+   brew and look successful — **CONFIRMED under a REAL launchd job on 2026-09-26** (an
+   on-demand job with a las agent's invocation environment: `runs = 1`, `last exit code =
+   0`, the default PATH `/usr/bin:/bin:/usr/sbin:/sbin` with no override, "Homebrew is not
+   installed" + "cannot continue" at EOF, stderr empty, no session log →
+   [[sessions/2026-09-26-startup-brew-env]]); the installer (brew_manager.sh:185-235) ignores
    --dry-run, uses a bare `read` and runs before the `script(1)` re-exec. → branch 4,
    the first code branch: PATH bootstrap, the installer honours --dry-run and never
    starts without a terminal, a NEW exit code for the failed environment precondition
-   added to the docs/04 contract (MINOR → v1.5.0), confirmed under a real launchd job
-   with the user before being declared. The reviewed procedure (preflight, run, reading,
+   added to the docs/04 contract (MINOR → v1.5.0). The reviewed procedure (preflight, run, reading,
    cleanup) is in [[plans/debt-cleanup-pre-dashboard]], section "Task 4 — the
    real-launchd verification".
 24. **The las recreate fails on zero-padded minutes** (LOW, 2026-09-24): recreating a

@@ -130,17 +130,19 @@ plutil -lint /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
 ```
 
 **Block B — the run (the user pastes the whole output back).** The loop waits up to 120 s
-while the job runs; if `state = running` still shows afterwards, do NOT clean up: report.
+until `last exit code` is a number; if it is not, do NOT clean up: report. (Run of
+2026-09-26: the first version polled on `state = running` and broke on the transitional state
+right after `kickstart` — a race; fixed here. Outcome: CONFIRMED, see the branch note.)
 ```
 launchctl bootstrap gui/501 /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
 launchctl kickstart -p gui/501/com.m2ndlab.verify-n1
-for i in {1..120}; do launchctl print gui/501/com.m2ndlab.verify-n1 | grep -q 'state = running' || break; sleep 1; done
+for i in {1..120}; do launchctl print gui/501/com.m2ndlab.verify-n1 | grep -qE 'last exit code = -?[0-9]' && break; sleep 1; done
 launchctl print gui/501/com.m2ndlab.verify-n1 | grep -E 'state =|runs =|pid =|last exit|last terminating signal'
 launchctl print gui/501/com.m2ndlab.verify-n1 | grep -B3 'PATH =>'
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.out
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.err
 find /Users/seco/Projects/brew-manager/logs -name 'brew_report_*' -newer /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
-launchctl print gui/501/com.m2ndlab.verify-n1 | grep -q 'state = running' && echo 'STILL RUNNING - STOP HERE, NO CLEANUP'
+launchctl print gui/501/com.m2ndlab.verify-n1 | grep -qE 'last exit code = -?[0-9]' || echo 'NOT FINISHED - STOP HERE, NO CLEANUP'
 ```
 
 **Reading the outcome.**

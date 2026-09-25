@@ -4,7 +4,7 @@ task: branch 4 of the pre-dashboard debt cleanup — N1 + 4b-0 (Homebrew's PATH 
 branch: fix/startup-brew-env
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 3
+turns: 4
 tags: [session, debt, launchd, startup, security]
 ---
 # Session 2026-09-26 — debt cleanup, branch 4: startup without Homebrew on PATH (in progress)
@@ -58,9 +58,44 @@ the docs/03 security gate) needs a further go from the user.
   `launchctl getenv PATH`, no brew_manager process, no verify_n1 output, "Could not find
   service", `plutil` OK. The run itself is the user's.
 
-## Outcome of the real-launchd run
-_(pending — the user runs blocks A and B and pastes the output; it is recorded here and in
-STATE #23 before any code.)_
+## Outcome of the real-launchd run — CONFIRMED (with a poll race declared)
+- **Block A (run by the user)**: exactly as expected — `278ce8f`, a clean status, macOS 27.0
+  arm64, brew only in /opt/homebrew/bin, no /etc/zshenv or ~/.zshenv, an empty
+  `launchctl getenv PATH`, no brew_manager process, no verify_n1 files, "Could not find
+  service", `plutil` OK, sha256 `84e60212…66ff29`, one `--dry-run`, zero
+  `--yes`/StartCalendarInterval/StandardInPath/EnvironmentVariables.
+- **Block B (run by the user), verbatim essentials**: `service spawned with pid: 49799`;
+  then `state = running`, `runs = 1`, `pid = 49799`, `last exit code = (never exited)`;
+  `default environment = { PATH => /usr/bin:/bin:/usr/sbin:/sbin`; `cat` of verify_n1.out
+  and .err printed nothing; `find` printed nothing; the last line printed `STILL RUNNING -
+  STOP HERE, NO CLEANUP`. By the plan's rule the reading of block B was INCONCLUSIVE, so no
+  cleanup was run.
+- **Why block B saw a running job with empty output — a poll race, not a hang.** The agent
+  re-read the evidence read-only about a minute later (00:26:42), without touching the job:
+  verify_n1.out and .err were born AND last modified at 00:25:45 — the job was spawned,
+  wrote everything and exited within one second, so it never ran for 120 s: the poll loop
+  must have exited on its first check. Most likely cause (an inference, not observed):
+  right after `kickstart` launchd still reported a transitional state, not `state =
+  running`, so `grep -q 'state = running' || break` broke at once; the next `print` caught
+  the process running and `cat` read the files before the first write. The STOP line fired
+  correctly for the rule; the rule was fed by a wrong poll. Fixed in the plan: poll until
+  `last exit code` is a number (it says "(never exited)" until the job ends).
+- **The job's final record and output (read by the agent at 00:26:42)**: `state = not
+  running`, `runs = 1`, `last exit code = 0`; `default environment = { PATH =>
+  /usr/bin:/bin:/usr/sbin:/sbin }`, `environment` = only `OSLogRateLimit` and
+  `XPC_SERVICE_NAME`, `inherited environment` = only `SSH_AUTH_SOCK` (no PATH override
+  anywhere); verify_n1.out (333 bytes) = the banner, "x  Homebrew is not installed on
+  this system.", "Install Homebrew now? (y/N)", "->  Choice: " left unanswered (EOF),
+  then "Homebrew not installed — brew-manager cannot continue." and "Install manually:
+  https://brew.sh" (the ASCII glyphs confirm the level-0 TUI of a run without a tty);
+  verify_n1.err = 0 bytes; no `logs/brew_report_*` newer than the plist (the run stopped
+  before `script(1)`); no process left (the tree of pid 49799 is empty).
+- **Verdict: CONFIRMED.** Every CONFIRMED criterion of the plan holds on the job's final
+  record: under a REAL launchd job, with the invocation environment of a las/bk agent,
+  brew is not on PATH, the tool says Homebrew is not installed, declines the installer at
+  EOF (no curl), and exits 0 — so the installed LaunchAgents never run brew and look
+  successful. STATE #23 updated. The cleanup (block C) is still the user's, after this
+  record; the fix waits for the user's go.
 
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] ·
