@@ -4,7 +4,7 @@ task: branch 4 of the pre-dashboard debt cleanup — N1 + 4b-0 (Homebrew's PATH 
 branch: fix/startup-brew-env
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 4
+turns: 5
 tags: [session, debt, launchd, startup, security]
 ---
 # Session 2026-09-26 — debt cleanup, branch 4: startup without Homebrew on PATH (in progress)
@@ -94,8 +94,15 @@ the docs/03 security gate) needs a further go from the user.
   record: under a REAL launchd job, with the invocation environment of a las/bk agent,
   brew is not on PATH, the tool says Homebrew is not installed, declines the installer at
   EOF (no curl), and exits 0 — so the installed LaunchAgents never run brew and look
-  successful. STATE #23 updated. The cleanup (block C) is still the user's, after this
-  record; the fix waits for the user's go.
+  successful. STATE #23 updated.
+- **Seen by the user, then cleaned up.** The user ran a read-only block E with the same
+  commands and got the same evidence verbatim (`state = not running`, `runs = 1`, `last
+  exit code = 0`; the default PATH with no override; the full verify_n1.out; `0` bytes of
+  stderr; born = modified = 00:25:45; `find` and `pgrep` empty). Then block C: `bootout`,
+  "Could not find service", no process in the `ps` line (block D not needed), the plist
+  and both outputs removed. The agent re-checked read-only: the service is gone, the three
+  files are gone, no process, nothing in ~/Library/LaunchAgents, the repo is clean.
+- Next: the fix, only on the user's go.
 
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] ·
