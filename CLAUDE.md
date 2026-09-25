@@ -120,14 +120,42 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   the known ones are closed, STATE.md item 2). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
   `BREW_MANAGER_YES`** — it is the by-convention rule that prevents the most
   widespread class of defects that emerged from the assessment (see STATE.md).
+  **Never pass DATA through `echo`** (new and rewritten code; the existing sites are
+  the recorded class STATE Attenzione #3b, fixed in their planned branches): zsh's
+  builtin `echo` expands every backslash escape even without `-e` (`\n`, `\t`, `\\`,
+  `\e`, `\0NNN`, `\xNN`, `\uNNNN`, and `\c`, which drops the rest), so a token can
+  turn into a different value (BM-08b: `\065` ran mod_05) and JSON gets corrupted
+  (STATE Attenzione #26). To normalise or clean a data string — above all untrusted
+  input: CLI tokens, file and app names, brew output, JSON — use parameter expansion
+  (`${v// /}`); to hand it on, `printf '%s\n' "$v"` (or `print -r -- "$v"`) for a
+  line-oriented consumer (grep, awk, `while read`) and `printf '%s'` where the exact
+  bytes matter (`$(...)`, JSON piped to python3). The same expansion hits messages that
+  interpolate data: `_ok`/`_warn`/`_err`/`_info`/`_item` and the `_section` title still
+  render through `echo -e` (the open debt STATE Attenzione #3b, to be fixed in the
+  helpers), so new code never adds an `echo` of its own on data, and nothing a helper
+  prints is ever a source of data. A parity refactor that moves the parsing of
+  untrusted input must report the fail-open patterns it carries along instead of
+  treating them as neutral.
   Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not
   installed; block prepared but commented out in `scripts/hooks-install.sh`);
   `make lint` runs shellcheck as ADVISORY when installed. Syntax gate: `make check`
   (`zsh -n` on every script); zero-cost check on a single file: `zsh -n <file>`.
 - **Tests**: a hand-rolled zsh harness in `tests/`, zero dependencies, run by
   `make test` (a blocking gate); bats remains a future candidate. Minimal
-  verification for every change: `zsh -n` on the touched
-  files + smoke run `./brew_manager.sh --dry-run` of the module concerned.
+  verification for every change: `zsh -n` on the touched files + a smoke run of the
+  module concerned, selected on the CLI, with stdin from `/dev/null` (an open stdin
+  makes every run wait at the final log prompt, STATE Attenzione #21) and the output
+  in a per-run file, filtered afterwards:
+  `f=$(mktemp) && ./brew_manager.sh <id> --dry-run </dev/null >"$f" 2>&1; echo rc=$?`
+  (never a fixed /tmp path, STATE Attenzione #11; the file has CRLF line endings).
+  Never pipe input into the prompt (under `script(1)` the menu reads EOF and falls back
+  to its default `go`: a full run, which then waits forever at the final log prompt)
+  and never truncate the output with `| head` (SIGPIPE kills the run and leaves a
+  0-byte session log). A run that does not end is a defect, not a smoke artefact: until
+  STATE Attenzione #21 is fixed, `bk` and `log` never end without a terminal, and `las`
+  returns at once without one (its headless smoke only proves the dispatch reaches
+  it) — the user smokes those from a real terminal. The menu is checked by the user
+  from a real terminal too: a CLI run never renders it.
 - **Sensitive components** (rule 8): `mod_00_audit` (app adoption),
   `mod_05_cleanup` (autoremove/cleanup), `mod_bk_brewfile` (restore, plist),
   `mod_las_scheduler` (LaunchAgent persistence), plus `brew_manager.sh` and
