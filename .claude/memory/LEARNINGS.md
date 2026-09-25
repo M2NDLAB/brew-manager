@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -454,20 +454,38 @@ tags: [improvement]
 - Resumption trigger: next multi-agent assessment.
 - Destination: framework
 
-### IMP-022 — Add `lib/selection.sh` to the sensitive components
-- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — STATE calls it sensitive, rule 8 does not list it
-- Observed problem: STATE ("What exists", `lib/selection.sh`) and the component note
-  call it the shared dispatch infrastructure, "sensitive", and the input parsing that
-  docs/03 attributes to `brew_manager.sh` moved there (`_resolve_selection`,
-  `_resolve_cli`). But it is in none of the sensitive lists (CLAUDE.md rule 8 and
-  technical rules, docs/03, docs/00, the 2026-07-12 decision), so a branch touching
-  only it would skip the gate.
-- Proposal: add it to the four lists and to the decision note (Level 2: a rule
-  change, after approval).
-- Expected benefit / risk: the selection resolver — whose defects already produced
-  MEDIUM fail-open findings in BM-08b — stays under the gate. Risk: none.
-- Resumption trigger: user decision; at the latest before the next change to
-  `lib/selection.sh`.
+### IMP-023 — Delegated sandbox runs must not leave processes behind
+- Date: 2026-09-25 | Origin: [[sessions/2026-09-24-debt-inventory-pre-dashboard]] — 8 orphaned processes alive ~75 min after the inventory agents finished
+- Observed problem: the inventory agents reproduced a hang by running the real CLI
+  under `script(1)` in a sandbox, with a watchdog on the direct child. The watchdog
+  killed that process, but the grandchild (`script` + the shell) was reparented to PID 1
+  and survived. One verifier noticed the other agents' orphans and killed only its own;
+  8 processes stayed alive until the main session killed them at the end. Nothing in the
+  method says a delegated run must leave the process table as it found it, or who checks.
+- Proposal: in the guidance for delegated/adversarial verification (docs/03, the
+  multi-agent review paragraph), add: a run of the real program in a sandbox kills the
+  whole process group (or session) on timeout, not only its direct child; each agent
+  reports the PIDs it could not reap; the orchestrator checks `ps` for processes under
+  the scratch directory before declaring the workflow done.
+- Expected benefit / risk: no leaked processes (which can keep writing into sandboxes
+  or /tmp, and skew later measurements); a few lines of guidance. Risk: none.
+- Destination: framework
+
+### IMP-024 — Brief delegated agents in the ARTIFACT language when their output will be persisted
+- Date: 2026-09-25 | Origin: [[sessions/2026-09-24-debt-inventory-pre-dashboard]] — the inventory came back in Italian and had to be rewritten in English to enter the memory
+- Observed problem: the inventory agents were briefed in the interaction language
+  (Italian) and returned ~220 KB of Italian findings. The user then asked to persist the
+  full inventory in a session note, which rule 9 requires in English: the main session
+  had to rewrite every item by hand — a second pass, with a risk of drift between the
+  persisted text and the verified original.
+- Proposal: in rule 9 (or in the delegation guidance), state that when a delegated
+  agent's output may be persisted (memory, docs, IMP entries), the brief asks for the
+  ARTIFACT language even if the user interacts in another one; the main session
+  translates only what it shows the user.
+- Expected benefit / risk: expensive work is persistable as it is (docs/00: persist
+  expensive work immediately), with no translation drift. Risk: the user-facing summary
+  needs a translation step — cheaper, and never persisted.
+- Destination: framework
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -481,6 +499,26 @@ tags: [improvement]
 -->
 
 ## Applicate
+
+### IMP-022 — Add `lib/selection.sh` to the sensitive components → applied on 2026-09-25 (explicit user approval), commit `90cb34c` on chore/imp-022-sensitive-selection
+- Date: 2026-09-24 | Origin: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] — STATE calls it sensitive, rule 8 does not list it
+- Observed problem: STATE ("What exists", `lib/selection.sh`) and the component note
+  call it the shared dispatch infrastructure, "sensitive", and the input parsing that
+  docs/03 attributes to `brew_manager.sh` moved there (`_resolve_selection`,
+  `_resolve_cli`). But it is in none of the sensitive lists (CLAUDE.md rule 8 and
+  technical rules, docs/03, docs/00, the 2026-07-12 decision), so a branch touching
+  only it would skip the gate.
+- Proposal: add it to the four lists and to the decision note (Level 2: a rule
+  change, after approval).
+- Expected benefit / risk: the selection resolver — whose defects already produced
+  MEDIUM fail-open findings in BM-08b — stays under the gate. Risk: none.
+- Resumption trigger: user decision; at the latest before the next change to
+  `lib/selection.sh`.
+- Applied: `lib/selection.sh` added to CLAUDE.md rule 8 and the technical rules,
+  docs/03 (with "flag parsing" left to `brew_manager.sh`), docs/00, the 2026-07-12
+  decision (an English amendment: seven components), INDEX and STATE; `/new-component`
+  step 6 now names every list (a factual correction). DoD: a grep over the 8 sites,
+  green on the branch and all 8 missing on the parent commit (counter-proof).
 
 ### IMP-001 — Review-agent in background: solo comandi in allow-list + prassi diff-inline → applicata il 2026-07-13 (approvazione utente esplicita), commit dedicato su fix/dryrun-bk-restore
 - Origine: security gate del micro-task parser (workflow di review in stallo:

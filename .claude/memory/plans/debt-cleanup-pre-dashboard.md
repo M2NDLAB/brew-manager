@@ -21,10 +21,11 @@ task; the (c) items tracked in STATE with their triggers.
 > Item ids (#15, N-HANG, …) refer to the inventory note.
 
 ## Tasks
-- [ ] 1. `chore/imp-022-sensitive-selection` — IMP-022 (`lib/selection.sh` into every
+- [x] 1. `chore/imp-022-sensitive-selection` — IMP-022 (`lib/selection.sh` into every
   sensitive list) + #7 (the one-off gitleaks scan of the whole history, recorded);
   persists the inventory, this plan and the decision; Level-1 memory corrections.
-  Gate: no (author-verifies, grep DoD with counter-proof). — commit: —
+  Gate: no (author-verifies, grep DoD with counter-proof). — commit: `6b1e5f6`,
+  `aa54a51`, `90cb34c`, `5fa7159` + the checkpoint; ready for integration.
 - [ ] 2. `chore/apply-project-imps` — IMP-003, IMP-004, IMP-007, IMP-002, one commit
   each; IMP-002/004 marked `Destination: framework`; IMP-005 → Deferred. Gate: no.
   — commit: —

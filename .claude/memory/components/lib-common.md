@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-common
-updated: 2026-07-21
+updated: 2026-09-25
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
@@ -101,8 +101,11 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   (Attenzione #3 in STATE).
 - `_read_choice` usa l'espansione indirendo `${(P)...}`: zsh-only, non portabile
   a bash.
-- `_handle_log` legge SEMPRE da stdin (nessun bypass YES_MODE): in non-TTY la
-  read fallisce e si applica il default keep — comportamento voluto ma implicito.
+- `_handle_log` (lib/log.sh) ALWAYS reads stdin with a bare `read` (no YES or
+  NONINTERACTIVE bypass). The cause recorded here was false (debt inventory
+  2026-09-24): in non-TTY the read does not fail, it WAITS — it gets the default only
+  while `script(1)`'s single EOF is still unread; after another bare read has consumed
+  it, the run hangs forever (STATE #21, branch 6).
 - I colori NON sono più hardcoded fissi (BM-09): si risolvono per capacità
   (`TUI_COLOR_LEVEL`). Ogni output DEVE passare per le costanti `${C_*}`/`${SYM_*}`
   e le utility — mai `\033` propri (l'invariante è: zero `\033` grezzi fuori da

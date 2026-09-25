@@ -746,8 +746,8 @@ and N3 (process area).
   components"); new-component.md step 6 (it lists only CLAUDE.md rule 8 and docs/03).
   SECURITY.md:31-36 already covers it ("plus the shared dispatch/guard-rail code");
   tests/test_risk_badges.zsh needs no change (selection.sh is not a module).
-- Risk MEDIUM (process: the resolver already produced 2 MEDIUM fail-opens and the
-  `\065`→mod_05 bypass; #15/#16 flip `MODULE_DRYRUN` there) · estimate S · sensitive: it
+- Risk MEDIUM (process: the resolver already produced 2 MEDIUM fail-opens in BM-08b,
+  one of them the `\065`→mod_05 bypass; #15/#16 flip `MODULE_DRYRUN` there) · estimate S · sensitive: it
   changes the list itself (author-verifies with a grep DoD and a counter-proof) · (a),
   approved 2026-09-25 → branch 1, FIRST.
 - Forward note (b): the Dashboard's machine-readable layer (JSON or a client-facing CLI)

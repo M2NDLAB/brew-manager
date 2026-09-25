@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-las-scheduler
-updated: 2026-07-21
+updated: 2026-09-25
 tags: [component]
 ---
 # mod-las-scheduler (modules/mod_las_scheduler.sh)
@@ -32,12 +32,18 @@ Funzionante con riserve importanti (sotto). Nessun test.
   gestisce agenti). Vedi [[2026-07-17-consent-vs-noninteractive]].
 - ~~BUG weekday (#2)~~ CHIUSO in BM-05a; ~~`_install_agent_multi` codice morto~~
   RIMOSSO in BM-07 (i multi-giorno vengono SALTATI, non round-trippano).
-- In Modify il conf è cancellato PRIMA della reinstallazione: se il load fallisce
-  il conf è perso.
+- ~~In Modify il conf è cancellato PRIMA della reinstallazione~~ — false (checked
+  2026-09-24): Modify does not delete the conf (:396-398) and `_save_agent_config`
+  overwrites it only on success.
 - **Re-register: divergenza conf/plist** (Attenzione #12, LOW): l'estrazione legge
   solo il 1° `<string>` positionale → un plist a due arg è registrato monco.
+  Worse than recorded (debt inventory 2026-09-24): the `go` placeholder lets a Repair
+  or a plain Modify rewrite a scoped agent as `go --yes` (STATE #12); the recreate
+  rejects zero-padded minutes (STATE #24).
 - Install non chiede conferma y/n finale; il **label** sui path recreate/re-register
-  non è validato (Attenzione #13, label injection).
+  non è validato (Attenzione #13, label injection). Wider (2026-09-24): no prefix
+  enforcement, a third-party LaunchAgent can be overwritten, and a `../` label makes
+  [5] Remove delete any writable plist (STATE #13).
 - **`[c] clear logs` cancella senza gate `--dry-run`** (Attenzione #16, MEDIUM,
   gate del micro-task dry-run 2026-07-21): `rm -f` su `agents_activity.log` e su
   tutti i `logs/agent_*.log` (`:817-819`), mentre `mod_log` gata gli `rm`
