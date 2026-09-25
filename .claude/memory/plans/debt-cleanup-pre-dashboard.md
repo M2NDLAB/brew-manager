@@ -71,7 +71,7 @@ task; the (c) items tracked in STATE with their triggers.
   (#4b until the improvement, #17 and #3b with their conditions, #6); the tag is the
   user's. — commit: —
 
-## Task 4 — the real-launchd verification (proposed 2026-09-26, reviewed; awaiting the user's go)
+## Task 4 — the real-launchd verification (reviewed; approved by the user 2026-09-26)
 Asked by the user before branch 4 starts: N1 + 4b-0 (STATE #23) is declared confirmed only
 after a run under a REAL launchd job. Drafted, then reviewed adversarially (a safety lens
 and a validity lens, both "sound with fixes"; the fixes are applied below).
@@ -84,17 +84,29 @@ bare `read` gets EOF (launchd's stdin is /dev/null), and it exits **0** before t
 `script(1)` re-exec. Read-only facts already predict it (brew only in /opt/homebrew/bin,
 `launchctl getenv PATH` empty, an existing gui/501 agent shows the default PATH).
 
-**The job.** The agent writes `/Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist` (logs/ is git-ignored) only after the user's go. It
-mirrors what `mod_las_scheduler.sh:214-238` writes (and the bk restore, same shape): the
-same ProgramArguments form, no EnvironmentVariables. Deliberate differences: label
-`com.m2ndlab.verify-n1` (not the `com.m2ndlab.brew-manager.` prefix, so the las integrity
-scan never sees it); no StartCalendarInterval and RunAtLoad false (on demand only); loaded
-from logs/, never from ~/Library/LaunchAgents (nothing persists at login); arguments
-`1 --dry-run` (the user's choice). On the not-found path the arguments are irrelevant: the
-brew check runs before they are validated, and the installer's bare `read` ignores
-`--yes`/`--dry-run`, so the verdict carries over to real `<modules> --yes` agents.
-ProgramArguments: `/bin/zsh`, `/Users/seco/Projects/brew-manager/brew_manager.sh`, `1`, `--dry-run`; StandardOutPath
-`/Users/seco/Projects/brew-manager/logs/verify_n1.out`; StandardErrorPath `/Users/seco/Projects/brew-manager/logs/verify_n1.err`.
+**The job — as decided by the user on 2026-09-26: identical to what las writes.** The file
+`/Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist` (logs/ is git-ignored) was produced from the
+plist that the REAL `_install_agent` (`mod_las_scheduler.sh:163-266`) wrote in a sandbox
+(mock launchctl, fake HOME, nothing loaded, the repo's agents/ untouched) for modules `1`
+and a daily 03:07 schedule, changing ONLY the Label (`com.m2ndlab.verify-n1`, outside the
+`com.m2ndlab.brew-manager.` prefix the las integrity scan globs) and the two log paths
+(`/Users/seco/Projects/brew-manager/logs/verify_n1.out` and `.err`). So: ProgramArguments `/bin/zsh`,
+`/Users/seco/Projects/brew-manager/brew_manager.sh`, `1`, `--yes`; StartCalendarInterval Hour 3 Minute 7;
+RunAtLoad false; no StandardInPath, no EnvironmentVariables (counted: 0 in both files;
+`plutil -lint` OK). The first draft used `1 --dry-run` and no schedule; the user required
+"only Label and path differ", which las cannot produce with `--dry-run` (it always writes
+`<modules> --yes` and a schedule), hence this choice. It is loaded from logs/, never from
+~/Library/LaunchAgents: it lasts until the bootout (or the logout); if left loaded past
+03:07 it would fire once a day.
+
+**Proofs completed before the run (2026-09-26, read-only).** (1) EOF never counts as a
+confirmation: before `brew_manager.sh:186` nothing reads stdin (no `set -e`/`setopt`; the
+`read`s of lib/ live inside `_handle_log`, `_ask`, `_read_choice`; the first top-level read
+is :393); at :199 `read -r _brew_install_choice` with stdin from /dev/null, closed, or an
+empty pipe returns 1 and leaves the variable EMPTY — even when the environment pre-set it
+to `Y` (tested with /bin/zsh 5.9); :201 `[[ "" =~ ^[Yy]$ ]]` is false → :228-233 "cannot
+continue", `exit 0`; `curl` (:205) and `exec zsh` (:220) sit only inside that `if`.
+(2) The diff las vs test plist shows only the Label and the two log paths.
 
 **Block A — preflight (read-only; the user pastes the whole output back).** Expected:
 `278ce8f` and a clean status; brew only in /opt/homebrew/bin; both zshenv files missing;
@@ -125,6 +137,7 @@ launchctl print gui/501/com.m2ndlab.verify-n1 | grep -B3 'PATH =>'
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.out
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.err
 find /Users/seco/Projects/brew-manager/logs -name 'brew_report_*' -newer /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
+launchctl print gui/501/com.m2ndlab.verify-n1 | grep -q 'state = running' && echo 'STILL RUNNING - STOP HERE, NO CLEANUP'
 ```
 
 **Reading the outcome.**
@@ -155,8 +168,10 @@ argv contains the path).
 
 **Safety.** Brew not found (the expected case): banner, a bare `read` at EOF (the installer
 runs only on `^[Yy]$`), `exit 0` — no curl, no `script(1)`, no /tmp file, no session log;
-logs/ already exists. Brew found: the read-only health module under --dry-run
-(`HOMEBREW_NO_AUTO_UPDATE=1`), `brew doctor` writes the fixed `/tmp/brew_doctor.log` (#11),
+logs/ already exists. Brew found: the read-only health module runs for real (`1 --yes`,
+not a dry-run): `brew --version/--prefix/--repository/list/tap/ruby --version/doctor`,
+`git log`, `df` — none of them an auto-update command, so the index is untouched even
+without `HOMEBREW_NO_AUTO_UPDATE`; `brew doctor` writes the fixed `/tmp/brew_doctor.log` (#11),
 a session log `logs/brew_report_<ts>.log` stays (kept as evidence: `find` names it), and at
 the end the child removes the fixed /tmp files — hence the "no other session" precondition
 of block A. A hang: the poll bounds the wait; `bootout` stops the job; the recorded child
