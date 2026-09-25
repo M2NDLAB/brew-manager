@@ -58,8 +58,8 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
    of completed tasks are never touched.
 8. **Security gate** per 03-security-gate.md: on sensitive components
    (`mod_00_audit`, `mod_05_cleanup`, `mod_bk_brewfile`, `mod_las_scheduler`,
-   `brew_manager.sh`, `lib/common.sh` — list with its rationale in
-   03-security-gate.md) run /security-review BEFORE the PR; HIGH/CRITICAL
+   `brew_manager.sh`, `lib/common.sh`, `lib/selection.sh` — list with its rationale
+   in 03-security-gate.md) run /security-review BEFORE the PR; HIGH/CRITICAL
    findings resolved, MEDIUM resolved or accepted as debt in STATE.md (with the
    reason), LOW at least recorded.
 9. **Language** — two axes, and only one of them is yours to choose:
@@ -132,7 +132,9 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   `mod_05_cleanup` (autoremove/cleanup), `mod_bk_brewfile` (restore, plist),
   `mod_las_scheduler` (LaunchAgent persistence), plus `brew_manager.sh` and
   `lib/common.sh` as the shared infrastructure of the guard-rails (a defect in
-  `_ask`/YES_MODE or in the dispatch propagates to every module).
+  `_ask`/YES_MODE or in the dispatch propagates to every module), and
+  `lib/selection.sh`, the selection resolver and the per-id registries (a defect
+  there decides WHICH modules run, for the CLI, the menu and the LaunchAgents).
 - **Where the project documentation lives** (rule 5): `README.md`.
 - **Interaction language** (rule 9): Italian.
   - Project boundary of rule 9 for the existing memory: the memory written in Italian

@@ -77,9 +77,9 @@ Definition of Done and the commit are enough.
    Sensitive = auth/authz, payments/money, personal data, the enforcement edge,
    surfaces that act on behalf of a client (`03-security-gate.md`; the concrete list
    for brew-manager is in `03-security-gate.md` and in CLAUDE.md, rule 8:
-   mod_00, mod_05, mod_bk, mod_las, brew_manager.sh, lib/common.sh). If it is
-   sensitive this is a GATE: HIGH/CRITICAL findings are resolved BEFORE going on.
-   If it is not sensitive, skip it.
+   mod_00, mod_05, mod_bk, mod_las, brew_manager.sh, lib/common.sh,
+   lib/selection.sh). If it is sensitive this is a GATE: HIGH/CRITICAL findings
+   are resolved BEFORE going on. If it is not sensitive, skip it.
 3. **`/retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
    rule or a doc that would have helped? → record the proposals as IMPs in
    `LEARNINGS.md` (`06-self-improvement.md`). It is lightweight: with no friction it

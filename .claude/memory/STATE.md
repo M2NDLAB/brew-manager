@@ -256,8 +256,9 @@ tags: [state]
 ## Decisioni prese (non ovvie dal codice)
 - Trunk-based su `main` (integrazione = stabile); `origin/dev` dormiente, non è
   l'integrazione → [[2026-07-12-trunk-based-su-main]].
-- Componenti sensibili (regola 8 / docs/03): mod_00, mod_05, mod_bk, mod_las +
-  `brew_manager.sh` + `lib/common.sh` → [[2026-07-12-componenti-sensibili]].
+- Sensitive components (rule 8 / docs/03): mod_00, mod_05, mod_bk, mod_las +
+  `brew_manager.sh` + `lib/common.sh` + `lib/selection.sh` (the last one since
+  IMP-022, 2026-09-25) → [[2026-07-12-componenti-sensibili]].
 - commitlint mantenuto benché il progetto non usi Node (npx risolve al volo, zero
   footprint nel repo); formattazione hook lasciata commentata (shfmt non installato).
 - Language (since the framework v1.2.0 upgrade, 2026-09-24): artifacts in English
