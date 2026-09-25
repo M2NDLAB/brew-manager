@@ -8,7 +8,9 @@ Security has two levels in this framework:
    from the moment it is installed: on a repo with PRE-EXISTING history (like this one,
    grafted onto an already existing project) the baseline is COMPLETED by a one-off
    scan of the whole history — `gitleaks detect` — to be run once (in brew-manager it
-   is recorded as debt in `memory/STATE.md`, section «Attenzione / problemi aperti»).
+   was run on 2026-09-25: gitleaks 8.30.1 over every commit of every ref, each merge
+   diffed against its parents, 0 findings — `memory/STATE.md`, «Attenzione /
+   problemi aperti» #7).
    Findings on the history are the user's decisions: a secret that has already been
    pushed must be rotated/revoked anyway; rewriting history is a different matter and
    is not done lightly.

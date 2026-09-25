@@ -373,9 +373,14 @@ tags: [state]
    NON quelli di label malformata e schedule multi-day (INFO, gate BM-05a): la
    preview elenca agenti che il restore reale salterebbe. → TRIGGER: prossimo
    intervento su mod_bk o BM-14 (viste report).
-7. Secret scanning attivo solo sui commit nuovi (`gitleaks protect --staged`):
-   la storia git preesistente non è mai stata scansionata. → TRIGGER: one-off
-   `gitleaks detect` alla prima occasione utile (repo pubblico: basso rischio).
+7. ~~The pre-existing git history was never scanned~~ **CLOSED** (2026-09-25, branch
+   `chore/imp-022-sensitive-selection`): `gitleaks detect --redact --log-opts="--all
+   -m"` with gitleaks 8.30.1 and the default rules (no `.gitleaks.toml`, no
+   `.gitleaksignore`) scanned 155 commits = `git rev-list --all --count` (every commit
+   of every ref, each of the 31 merges diffed against its parents) → **0 findings**.
+   Every public ref (`git ls-remote origin`: main, dev, 6 tags) resolves to a local
+   commit, so the published history is covered; nothing to rotate. The pre-commit
+   hook keeps covering new commits. → [[sessions/2026-09-25-imp-022-and-history-scan]].
 8. ~~**YES_MODE perso nel re-exec script(1)**~~ **CHIUSO (BM-08c)**, ma NON col fix
    "candidato" originale — che il gate ha bocciato come CRITICAL (avrebbe
    auto-confermato i default distruttivi senza --yes). Chiuso separando
