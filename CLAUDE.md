@@ -120,6 +120,15 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   the known ones are closed, STATE.md item 2). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
   `BREW_MANAGER_YES`** — it is the by-convention rule that prevents the most
   widespread class of defects that emerged from the assessment (see STATE.md).
+  **Never pass DATA through `echo`**: zsh's builtin `echo` expands `\e`/`\0NN`/`\x..`
+  even without `-e`, so a token can turn into a different value (BM-08b: `\065` ran
+  mod_05) and JSON gets corrupted (STATE #26). To pass, normalise or clean a data
+  string — above all untrusted input: CLI tokens, file and app names, brew output,
+  JSON — use parameter expansion (`${v// /}`) or `printf '%s'`. The output helpers
+  render their message with `echo -e`, so a message that interpolates data is shown
+  with its escapes expanded (the known class, STATE #3b): acceptable on screen, never
+  a source of data. A parity refactor that moves the parsing of untrusted input flags
+  the fail-open patterns it carries along instead of treating them as neutral.
   Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not
   installed; block prepared but commented out in `scripts/hooks-install.sh`);
   `make lint` runs shellcheck as ADVISORY when installed. Syntax gate: `make check`
