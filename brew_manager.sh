@@ -211,6 +211,15 @@ _brew_bootstrap_path() {
     return 1
 }
 
+# The exit status when Homebrew — a precondition of every module — is unavailable:
+# not on PATH nor at a standard prefix, and the installer not offered (--dry-run,
+# no terminal), declined, or failed. 69 is sysexits.h EX_UNAVAILABLE ("a support
+# program or file does not exist"); it stays out of 1-31 (macOS script(1) reports a
+# signal death as the raw signal number) and of 126-255 (the shell's
+# not-executable / not-found / signal statuses). Public exit-code contract:
+# docs/04 and tests/test_exit_codes.zsh.
+EXIT_ENV_UNAVAILABLE=69
+
 if ! _brew_bootstrap_path; then
     _clear
     echo ""
@@ -220,46 +229,53 @@ if ! _brew_bootstrap_path; then
     echo ""
     echo -e "${C_GRAY}  Homebrew is required for brew-manager to work.${NC}"
     echo -e "${C_GRAY}  It is the macOS package manager that this tool is built around.${NC}"
+    echo -e "${C_GRAY}  Searched: PATH, ${BREW_BIN_CANDIDATES[*]}${NC}"
     echo ""
-    echo -e "${C_WHITE}  Install Homebrew now?${NC} ${C_GRAY}(y/N)${NC}"
-    echo ""
-    printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice: "
-    read -r _brew_install_choice
-
-    if [[ "$_brew_install_choice" =~ ^[Yy]$ ]]; then
+    # The installer downloads and runs Homebrew's official install script, which
+    # changes the system and asks for an administrator password: it is offered
+    # ONLY to a person at a terminal. A dry run never offers it — a preview must
+    # not install anything. A run without a terminal (no interactive stdin, output
+    # not to a terminal, or the recorded child, whose parent already found brew)
+    # gets no prompt at all: nobody would answer it, and an answer read from a
+    # pipe is not consent. Every way out below exits EXIT_ENV_UNAVAILABLE, never 0:
+    # a scheduled run that could not start must not look successful.
+    if (( DRY_RUN )); then
+        _info "Dry-run — the Homebrew installer is not offered; nothing is installed."
+        _info "Install Homebrew from https://brew.sh, then run brew-manager again."
         echo ""
-        echo -e "  ${C_CYAN}${SYM_INFO}${NC}  Installing Homebrew..."
+        exit $EXIT_ENV_UNAVAILABLE
+    fi
+    if (( NON_INTERACTIVE )) || [[ ! -t 1 || -n "$BREW_MANAGER_RECORDING" ]]; then
+        _info "No terminal — the Homebrew installer never runs unattended."
+        _info "Install Homebrew from a terminal (https://brew.sh), then run brew-manager again."
+        echo ""
+        exit $EXIT_ENV_UNAVAILABLE
+    fi
+    # A person at a terminal: ask with default No, so --yes (which takes each
+    # prompt's built-in default) never installs Homebrew.
+    if _ask "Install Homebrew now? (runs the official installer from brew.sh)" "n"; then
+        echo ""
+        _info "Installing Homebrew..."
         echo ""
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         echo ""
-
-        # After install, add brew to PATH for current session (Apple Silicon path)
-        if [[ -f /opt/homebrew/bin/brew ]]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        elif [[ -f /usr/local/bin/brew ]]; then
-            eval "$(/usr/local/bin/brew shellenv)"
-        fi
-
-        if command -v brew &>/dev/null; then
-            echo ""
-            echo -e "  ${C_GREEN_B}  ${SYM_OK}  Homebrew installed successfully — launching brew-manager...${NC}"
+        # The installer does not touch this process's PATH: find the new brew at
+        # its standard prefix, then start over with it.
+        if _brew_bootstrap_path; then
+            _ok "Homebrew installed successfully — launching brew-manager..."
             sleep 1
-            # Re-exec the script now that brew is available
             exec zsh "$0" "$@"
-        else
-            echo ""
-            echo -e "  ${C_RED}  ${SYM_ERR}  Homebrew installation failed or brew not found in PATH.${NC}"
-            echo -e "  ${C_GRAY}  Try opening a new terminal and running brew_manager.sh again.${NC}"
-            echo ""
-            exit 1
         fi
-    else
+        _err "Homebrew installation failed, or brew is not at a standard prefix."
+        _info "Open a new terminal and run brew_manager.sh again."
         echo ""
-        echo -e "  ${C_GRAY}  Homebrew not installed — brew-manager cannot continue.${NC}"
-        echo -e "  ${C_GRAY}  Install manually: https://brew.sh${NC}"
-        echo ""
-        exit 0
+        exit $EXIT_ENV_UNAVAILABLE
     fi
+    echo ""
+    echo -e "  ${C_GRAY}  Homebrew not installed — brew-manager cannot continue.${NC}"
+    echo -e "  ${C_GRAY}  Install manually: https://brew.sh${NC}"
+    echo ""
+    exit $EXIT_ENV_UNAVAILABLE
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

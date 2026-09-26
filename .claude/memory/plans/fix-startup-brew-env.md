@@ -40,13 +40,13 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
   on a mock `curl` and on the mock `brew`, the TTY case through `script(1)`.
 
 ## Tasks
-- [ ] 1. PATH bootstrap (candidate constant + probe) + e2e: minimal env with brew only at a
+- [x] 1. PATH bootstrap (candidate constant + probe) + e2e: minimal env with brew only at a
   probed prefix → the run starts, reaches the mock brew through `script(1)`, exits 0.
-  — commit: —
-- [ ] 2. Installer rework + exit code 69 on every "Homebrew unavailable" path + e2e: no
+  — commit: `c277e20` (RED shown with the probe disabled: 2 checks fail)
+- [x] 2. Installer rework + exit code 69 on every "Homebrew unavailable" path + e2e: no
   brew and no terminal → 69, no prompt, no curl; `--dry-run` → 69, no prompt, no curl; a
   terminal (via `script(1)`) and EOF → the prompt is shown, declined, 69, no curl.
-  — commit: —
+  — commit: this task's commit (RED shown on the task-1 code: 6 checks fail)
 - [ ] 3. Contract and docs: docs/04 (code 69 in the exit-code contract), README (exit
   status, requirements/scheduling, the dry-run claim), SECURITY.md (the installer).
   — commit: —

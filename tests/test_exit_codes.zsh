@@ -10,6 +10,10 @@
 # step; see STATE Attenzione #4b and IMP-002). NOTE: module failures at
 # runtime still exit 0 by design — that half of #4b is out of scope here.
 #
+# The minimal-environment checks reproduce what launchd gives a job (env -i,
+# PATH=/usr/bin:/bin:/usr/sbin:/sbin, no terminal): Homebrew found at a
+# standard prefix, or exit 69 with no installer prompt (STATE Attenzione #23).
+#
 # Isolation (gate finding, LOW): the binary runs from a symlink "farm" in a
 # temp dir — SCRIPT_DIR resolves to the farm, so session logs land in the
 # farm's logs/, never in the repo's (cleanup can't race a concurrent real
@@ -148,15 +152,85 @@ else
     _fail "probe farm: the candidate constant was not substituted"
 fi
 
-# Control (the teeth of the checks above): the same run with the candidate
-# pointing at nothing must NOT start.
+# No Homebrew anywhere: every way out exits 69 (sysexits EX_UNAVAILABLE, the
+# environment-precondition code of the docs/04 contract), never 0. The runs put
+# a tripwire `curl` first on PATH (launchd's PATH plus that one directory): the
+# installer must never download anything here.
+_TRIP="$_SANDBOX/trip"
+mkdir -p "$_TRIP"
+cat > "$_TRIP/curl" <<EOF
+#!/bin/sh
+echo "curl \$*" >> "$_SANDBOX/curl_calls"
+exit 0
+EOF
+chmod +x "$_TRIP/curl"
+
+# _run_no_brew <out> <args...>: no terminal (stdin closed, output to a file).
+_run_no_brew() {
+    local _out="$1"; shift
+    env -i HOME="$_SANDBOX/home" PATH="$_TRIP:$_LAUNCHD_PATH" \
+        /bin/zsh "$_SANDBOX/farm_missing/brew_manager.sh" "$@" </dev/null >"$_out" 2>&1
+}
+# _run_no_brew_tty <out> <args...>: the same run on a pseudo-terminal (script(1)),
+# its stdin at EOF — a person at a terminal who just presses Enter. A 30 s
+# watchdog keeps a regression that blocks on the prompt from hanging the suite.
+_run_no_brew_tty() {
+    local _out="$1"; shift
+    /usr/bin/perl -e 'alarm 30; exec @ARGV' /usr/bin/script -q /dev/null \
+        env -i HOME="$_SANDBOX/home" PATH="$_TRIP:$_LAUNCHD_PATH" \
+        /bin/zsh "$_SANDBOX/farm_missing/brew_manager.sh" "$@" </dev/null >"$_out" 2>&1
+}
+_no_prompt() { ! grep -q -e 'Install Homebrew now' -e 'Choice:' "$1"; }
+
 if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; then
-    _run_minimal "$_SANDBOX/farm_missing" "$_SANDBOX/out_missing" 8 --dry-run
+    _run_no_brew "$_SANDBOX/out_missing" 8
+    _rc=$?
+    if (( _rc == 69 )); then _pass "no Homebrew, no terminal: rc=69"
+    else _fail "no Homebrew, no terminal: rc=${_rc}, expected 69"; fi
     if grep -q 'Homebrew is not installed' "$_SANDBOX/out_missing" \
+       && grep -q 'No terminal' "$_SANDBOX/out_missing" \
+       && _no_prompt "$_SANDBOX/out_missing" \
        && ! grep -q 'Running modules' "$_SANDBOX/out_missing"; then
-        _pass "minimal env, no Homebrew anywhere: the run does not start"
+        _pass "no Homebrew, no terminal: no installer prompt, the run does not start"
     else
-        _fail "minimal env, no Homebrew anywhere: unexpected output"
+        _fail "no Homebrew, no terminal: unexpected output"
+    fi
+
+    _run_no_brew "$_SANDBOX/out_missing_dry" 8 --dry-run
+    _rc=$?
+    if (( _rc == 69 )); then _pass "no Homebrew, --dry-run: rc=69"
+    else _fail "no Homebrew, --dry-run: rc=${_rc}, expected 69"; fi
+    if grep -q 'the Homebrew installer is not offered' "$_SANDBOX/out_missing_dry" \
+       && _no_prompt "$_SANDBOX/out_missing_dry"; then
+        _pass "no Homebrew, --dry-run: the installer is not offered"
+    else
+        _fail "no Homebrew, --dry-run: unexpected output"
+    fi
+
+    # Teeth of the no-prompt checks: WITH a terminal the prompt must appear.
+    _run_no_brew_tty "$_SANDBOX/out_missing_tty" 8
+    _rc=$?
+    if (( _rc == 69 )); then _pass "no Homebrew, a terminal, Enter: rc=69"
+    else _fail "no Homebrew, a terminal, Enter: rc=${_rc}, expected 69"; fi
+    if grep -q 'Install Homebrew now' "$_SANDBOX/out_missing_tty" \
+       && grep -q 'cannot continue' "$_SANDBOX/out_missing_tty"; then
+        _pass "no Homebrew, a terminal: the prompt is shown and declined"
+    else
+        _fail "no Homebrew, a terminal: the prompt was not shown or not declined"
+    fi
+
+    _run_no_brew_tty "$_SANDBOX/out_missing_yes" 8 --yes
+    _rc=$?
+    if (( _rc == 69 )) && grep -q 'auto: n' "$_SANDBOX/out_missing_yes"; then
+        _pass "no Homebrew, a terminal, --yes: the default is No, rc=69"
+    else
+        _fail "no Homebrew, a terminal, --yes: rc=${_rc}, or the default was not No"
+    fi
+
+    if [[ ! -e "$_SANDBOX/curl_calls" ]]; then
+        _pass "the installer's curl was never called"
+    else
+        _fail "curl was called: $(head -1 "$_SANDBOX/curl_calls")"
     fi
 else
     _fail "missing farm: the candidate constant was not substituted"
