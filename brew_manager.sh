@@ -183,7 +183,35 @@ source "$SCRIPT_DIR/lib/selection.sh" || { echo "ERROR: lib/selection.sh not fou
 # HOMEBREW CHECK
 # ─────────────────────────────────────────────────────────────────────────────
 
-if ! command -v brew &>/dev/null; then
+# Where Homebrew installs itself: /opt/homebrew on Apple Silicon, /usr/local on
+# Intel. Probed only when brew is not already on PATH (_brew_bootstrap_path).
+BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)
+
+# _brew_bootstrap_path — put Homebrew on PATH when the environment lacks it.
+# NOTE: launchd starts every job (so every brew-manager LaunchAgent) with PATH
+# /usr/bin:/bin:/usr/sbin:/sbin, a GUI app launched from the Finder inherits the
+# same, and a non-login zsh never reads ~/.zprofile, where `brew shellenv` usually
+# lives. Without this probe every scheduled run stopped at "Homebrew is not
+# installed" and exited 0 (STATE Attenzione #23, confirmed under a real launchd
+# job on 2026-09-26). A PATH that already finds brew is respected as it is. The
+# first candidate that is a regular executable file wins: its prefix's bin and
+# sbin are prepended — the PATH half of `brew shellenv` — without eval'ing any
+# command output: brew derives HOMEBREW_PREFIX & co. by itself and nothing in
+# this tool reads them. PATH is exported, so the script(1) child inherits it.
+# Returns 0 when brew is on PATH afterwards, 1 otherwise.
+_brew_bootstrap_path() {
+    command -v brew &>/dev/null && return 0
+    local _candidate _prefix
+    for _candidate in "${BREW_BIN_CANDIDATES[@]}"; do
+        [[ -f "$_candidate" && -x "$_candidate" ]] || continue
+        _prefix="${_candidate:h:h}"
+        export PATH="$_prefix/bin:$_prefix/sbin:$PATH"
+        command -v brew &>/dev/null && return 0
+    done
+    return 1
+}
+
+if ! _brew_bootstrap_path; then
     _clear
     echo ""
     echo -e "${C_CYAN_B}  🍺  BREW MANAGER${NC}"
