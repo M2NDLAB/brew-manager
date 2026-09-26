@@ -16,16 +16,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `~/.zprofile`, so the tool found no `brew`, printed "Homebrew is not installed",
   declined its own installer prompt and exited `0`: every scheduled run ended before
   any module, and launchd recorded a success. Confirmed under a real launchd job
-  before the fix. The only exception is a Mac whose launchd environment had been set
-  up to include Homebrew's prefix (for example with `launchctl config user path`).
+  before the fix. The exceptions are Macs where Homebrew's prefix reached launchd jobs
+  some other way: a launchd `PATH` (for example `launchctl config user path`), or a
+  `~/.zshenv` or `/etc/zshenv` that sets `PATH` or runs `brew shellenv` — zsh reads it
+  even as launchd's non-login shell.
   brew-manager now finds Homebrew at its standard prefix (`/opt/homebrew` on Apple
   Silicon, `/usr/local` on Intel) when `PATH` lacks it, which also covers an app
-  started from the Finder. Existing agents need no change: they run
-  `brew_manager.sh`, which now finds Homebrew by itself.
+  started from the Finder.
+  **Upgrade note — review your agents before updating.** Existing agents need no
+  reinstall: they run `brew_manager.sh`, which now finds Homebrew by itself. That is
+  exactly why they should be reviewed first: at its next scheduled time every agent
+  runs its modules for real — for most of them, the first time. The weekly and daily
+  presets run `go --yes`, which includes module 2 (`brew update`) and module 5's
+  cleanup (`brew autoremove` and `brew cleanup -s`, auto-confirmed under `--yes`).
+  List them with `./brew_manager.sh las` and remove the ones you no longer want. An
+  agent that selects `bk` or `log` can now start and then wait forever on a prompt
+  (a known issue, to be fixed before the next release).
 - **The built-in Homebrew installer honours `--dry-run` and never runs unattended.**
-  It used to be offered even in a dry run and to prompt a run with no terminal. Now
-  it is never offered under `--dry-run`, a run without a terminal gets no prompt at
-  all, and at a terminal it needs an explicit "y" — `--yes` never installs Homebrew.
+  It used to be offered even in a dry run, and without a terminal it took its answer
+  from standard input — so a pipe carrying "y" could start it with nobody watching.
+  Now it is never offered under `--dry-run`, a run without a terminal gets no prompt
+  at all, and at a terminal it needs an explicit "y" — `--yes` never installs
+  Homebrew. The install script is downloaded with timeouts and run only if the
+  download succeeded: a failed or partial download used to be handed to bash.
 
 ### Added
 - **Exit status `69` — Homebrew unavailable** (sysexits `EX_UNAVAILABLE`): Homebrew
