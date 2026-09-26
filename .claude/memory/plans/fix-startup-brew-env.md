@@ -47,9 +47,9 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
   brew and no terminal → 69, no prompt, no curl; `--dry-run` → 69, no prompt, no curl; a
   terminal (via `script(1)`) and EOF → the prompt is shown, declined, 69, no curl.
   — commit: this task's commit (RED shown on the task-1 code: 6 checks fail)
-- [ ] 3. Contract and docs: docs/04 (code 69 in the exit-code contract), README (exit
+- [x] 3. Contract and docs: docs/04 (code 69 in the exit-code contract), README (exit
   status, requirements/scheduling, the dry-run claim), SECURITY.md (the installer).
-  — commit: —
+  — commit: this task's commit
 - [ ] 4. CHANGELOG `[Unreleased]`: the honest entry (agents never ran brew under launchd
   while looking successful). — commit: —
 - [ ] 5. Security gate (docs/03, adversarial — `brew_manager.sh`): /security-review of the

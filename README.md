@@ -38,6 +38,13 @@ It is **not** a replacement for Homebrew. It is a maintenance and audit layer on
 | Homebrew | 4.x or later | Uses JSON API — no local core/cask clone needed |
 | Python 3 | any | Pre-installed on macOS — used for fast JSON parsing in module 3 |
 
+brew-manager finds Homebrew on your `PATH` or, when the `PATH` lacks it — a scheduled
+LaunchAgent, an app started from the Finder — at its standard prefix: `/opt/homebrew`
+(Apple Silicon) or `/usr/local` (Intel). If Homebrew is missing altogether, the tool
+offers to install it only at an interactive terminal and only after you confirm —
+never under `--dry-run`, never without a terminal — and otherwise exits with status
+`69` without running anything.
+
 **Optional:**
 - `mas` — required for module `mas` (Mac App Store integration). If not installed, the module will offer to install it for you. Install manually with `brew install mas`.
 
@@ -185,7 +192,7 @@ Flags change **how** the run behaves and combine with either form:
 
 An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` exits `2` without running anything, rather than a partial, unexpected selection.
 
-> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, Homebrew unavailable → `69`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start; a module that fails while running does not change it yet. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
@@ -412,7 +419,7 @@ cp -r backups/ /path/to/new/mac/brew-manager/backups/
 
 Installs, modifies, and removes macOS LaunchAgents that run brew-manager automatically on a schedule. Uses macOS `launchd` natively — no cron, no sudo, no third-party tools. Runs as your user account and starts automatically at login.
 
-All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`.
+All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`. launchd starts every agent with a minimal `PATH` that does not include Homebrew; brew-manager finds it at its standard prefix by itself (up to v1.4.0 it did not, so scheduled runs stopped before running any module — see the CHANGELOG), and an agent on a Mac without Homebrew ends with status `69`, visible in `launchctl print`.
 
 > **What a scheduled agent actually runs:** exactly the module selection you configured — the agent's plist invokes `brew_manager.sh <your modules> --yes`, so an agent installed for `8,9` runs modules 8 and 9 and nothing else. The selection is validated whenever an agent is written (install, modify, re-register): a value that does not resolve to real modules is refused — and skipped on restore from a backup — never silently replaced with the full sequence. Scheduled runs are unattended, so each prompt is auto-answered with its built-in default: conservative everywhere except module `5`'s cleanup (see *Available flags*) — schedule `5` only if you want the agent to actually free disk space.
 

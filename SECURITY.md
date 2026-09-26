@@ -20,7 +20,10 @@ brew-manager is a shell script that runs with your user account privileges. It d
 The only network activity performed by this script is:
 - `brew update` / `brew upgrade` — standard Homebrew operations
 - `mas upgrade` — if you use the MAS module and confirm the upgrade
-- Homebrew installation — if brew is not present and you confirm the install
+- Homebrew installation — only if brew is not present (neither on `PATH` nor at its
+  standard prefix), at an interactive terminal, and after you confirm it: never under
+  `--dry-run`, never in a run without a terminal (a LaunchAgent, a pipe), and never
+  implied by `--yes`
 
 No data is sent to M2NDLAB or any third party.
 
