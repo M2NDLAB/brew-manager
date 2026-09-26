@@ -50,8 +50,8 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
 - [x] 3. Contract and docs: docs/04 (code 69 in the exit-code contract), README (exit
   status, requirements/scheduling, the dry-run claim), SECURITY.md (the installer).
   — commit: this task's commit
-- [ ] 4. CHANGELOG `[Unreleased]`: the honest entry (agents never ran brew under launchd
-  while looking successful). — commit: —
+- [x] 4. CHANGELOG `[Unreleased]`: the honest entry (agents never ran brew under launchd
+  while looking successful). — commit: this task's commit
 - [ ] 5. Security gate (docs/03, adversarial — `brew_manager.sh`): /security-review of the
   branch diff; fixes. — commit: —
 - [ ] 6. Re-verification under a REAL launchd job with the same test plist (expected

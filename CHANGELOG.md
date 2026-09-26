@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Scheduled runs never ran Homebrew.** LaunchAgents installed with v1.3.0 and
+  v1.4.0 — and with every earlier release that had the scheduler (v1.1.x, v1.2.0) —
+  never ran brew under launchd, while looking successful. launchd starts a job with
+  `PATH=/usr/bin:/bin:/usr/sbin:/sbin`, and a non-login zsh never reads
+  `~/.zprofile`, so the tool found no `brew`, printed "Homebrew is not installed",
+  declined its own installer prompt and exited `0`: every scheduled run ended before
+  any module, and launchd recorded a success. Confirmed under a real launchd job
+  before the fix. The only exception is a Mac whose launchd environment had been set
+  up to include Homebrew's prefix (for example with `launchctl config user path`).
+  brew-manager now finds Homebrew at its standard prefix (`/opt/homebrew` on Apple
+  Silicon, `/usr/local` on Intel) when `PATH` lacks it, which also covers an app
+  started from the Finder. Existing agents need no change: they run
+  `brew_manager.sh`, which now finds Homebrew by itself.
+- **The built-in Homebrew installer honours `--dry-run` and never runs unattended.**
+  It used to be offered even in a dry run and to prompt a run with no terminal. Now
+  it is never offered under `--dry-run`, a run without a terminal gets no prompt at
+  all, and at a terminal it needs an explicit "y" — `--yes` never installs Homebrew.
+
+### Added
+- **Exit status `69` — Homebrew unavailable** (sysexits `EX_UNAVAILABLE`): Homebrew
+  is neither on `PATH` nor at a standard prefix, and the installer was not offered,
+  was declined or failed. Part of the exit-code contract, next to `0`, `1` and `2`.
+
+### Changed
+- A run that cannot start because Homebrew is missing now exits `69` instead of `0`
+  (and a failed Homebrew installation exits `69` instead of `1`). A script or CI job
+  that treated such a run as a success will now see it as a failure — which it is.
+
 ## [1.4.0] - 2026-07-23
 
 The interface release. brew-manager now renders itself for the terminal it is
