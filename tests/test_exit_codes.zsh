@@ -187,7 +187,7 @@ if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; 
     _rc=$?
     if (( _rc == 69 )); then _pass "no Homebrew, no terminal: rc=69"
     else _fail "no Homebrew, no terminal: rc=${_rc}, expected 69"; fi
-    if grep -q 'Homebrew is not installed' "$_SANDBOX/out_missing" \
+    if grep -q 'Homebrew was not found' "$_SANDBOX/out_missing" \
        && grep -q 'No terminal' "$_SANDBOX/out_missing" \
        && _no_prompt "$_SANDBOX/out_missing" \
        && ! grep -q 'Running modules' "$_SANDBOX/out_missing"; then

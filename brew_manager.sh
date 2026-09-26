@@ -184,8 +184,12 @@ source "$SCRIPT_DIR/lib/selection.sh" || { echo "ERROR: lib/selection.sh not fou
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Where Homebrew installs itself: /opt/homebrew on Apple Silicon, /usr/local on
-# Intel. Probed only when brew is not already on PATH (_brew_bootstrap_path).
+# Intel. Probed in this order, only when no brew executable is on PATH
+# (_brew_bootstrap_path).
 BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)
+
+# Homebrew's official install script (the one https://brew.sh tells you to run).
+BREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 # _brew_bootstrap_path — put Homebrew on PATH when the environment lacks it.
 # NOTE: launchd starts every job (so every brew-manager LaunchAgent) with PATH
@@ -198,15 +202,17 @@ BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)
 # sbin are prepended — the PATH half of `brew shellenv` — without eval'ing any
 # command output: brew derives HOMEBREW_PREFIX & co. by itself and nothing in
 # this tool reads them. PATH is exported, so the script(1) child inherits it.
-# Returns 0 when brew is on PATH afterwards, 1 otherwise.
+# `whence -p` asks for an EXECUTABLE on PATH: a function or alias named brew
+# (say, from ~/.zshenv) must not count as Homebrew being there (gate finding).
+# Returns 0 when a brew executable is on PATH afterwards, 1 otherwise.
 _brew_bootstrap_path() {
-    command -v brew &>/dev/null && return 0
+    whence -p brew &>/dev/null && return 0
     local _candidate _prefix
     for _candidate in "${BREW_BIN_CANDIDATES[@]}"; do
         [[ -f "$_candidate" && -x "$_candidate" ]] || continue
         _prefix="${_candidate:h:h}"
         export PATH="$_prefix/bin:$_prefix/sbin:$PATH"
-        command -v brew &>/dev/null && return 0
+        whence -p brew &>/dev/null && return 0
     done
     return 1
 }
@@ -225,11 +231,11 @@ if ! _brew_bootstrap_path; then
     echo ""
     echo -e "${C_CYAN_B}  🍺  BREW MANAGER${NC}"
     echo ""
-    echo -e "${C_RED}  ${SYM_ERR}  Homebrew is not installed on this system.${NC}"
+    echo -e "${C_RED}  ${SYM_ERR}  Homebrew was not found on this system.${NC}"
     echo ""
     echo -e "${C_GRAY}  Homebrew is required for brew-manager to work.${NC}"
     echo -e "${C_GRAY}  It is the macOS package manager that this tool is built around.${NC}"
-    echo -e "${C_GRAY}  Searched: PATH, ${BREW_BIN_CANDIDATES[*]}${NC}"
+    _info "Searched: PATH, ${BREW_BIN_CANDIDATES[*]}"
     echo ""
     # The installer downloads and runs Homebrew's official install script, which
     # changes the system and asks for an administrator password: it is offered
@@ -257,7 +263,16 @@ if ! _brew_bootstrap_path; then
         echo ""
         _info "Installing Homebrew..."
         echo ""
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        # Download first, run second: a failed or partial download (curl's status
+        # used to be lost inside $(...)) must never be handed to bash, and the
+        # timeouts keep a stalled network from hanging a terminal forever.
+        if ! _brew_install_script="$(curl -fsSL --connect-timeout 15 --max-time 300 "$BREW_INSTALL_URL")" \
+           || [[ -z "$_brew_install_script" ]]; then
+            _err "Could not download the Homebrew installer from $BREW_INSTALL_URL."
+            echo ""
+            exit $EXIT_ENV_UNAVAILABLE
+        fi
+        /bin/bash -c "$_brew_install_script"
         echo ""
         # The installer does not touch this process's PATH: find the new brew at
         # its standard prefix, then start over with it.
@@ -272,8 +287,8 @@ if ! _brew_bootstrap_path; then
         exit $EXIT_ENV_UNAVAILABLE
     fi
     echo ""
-    echo -e "  ${C_GRAY}  Homebrew not installed — brew-manager cannot continue.${NC}"
-    echo -e "  ${C_GRAY}  Install manually: https://brew.sh${NC}"
+    _info "Homebrew not found — brew-manager cannot continue."
+    _info "Install it from https://brew.sh, then run brew-manager again."
     echo ""
     exit $EXIT_ENV_UNAVAILABLE
 fi
