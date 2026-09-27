@@ -13,9 +13,10 @@
 # The minimal-environment checks reproduce what launchd gives a job (env -i,
 # PATH=/usr/bin:/bin:/usr/sbin:/sbin, no terminal): Homebrew found at a
 # standard prefix, or exit 69 with no installer prompt (STATE Attenzione #23).
-# Each clause of the no-terminal guard is exercised on its own, and the
-# failed-install exit is pinned statically (a test must never confirm the
-# installer).
+# Each clause of the no-terminal guard is exercised on its own, the exit order
+# of docs/04 is pinned, a `brew` that is only a shell function or alias does not
+# count as Homebrew, and the failed-install exit is pinned statically (a test
+# must never confirm the installer).
 #
 # Isolation (gate finding, LOW): the binary runs from a symlink "farm" in a
 # temp dir — SCRIPT_DIR resolves to the farm, so session logs land in the
@@ -184,11 +185,17 @@ _farm_with_candidates() {
         && grep -qxF "BREW_BIN_CANDIDATES=($_cand)" "$_dir/brew_manager.sh"
 }
 
+# The sandbox HOME the minimal-environment runs get. A check that needs its own
+# ~/.zshenv sets it for one call (`_HOME_DIR=<dir> _run_minimal ...`, scoped to
+# that call by zsh), so no dotfile is ever written into, or removed from, the
+# HOME the other checks share.
+_HOME_DIR="$_SANDBOX/home"
+
 # _run_minimal <farm> <out> <args...>: launchd's environment — env -i, launchd's
 # PATH, a sandbox HOME, stdin closed — with the output kept for content checks.
 _run_minimal() {
     local _farm="$1" _out="$2"; shift 2
-    _guarded 60 env -i HOME="$_SANDBOX/home" PATH="$_LAUNCHD_PATH" \
+    _guarded 60 env -i HOME="$_HOME_DIR" PATH="$_LAUNCHD_PATH" \
         /bin/zsh "$_farm/brew_manager.sh" "$@" </dev/null >"$_out" 2>&1
 }
 # _first_path <log dir>: the first PATH entry the mock brew saw on its first call.
@@ -254,7 +261,7 @@ _NB_FARM="$_SANDBOX/farm_missing/brew_manager.sh"
 # _run_no_brew <out> <args...>: no terminal (stdin closed, output to a file).
 _run_no_brew() {
     local _out="$1"; shift
-    _guarded 30 env -i HOME="$_SANDBOX/home" PATH="$_TRIP:$_LAUNCHD_PATH" "${_NOPROXY[@]}" \
+    _guarded 30 env -i HOME="$_HOME_DIR" PATH="$_TRIP:$_LAUNCHD_PATH" "${_NOPROXY[@]}" \
         /bin/zsh "$_NB_FARM" "$@" </dev/null >"$_out" 2>&1
 }
 # _run_no_brew_tty <out> <env assignments...> -- <args...>: the same run on a
@@ -334,18 +341,62 @@ if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; 
     _check "no Homebrew, a terminal, BREW_MANAGER_YES injected without --yes: asked, not auto (got ${_rc})" \
         eval '[ "$_rc" = 69 ] && grep -qF "(y/N)" "$_SANDBOX/nb_env_yes" && ! grep -q "auto:" "$_SANDBOX/nb_env_yes"'
 
-    # (5) precedence (docs/04): an unknown flag is rejected first (2), then the
-    #     Homebrew precondition (69) comes before the module selection (2/1)
-    _run_no_brew "$_SANDBOX/nb_99" 99
+    # (5) precedence (docs/04): --version answers first (0), even next to an
+    #     unknown flag; then an unknown flag is rejected (2); then the Homebrew
+    #     precondition (69) comes before the module selection (2 or 1)
+    _run_no_brew "$_SANDBOX/nb_ver" --version
     _rc=$?
-    _check "no Homebrew, an unknown module token: 69 comes first (got ${_rc})" [ "$_rc" = 69 ]
+    _check "no Homebrew, --version: rc=0, the version and nothing else (got ${_rc})" \
+        eval '[ "$_rc" = 0 ] && head -1 "$_SANDBOX/nb_ver" | grep -q "^brew-manager " && ! grep -q "Homebrew was not found" "$_SANDBOX/nb_ver"'
+    _run_no_brew "$_SANDBOX/nb_ver_flag" --dryrun -V
+    _rc=$?
+    _check "no Homebrew, an unknown flag next to -V: --version still wins, rc=0 (got ${_rc})" \
+        eval '[ "$_rc" = 0 ] && head -1 "$_SANDBOX/nb_ver_flag" | grep -q "^brew-manager "'
     _run_no_brew "$_SANDBOX/nb_flag" --dryrun
     _rc=$?
     _check "no Homebrew, an unknown flag: still 2 (got ${_rc})" [ "$_rc" = 2 ]
+    _run_no_brew "$_SANDBOX/nb_99" 99
+    _rc=$?
+    _check "no Homebrew, an unknown module token: 69 comes first (got ${_rc})" [ "$_rc" = 69 ]
+    _run_no_brew "$_SANDBOX/nb_empty" 8 --skip=8
+    _rc=$?
+    _check "no Homebrew, a selection that resolves empty: 69 comes first (got ${_rc})" [ "$_rc" = 69 ]
+
+    # (6) a `brew` that is only a shell function or an alias (here defined in
+    #     ~/.zshenv, which zsh reads even as launchd's non-login shell, around a
+    #     brew that is neither on PATH nor a candidate) is not Homebrew: the probe
+    #     asks for the executable (`whence -p`), so the run still exits 69. With
+    #     `command -v` the wrapper would satisfy the check (gate finding, LOW).
+    _WRAP="$_SANDBOX/custom"
+    _mock_brew "$_WRAP/brew" "$_WRAP/log"
+    mkdir -p "$_SANDBOX/home_fn" "$_SANDBOX/home_alias"
+    print -r -- "brew() { \"$_WRAP/brew\" \"\$@\"; }" > "$_SANDBOX/home_fn/.zshenv"
+    print -r -- "alias brew=\"$_WRAP/brew\"" > "$_SANDBOX/home_alias/.zshenv"
+    _HOME_DIR="$_SANDBOX/home_fn" _run_no_brew "$_SANDBOX/nb_wrap_fn" 8
+    _rc=$?
+    _check "no Homebrew, brew only a ~/.zshenv function: rc=69, no run, the wrapper never called (got ${_rc})" \
+        eval '[ "$_rc" = 69 ] && ! grep -q "Running modules" "$_SANDBOX/nb_wrap_fn" && [ ! -e "$_WRAP/log/brew_calls" ]'
+    _HOME_DIR="$_SANDBOX/home_alias" _run_no_brew "$_SANDBOX/nb_wrap_alias" 8
+    _rc=$?
+    _check "no Homebrew, brew only a ~/.zshenv alias: rc=69, no run, the wrapper never called (got ${_rc})" \
+        eval '[ "$_rc" = 69 ] && ! grep -q "Running modules" "$_SANDBOX/nb_wrap_alias" && [ ! -e "$_WRAP/log/brew_calls" ]'
 
     _check "the installer's curl was never called" [ ! -e "$_SANDBOX/curl_calls" ]
 else
     _fail "missing farm: the candidate constant was not substituted"
+fi
+
+# The same function wrapper with Homebrew at a probed prefix: the wrapper does
+# not stop the probe, so the prefix still goes in front of PATH. The user's
+# wrapper keeps running the commands (a function beats PATH), and the PATH it
+# sees proves the probe ran.
+if [[ -d "$_SANDBOX/farm_found" ]]; then
+    _HOME_DIR="$_SANDBOX/home_fn" _run_minimal "$_SANDBOX/farm_found" "$_SANDBOX/out_wrap_found" 8 --dry-run
+    _rc=$?
+    _check "brew a ~/.zshenv function, Homebrew at a probed prefix: rc=0, the prefix first on PATH (got ${_rc})" \
+        [ "$_rc" = 0 -a -s "$_WRAP/log/brew_calls" -a "$(_first_path "$_WRAP/log")" = "$_PA/bin" ]
+else
+    _fail "wrapper check: the probe farm is missing"
 fi
 
 # ── tripwire: the runs above must have hit the MOCK brew, not the real one ───
