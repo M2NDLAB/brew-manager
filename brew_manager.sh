@@ -217,6 +217,42 @@ _brew_bootstrap_path() {
     return 1
 }
 
+# _brew_install — download Homebrew's official install script and run it. Called
+# only after a person at a terminal said yes (the check below decides that).
+# Download first, run second: a failed or partial download (curl's status used to
+# be lost inside $(...)) is never handed to bash, and the timeouts keep a stalled
+# network from hanging the terminal. The installer's own exit status is read: it
+# can fail AFTER putting bin/brew in place (its last step is a `brew update`), and
+# a half-installed Homebrew must not be reported as a success (gate finding).
+# The script lives in a local, so the environment can neither pre-seed it nor see
+# it. Returns 0 when the installer succeeded and a brew executable is on PATH
+# afterwards; 1 when the download failed or was empty, the installer exited
+# non-zero, or brew is still not at a standard prefix. Prints its own errors.
+_brew_install() {
+    local _script _rc
+    if ! _script="$(curl -fsSL --connect-timeout 15 --max-time 300 "$BREW_INSTALL_URL")" \
+       || [[ -z "$_script" ]]; then
+        _err "Could not download the Homebrew installer from $BREW_INSTALL_URL."
+        return 1
+    fi
+    /bin/bash -c "$_script"
+    _rc=$?
+    echo ""
+    if (( _rc != 0 )); then
+        _err "The Homebrew installer failed (exit status $_rc)."
+        _info "Fix the problem it reported, then run brew_manager.sh again."
+        return 1
+    fi
+    # The installer does not touch this process's PATH: find the new brew at its
+    # standard prefix.
+    if ! _brew_bootstrap_path; then
+        _err "The Homebrew installer finished, but brew is not at a standard prefix."
+        _info "Open a new terminal and run brew_manager.sh again."
+        return 1
+    fi
+    return 0
+}
+
 # The exit status when Homebrew — a precondition of every module — is unavailable:
 # not on PATH nor at a standard prefix, and the installer not offered (--dry-run,
 # no terminal), declined, or failed. 69 is sysexits.h EX_UNAVAILABLE ("a support
@@ -263,26 +299,12 @@ if ! _brew_bootstrap_path; then
         echo ""
         _info "Installing Homebrew..."
         echo ""
-        # Download first, run second: a failed or partial download (curl's status
-        # used to be lost inside $(...)) must never be handed to bash, and the
-        # timeouts keep a stalled network from hanging a terminal forever.
-        if ! _brew_install_script="$(curl -fsSL --connect-timeout 15 --max-time 300 "$BREW_INSTALL_URL")" \
-           || [[ -z "$_brew_install_script" ]]; then
-            _err "Could not download the Homebrew installer from $BREW_INSTALL_URL."
-            echo ""
-            exit $EXIT_ENV_UNAVAILABLE
-        fi
-        /bin/bash -c "$_brew_install_script"
-        echo ""
-        # The installer does not touch this process's PATH: find the new brew at
-        # its standard prefix, then start over with it.
-        if _brew_bootstrap_path; then
+        # Start over with the new brew only when the whole install succeeded.
+        if _brew_install; then
             _ok "Homebrew installed successfully — launching brew-manager..."
             sleep 1
             exec zsh "$0" "$@"
         fi
-        _err "Homebrew installation failed, or brew is not at a standard prefix."
-        _info "Open a new terminal and run brew_manager.sh again."
         echo ""
         exit $EXIT_ENV_UNAVAILABLE
     fi
