@@ -104,6 +104,118 @@ the docs/03 security gate) needs a further go from the user.
   files are gone, no process, nothing in ~/Library/LaunchAgents, the repo is clean.
 - Next: the fix, only on the user's go.
 
+## The fix (2026-09-27, tasks 1–4 of [[plans/fix-startup-brew-env]])
+The user gave the go with six requirements (PATH bootstrap independent of the login
+shell; a new exit code outside 1–31 and 126–255, chosen from sysexits.h with a reason;
+an installer that honours `--dry-run` and never starts, nor prompts, without a
+terminal; e2e tests in a minimal environment; the re-verification under a real launchd
+job; an honest CHANGELOG entry).
+- `c277e20` (task 1) — `_brew_bootstrap_path`: when `brew` is not on PATH, probe
+  `BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)` in order and
+  prepend the first regular executable's `bin` and `sbin` to PATH (exported, so the
+  `script(1)` child inherits it). No `eval "$(brew shellenv)"`: nothing reads
+  HOMEBREW_PREFIX & co., and startup never runs a binary's output. RED: with the probe
+  disabled, 2 checks fail.
+- `ae022d9` (task 2) — exit **69** (`EX_UNAVAILABLE`: "a support program or file does
+  not exist") on every "Homebrew unavailable" path; 78 `EX_CONFIG`, 72 `EX_OSFILE` and 1
+  (overloaded) were discarded (the plan has the reasons). The installer: never offered
+  under `--dry-run`; with no terminal (`NON_INTERACTIVE`, stdout not a TTY, or the
+  recorded child) no prompt at all; at a terminal `_ask` with default `n`, so `--yes`
+  never installs Homebrew. RED on the task-1 code: 6 checks fail.
+- `df8c0ec` (task 3) — 69 in docs/04's exit-code contract (MINOR → v1.5.0); README
+  (Homebrew lookup, exit status, scheduling); SECURITY.md (the installer).
+- `b1c78f6` (task 4) — CHANGELOG `[Unreleased]`: agents installed with v1.3.0 and v1.4.0
+  (and every earlier release with the scheduler) never ran brew under launchd while
+  looking successful.
+
+## Security gate (task 5) — docs/03, adversarial (`brew_manager.sh` is sensitive)
+- **The gate: two runs of the same five lenses**, started two minutes apart around the
+  restart (installer-consent, path-trust, exit-contract, claims-vs-behaviour,
+  tests-and-class), each lens challenged by a refuter that had to reproduce or
+  disprove every finding. Both completed. **No CRITICAL or HIGH.**
+- **MEDIUM (upheld in the second run, graded LOW in the first):** the fix makes the
+  dormant agents reachable, and an agent that selects `bk` or `log` then blocks forever
+  on a bare `read` (the class of STATE #21). Not fixed here: #21 is branch 6 of
+  [[plans/debt-cleanup-pre-dashboard]], before the release. Disclosed in the CHANGELOG
+  upgrade note; the acceptance is the user's decision (below).
+- **MEDIUM → fixed:** "existing agents need no change" hid that every installed agent
+  starts making changes, unattended, at its next run → the CHANGELOG upgrade note
+  (review your agents first; the presets run `go --yes`, i.e. `brew update` and module
+  5's cleanup) and the README blockquote.
+- **LOW → fixed** (`b34e719` code, `1c6105d` tests, `45c5fd2` docs): the no-terminal
+  guard's clauses untested one by one; the production candidates and "69 on every way
+  out" not pinned (the failed-install path cannot run e2e without confirming the
+  installer, so it is pinned statically); the second candidate, the Intel symlink layout
+  and the order never exercised; the script(1) runs without a watchdog (and a naive
+  alarm would orphan script(1)'s session → a process-group watchdog); "the only
+  exception" ignored `~/.zshenv`; HOMEBREW_* settings from the login profile do not
+  reach scheduled runs (documented); `command -v` counted a function or alias → `whence
+  -p`; the download ran with no status check and no timeout, so a partial script could
+  reach bash → `curl -fsSL --connect-timeout 15 --max-time 300`, run only a successful,
+  non-empty download; "Homebrew is not installed" → "was not found".
+- **INFO → applied:** the exit precedence documented (docs/04, README) and tested; the
+  old piped-"y" defect named in the CHANGELOG; test comments that claimed more than they
+  proved; SECURITY.md sentences next to the edited bullet; the new messages go through
+  the lib/common.sh helpers (the static banner lines stay as they were: no data in
+  them, so IMP-003 does not apply).
+- **INFO → recorded, not fixed here** (outside the branch's scope): the recorder's `zsh`
+  and `script` are resolved through PATH, which the bootstrap now prefixes (a planted
+  binary in a Homebrew prefix already owns brew itself); exit `1` is overloaded by
+  startup failures of the tool's own files; the logs fallback reports a log path that
+  holds no file (pre-existing); the installer prompt is a plain `_ask` (default `n`),
+  not BM-10's `_ask_danger` frame — presentation only, consent unchanged; exit 69 is
+  proven in the launchd-shaped `env -i` e2e, not under a real launchd job (the user's
+  job exercises the found path). Refuted: "a pty wrapper counts as a terminal" (a pty
+  IS a terminal: the prompt is the documented behaviour).
+- **Re-gate (IMP-004) on the whole branch diff, the same three review areas of the
+  fixes** (installer and download, probe and exit contract, docs and tests), each with a
+  refuter. The first run completed only the probe lens: the other two stalled on all 6
+  attempts, even on trivial greps, over a 9.5-hour run (the machine most likely slept) —
+  reported as incomplete, not as clean (docs/03: reconcile the count first). They were
+  rerun on the final diff. **No CRITICAL, HIGH or MEDIUM in any lens.** Upheld and fixed:
+  - `3657cc3`/`1317307` — LOW: no test told `whence -p` from `command -v` → a brew that is
+    only a `~/.zshenv` function or alias must still give 69 (and never be called), and with
+    Homebrew at a prefix the prefix still goes first on PATH; INFO: `--version` first in
+    the exit order was untested and missing from the README → tests (0 even next to an
+    unknown flag; an empty selection yields to 69) and wording; INFO: the CHANGELOG line
+    on a function or alias brew.
+  - `b7b56e7` — LOW: the installer's exit status was ignored, so an installer failing
+    after leaving `bin/brew` (its last step is `brew update`; the refuter checked the
+    upstream script) printed "installed successfully" and re-exec'd. The step moved into
+    `_brew_install`, which reads the status and fails closed; the script lives in a local.
+  - `f68d114` — LOW: the download hardening had no pin (three mutants passed) → the suite
+    extracts `_brew_install` and `_brew_bootstrap_path` from the source and runs them
+    alone against a mock curl (failed, empty, half-install, no-brew and good installs;
+    one curl call with both timeouts and the official URL). LOW: the watchdog orphaned a
+    blocked run on Ctrl-C, because `setpgrp` puts it out of the terminal's reach → perl
+    kills the group on INT/TERM/HUP and cleanup sweeps the sandbox path (RED: an orphaned
+    `sleep`; GREEN: none). INFO: the exit pin matched a substring → a whole-line match.
+    INFO: a system `/etc/zshenv` reaching a brew would make the suite run the real one →
+    a precondition stops the suite first; "a brew on PATH is used as it is" got a sandbox
+    check. INFO: the perl dependency is stated (stock `/usr/bin/perl`; no third-party
+    deps — CLAUDE.md's "zero dependencies" still holds in that sense).
+  - `3c1f76c` — INFO: the README no longer reads as if a function or alias brew were
+    bypassed; the CHANGELOG names the half-install case.
+  - Every fix was shown RED first: two mutants for `3657cc3` (3 and 2 checks fail), nine
+    for `b7b56e7`/`f68d114` (each caught by at least one check), and the Ctrl-C orphan.
+    The "probe before PATH" mutant ran the Mac's real brew in the old `assert_exit`
+    runs (module 8, `--dry-run`, read-only) before the new sandbox check existed.
+- **Final re-gate of `b7b56e7`/`f68d114`/`3c1f76c`** (a reviewer and a refuter, because
+  `b7b56e7` changed sensitive code): the code correct, nothing new authorised
+  (`_brew_install` has one call site, behind the unchanged guards and `_ask` with default
+  `n`; `exec zsh "$0" "$@"` stays at top level, where `$0` is the script; the URL and the
+  script body cannot be pre-seeded), the docs match. One LOW upheld: the harness could not
+  tell `return 1` from `exit 1` inside `_brew_install`, so turning the returns into exits
+  (production: exit 1 instead of 69) passed 48/48 → the failure checks require the line
+  the harness prints after the function returned, and a static pin forbids an `exit`
+  command in the function's body (a first regex also matched "(exit status …)" in a
+  message; narrowed to `exit` as a command). RED: the `exit 1` mutant fails 5 checks, an
+  `&& exit 1` mutant 3; GREEN 49.
+- The suite: `tests/test_exit_codes.zsh` 32 → 49 checks; `make test` 311 green; the smoke
+  of module 1 in `--dry-run` under launchd's environment (`env -i`, launchd's PATH, stdin
+  `/dev/null`) ran the real brew read-only: rc 0 in 7 s, "Running modules: 1", DRY-RUN, one
+  session log, no process left.
+
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] ·
 [[sessions/2026-09-26-gitignore-and-launchd-plan]] ·

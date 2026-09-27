@@ -52,15 +52,24 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
   — commit: this task's commit
 - [x] 4. CHANGELOG `[Unreleased]`: the honest entry (agents never ran brew under launchd
   while looking successful). — commit: this task's commit
-- [ ] 5. Security gate (docs/03, adversarial — `brew_manager.sh`): /security-review of the
-  branch diff; fixes. — commit: —
+- [x] 5. Security gate (docs/03, adversarial — `brew_manager.sh`): /security-review of the
+  branch diff; fixes. — commits: gate `b34e719` `1c6105d` `45c5fd2`; re-gate `3657cc3`
+  `1317307` `b7b56e7` `f68d114` `3c1f76c`; final re-gate the next `test(core)` commit (no
+  CRITICAL/HIGH; the MEDIUM on #21 is the user's to accept — see the session note)
 - [ ] 6. Re-verification under a REAL launchd job with the same test plist (expected
   "Running modules: 1", a completed dry-run, exit 0); blocks for the user, the corrected
   poll; outcome recorded in the branch note and STATE #23. — commit: —
 - [ ] 7. /checkpoint and the printed /integrate. — commit: —
 
 ## Resumption notes
-- Session note: [[sessions/2026-09-26-startup-brew-env]] (the verification before the fix).
+- Session note: [[sessions/2026-09-26-startup-brew-env]] (the verification before the fix,
+  the fix, the gate and the re-gate rounds).
+- Task 5 grew past its single commit: the gate and two re-gate rounds (IMP-004) each fixed
+  what their refuters upheld. The install step is now `_brew_install`, extracted and run
+  alone by the suite — no test ever answers the installer prompt.
+- Task 6 reuses the approved plist `logs/com.m2ndlab.verify-n1.plist` (sha256
+  `84e60212…66ff29`); the found path writes a session log and takes about 7 s (smoke
+  under launchd's environment).
 
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] · [[core-brew-manager]]
