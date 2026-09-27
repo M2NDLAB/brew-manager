@@ -478,6 +478,12 @@ _check "the install step and the probe are extracted from the source (not vacuou
     print -r -- '_brew_install; _rc=$?; print -r -- "rc=$_rc first=${PATH%%:*}"; exit $_rc'
 } > "$_INST/harness.zsh"
 
+# The function only RETURNS: an `exit` inside it would end the entry point with
+# that status instead of 69 (each failure check below also requires the line the
+# harness prints after the function returned).
+_check "_brew_install never exits by itself (its failures return, and the check exits 69)" \
+    [ "$(_extract_fn _brew_install | grep -vE '^[[:space:]]*#' | grep -cE '(^[[:space:]]*|[;&|][[:space:]]*)exit([[:space:]]|;|$)')" = 0 ]
+
 # _run_install <mode>: no brew at the sandbox prefix, no marker, then the harness
 # under launchd's PATH with the mock curl first and the proxies at a closed port.
 _run_install() {
@@ -488,19 +494,19 @@ _run_install() {
 _run_install fail22
 _rc=$?
 _check "install step, curl fails (22) after printing a script: rc=1, the script never runs (got ${_rc})" \
-    eval '[ "$_rc" = 1 ] && [ ! -e "$_INST/marker" ] && grep -q "Could not download" "$_INST/out_fail22"'
+    eval '[ "$_rc" = 1 ] && [ ! -e "$_INST/marker" ] && grep -q "Could not download" "$_INST/out_fail22" && grep -q "^rc=1 first=" "$_INST/out_fail22"'
 _run_install empty
 _rc=$?
 _check "install step, an empty download: rc=1, nothing runs (got ${_rc})" \
-    eval '[ "$_rc" = 1 ] && grep -q "Could not download" "$_INST/out_empty"'
+    eval '[ "$_rc" = 1 ] && grep -q "Could not download" "$_INST/out_empty" && grep -q "^rc=1 first=" "$_INST/out_empty"'
 _run_install half
 _rc=$?
 _check "install step, the installer fails after putting bin/brew in place: rc=1, a failure (got ${_rc})" \
-    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && [ -x "$_INST/pfx/bin/brew" ] && grep -q "installer failed (exit status 1)" "$_INST/out_half"'
+    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && [ -x "$_INST/pfx/bin/brew" ] && grep -q "installer failed (exit status 1)" "$_INST/out_half" && grep -q "^rc=1 first=" "$_INST/out_half"'
 _run_install nobrew
 _rc=$?
 _check "install step, the installer succeeds but no brew at a standard prefix: rc=1 (got ${_rc})" \
-    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && grep -q "not at a standard prefix" "$_INST/out_nobrew"'
+    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && grep -q "not at a standard prefix" "$_INST/out_nobrew" && grep -q "^rc=1 first=" "$_INST/out_nobrew"'
 _run_install good
 _rc=$?
 _check "install step, a good download and install: rc=0, the new prefix first on PATH (got ${_rc})" \
