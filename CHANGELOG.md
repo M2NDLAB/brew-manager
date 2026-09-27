@@ -49,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A run that cannot start because Homebrew is missing now exits `69` instead of `0`
   (and a failed Homebrew installation exits `69` instead of `1`). A script or CI job
   that treated such a run as a success will now see it as a failure — which it is.
+- A `brew` defined only as a shell function or an alias (for example in `~/.zshenv`)
+  no longer counts as Homebrew: brew-manager needs the `brew` executable on `PATH` or
+  at a standard prefix, and otherwise exits `69`. If your Homebrew lives elsewhere,
+  put its `bin` directory on `PATH` in `~/.zshenv`.
 
 ## [1.4.0] - 2026-07-23
 

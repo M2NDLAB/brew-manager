@@ -139,8 +139,9 @@ MAJOR — is the set of these surfaces:
   empty, `2` an unknown module token or flag, `69` Homebrew unavailable — not on PATH
   nor at a standard prefix, and the installer not offered (`--dry-run`, no terminal),
   declined or failed (sysexits `EX_UNAVAILABLE`; added in v1.5.0, a MINOR) — changing
-  them is MAJOR. Order: `--version` and an unknown flag are decided first, then the
-  Homebrew precondition, then the module selection (`2` or `1`). *(Outside the
+  them is MAJOR. Order: `--version` answers first (`0`, even next to an unknown flag),
+  then an unknown flag (`2`), then the Homebrew precondition, then the module selection
+  (`2` or `1`). *(Outside the
   contract for now, coming in as an additive extension with BM-18: the propagation of
   a module's runtime failure, which today still exits `0` — #4b.)*;
 - **plist/LaunchAgent format** — the schema written by the scheduler into

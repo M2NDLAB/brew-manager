@@ -40,8 +40,9 @@ It is **not** a replacement for Homebrew. It is a maintenance and audit layer on
 
 brew-manager finds Homebrew on your `PATH` or, when the `PATH` lacks it — a scheduled
 LaunchAgent, an app started from the Finder — at its standard prefix: `/opt/homebrew`
-(Apple Silicon) is tried first, then `/usr/local` (Intel); a `brew` already on your
-`PATH` is always used as it is. Scheduled runs do not read your shell profiles, so
+(Apple Silicon) is tried first, then `/usr/local` (Intel); a `brew` executable already
+on your `PATH` is always used as it is (a shell function or alias named `brew` does not
+count). Scheduled runs do not read your shell profiles, so
 `HOMEBREW_*` settings exported in `~/.zprofile` or `~/.zshrc` (such as
 `HOMEBREW_NO_ANALYTICS`) do not reach them: put those in `~/.zshenv`, or use a
 persistent setting such as `brew analytics off`. If Homebrew is missing altogether, the tool
@@ -196,7 +197,7 @@ Flags change **how** the run behaves and combine with either form:
 
 An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` exits `2` without running anything, rather than a partial, unexpected selection.
 
-> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, Homebrew unavailable → `69`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start; a module that fails while running does not change it yet. An unknown flag is rejected first, then a missing Homebrew, then the module selection. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, Homebrew unavailable → `69`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start; a module that fails while running does not change it yet. `--version` answers before anything else, even next to an unknown flag; then an unknown flag is rejected, then a missing Homebrew, then the module selection. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
