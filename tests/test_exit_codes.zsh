@@ -14,9 +14,10 @@
 # PATH=/usr/bin:/bin:/usr/sbin:/sbin, no terminal): Homebrew found at a
 # standard prefix, or exit 69 with no installer prompt (STATE Attenzione #23).
 # Each clause of the no-terminal guard is exercised on its own, the exit order
-# of docs/04 is pinned, a `brew` that is only a shell function or alias does not
-# count as Homebrew, and the failed-install exit is pinned statically (a test
-# must never confirm the installer).
+# of docs/04 is pinned, and a `brew` that is only a shell function or alias does
+# not count as Homebrew. No test ever answers the installer prompt: the download
+# and install step (`_brew_install`) is extracted from the source and run on its
+# own against a mock curl, and its call site is pinned statically.
 #
 # Isolation (gate finding, LOW): the binary runs from a symlink "farm" in a
 # temp dir — SCRIPT_DIR resolves to the farm, so session logs land in the
@@ -26,11 +27,14 @@
 # adds --dry-run, so nothing can mutate. The no-Homebrew runs put a tripwire
 # `curl` first on PATH and point the proxies at a closed port, so even a missed
 # tripwire could not reach the network. Every run goes through a watchdog that
-# kills its whole process group: a regression that blocks cannot hang the suite
-# or leave script(1) children behind.
+# kills its whole process group on a timeout and when the suite itself is
+# interrupted (INT/TERM/HUP): a regression that blocks cannot hang the suite or
+# leave script(1) children behind.
 #
-# Zero external deps; run by `make test`. Exits non-zero unless every check
-# passed AND at least one ran (anti-vacuity).
+# No third-party deps — stock macOS tools only (the watchdog uses /usr/bin/perl
+# for setpgrp and alarm, which zsh cannot give a single command); run by
+# `make test`. Exits non-zero unless every check passed AND at least one ran
+# (anti-vacuity).
 # =============================================================================
 
 _ROOT="${0:A:h:h}"
@@ -42,7 +46,9 @@ _fail() { (( TESTS_RUN += 1 )); (( TESTS_FAILED += 1 )); print -r -- "  FAIL  $1
 _check() { local _l="$1"; shift; if "$@"; then _pass "$_l"; else _fail "$_l"; fi; }
 
 _SANDBOX="$(mktemp -d)" || { print -r -- "FAIL: mktemp"; exit 1; }
-cleanup() { rm -rf "$_SANDBOX"; }
+# cleanup first sweeps anything still running from this sandbox's unique path
+# (a run the watchdog could not reach), then removes the sandbox.
+cleanup() { pkill -KILL -f -- "$_SANDBOX" 2>/dev/null; rm -rf "$_SANDBOX"; }
 # On INT/TERM: clean up and STOP — without the exit, zsh would keep running
 # the remaining checks against a deleted sandbox (gate finding, INFO).
 trap 'cleanup; trap - EXIT; exit 130' INT TERM
@@ -52,13 +58,16 @@ trap cleanup EXIT
 # return its exit status; after <seconds> kill the whole group and return 124.
 # A plain `alarm; exec` would kill only the direct child and orphan script(1)'s
 # session (gate finding): the group kill, plus a sweep of anything still running
-# from this sandbox's unique path, leaves nothing behind.
+# from this sandbox's unique path, leaves nothing behind. The group is out of
+# the terminal's reach (setpgrp), so a Ctrl-C of the suite would not reach it:
+# INT/TERM/HUP kill the group too (re-gate finding, LOW).
 _guarded() {
     local _secs="$1" _rc; shift
     /usr/bin/perl -e '
         my $t = shift;
         my $pid = fork() // die "fork: $!";
         if ($pid == 0) { setpgrp(0, 0); exec @ARGV or exit 127 }
+        $SIG{$_} = sub { kill "KILL", -$pid; waitpid($pid, 0); exit 130 } for qw(INT TERM HUP);
         local $SIG{ALRM} = sub { kill "KILL", -$pid; waitpid($pid, 0); exit 124 };
         alarm $t;
         waitpid($pid, 0);
@@ -142,13 +151,21 @@ _check "no other code line names a Homebrew prefix (the probe has one source)" \
 _check "EXIT_ENV_UNAVAILABLE is 69 (sysexits EX_UNAVAILABLE)" \
     [ "$(grep -cx 'EXIT_ENV_UNAVAILABLE=69' "$_BM")" = 1 ]
 # Every exit of the Homebrew-check block, from its `if` to the matching
-# top-level `fi`, is the dedicated code — and there are at least five of them
-# (dry-run, no terminal, download failed, install failed, declined).
+# top-level `fi`, is exactly `exit $EXIT_ENV_UNAVAILABLE` (a whole-line match: a
+# substring would accept `exit 0  # was: exit $EXIT_ENV_UNAVAILABLE`) — and
+# there are at least four of them (dry-run, no terminal, install failed,
+# declined; the failures inside the install are _brew_install's, tested below).
 _BLOCK_EXITS="$(awk '/^if ! _brew_bootstrap_path; then$/{p=1} p && /^fi$/{exit} p' "$_BM" \
     | grep -E '(^|[^_[:alnum:]])exit([^_[:alnum:]]|$)' | grep -vE '^[[:space:]]*#')"
-_check "every exit of the Homebrew check is exit \$EXIT_ENV_UNAVAILABLE (>= 5 exits)" \
-    [ "$(print -r -- "$_BLOCK_EXITS" | grep -c .)" -ge 5 \
-      -a "$(print -r -- "$_BLOCK_EXITS" | grep -vc 'exit \$EXIT_ENV_UNAVAILABLE')" = 0 ]
+_check "every exit of the Homebrew check is exit \$EXIT_ENV_UNAVAILABLE (>= 4 exits)" \
+    [ "$(print -r -- "$_BLOCK_EXITS" | grep -c .)" -ge 4 \
+      -a "$(print -r -- "$_BLOCK_EXITS" | grep -vcE '^[[:space:]]*exit \$EXIT_ENV_UNAVAILABLE[[:space:]]*$')" = 0 ]
+# The installer's only call site: the re-exec happens only when _brew_install
+# succeeded, and nothing else in the entry point downloads or runs a script.
+_check "the re-exec after an install is guarded by _brew_install's status" \
+    [ "$(grep -cx '        if _brew_install; then' "$_BM")" = 1 ]
+_check "one download and one script run in the entry point, both in _brew_install" \
+    [ "$(grep -c 'curl ' "$_BM")" = 1 -a "$(grep -c 'bash -c' "$_BM")" = 1 ]
 
 # ── minimal environment: the launchd / GUI-app case (STATE Attenzione #23) ───
 # launchd gives a job PATH=/usr/bin:/bin:/usr/sbin:/sbin and nothing else, and a
@@ -191,6 +208,18 @@ _farm_with_candidates() {
 # HOME the other checks share.
 _HOME_DIR="$_SANDBOX/home"
 
+# Precondition: launchd's environment on THIS Mac must not reach any brew by
+# itself. A system /etc/zshenv (read even by env -i's zsh) that puts brew on
+# PATH, or defines a brew function or alias, would make the no-Homebrew checks
+# fail and the probe checks run the REAL brew — so the suite stops here instead.
+_ENV_BREW="$(env -i HOME="$_HOME_DIR" PATH="$_LAUNCHD_PATH" /bin/zsh -c 'whence brew' 2>/dev/null)"
+if [[ -n "$_ENV_BREW" ]]; then
+    _fail "precondition: launchd's environment already reaches a brew (${_ENV_BREW}) — a system zshenv? The minimal-environment checks would run it"
+    print -r -- ""
+    print -r -- "FAIL: ${TESTS_FAILED}/${TESTS_RUN} checks failed (minimal-environment checks not run)"
+    exit 1
+fi
+
 # _run_minimal <farm> <out> <args...>: launchd's environment — env -i, launchd's
 # PATH, a sandbox HOME, stdin closed — with the output kept for content checks.
 _run_minimal() {
@@ -215,6 +244,15 @@ if _farm_with_candidates "$_SANDBOX/farm_found" "$_PA/bin/brew"; then
     _check "the probed brew ran in the child, with its bin then sbin first on PATH" \
         [ -s "$_PA/log/brew_calls" -a "$(_first_path "$_PA/log")" = "$_PA/bin" \
           -a "$(_second_path "$_PA/log")" = "$_PA/sbin" ]
+    # A brew executable already on PATH is respected: the candidate is not probed
+    # and PATH is left as it was.
+    : > "$_PA/log/brew_calls"
+    rm -f "$_MOCKDIR/path_seen"
+    _guarded 60 env -i HOME="$_HOME_DIR" PATH="$_MOCKDIR:$_LAUNCHD_PATH" \
+        /bin/zsh "$_SANDBOX/farm_found/brew_manager.sh" 8 --dry-run </dev/null >"$_SANDBOX/out_onpath" 2>&1
+    _rc=$?
+    _check "a brew already on PATH is used as it is, the candidate untouched: rc=0 (got ${_rc})" \
+        [ "$_rc" = 0 -a ! -s "$_PA/log/brew_calls" -a "$(_first_path "$_MOCKDIR")" = "$_MOCKDIR" ]
 else
     _fail "probe farm: the candidate constant was not substituted"
 fi
@@ -273,7 +311,7 @@ _run_no_brew_tty() {
     while (( $# )) && [[ "$1" != -- ]]; do _extra+=("$1"); shift; done
     shift
     _guarded 30 /usr/bin/script -q /dev/null \
-        env -i HOME="$_SANDBOX/home" PATH="$_TRIP:$_LAUNCHD_PATH" "${_NOPROXY[@]}" "${_extra[@]}" \
+        env -i HOME="$_HOME_DIR" PATH="$_TRIP:$_LAUNCHD_PATH" "${_NOPROXY[@]}" "${_extra[@]}" \
         /bin/zsh "$_NB_FARM" "$@" </dev/null >"$_out" 2>&1
 }
 _no_prompt() { ! grep -q -e 'Install Homebrew now' -e 'Choice:' "$1"; }
@@ -306,7 +344,7 @@ if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; 
     #   the pre-fix code took that "y" as consent and installed unattended
     _guarded 30 /usr/bin/script -q /dev/null /bin/zsh -c \
         'printf "y\n" | env -i HOME="$1" PATH="$2" https_proxy="$3" HTTPS_PROXY="$3" ALL_PROXY="$3" /bin/zsh "$4" 8' \
-        _ "$_SANDBOX/home" "$_TRIP:$_LAUNCHD_PATH" http://127.0.0.1:9 "$_NB_FARM" \
+        _ "$_HOME_DIR" "$_TRIP:$_LAUNCHD_PATH" http://127.0.0.1:9 "$_NB_FARM" \
         </dev/null >"$_SANDBOX/nb_pipe_y" 2>&1
     _rc=$?
     _check "no Homebrew, 'y' piped on stdin, stdout a terminal: rc=69, no prompt (got ${_rc})" \
@@ -314,7 +352,7 @@ if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; 
     #   stdin a terminal, stdout redirected (the `! -t 1` clause alone)
     _guarded 30 /usr/bin/script -q /dev/null /bin/zsh -c \
         'env -i HOME="$1" PATH="$2" https_proxy="$3" HTTPS_PROXY="$3" ALL_PROXY="$3" /bin/zsh "$4" 8 >"$5" 2>&1' \
-        _ "$_SANDBOX/home" "$_TRIP:$_LAUNCHD_PATH" http://127.0.0.1:9 "$_NB_FARM" "$_SANDBOX/nb_out_piped" \
+        _ "$_HOME_DIR" "$_TRIP:$_LAUNCHD_PATH" http://127.0.0.1:9 "$_NB_FARM" "$_SANDBOX/nb_out_piped" \
         </dev/null >/dev/null 2>&1
     _rc=$?
     _check "no Homebrew, stdin a terminal, stdout redirected: rc=69, no prompt (got ${_rc})" \
@@ -398,6 +436,77 @@ if [[ -d "$_SANDBOX/farm_found" ]]; then
 else
     _fail "wrapper check: the probe farm is missing"
 fi
+
+# ── the install step on its own: _brew_install ──────────────────────────────
+# No test answers the installer prompt. Instead _brew_install (with
+# _brew_bootstrap_path, which it calls, and the source's BREW_INSTALL_URL) is
+# extracted from the entry point and run by itself in launchd's environment,
+# against a mock curl whose behaviour each case picks. The "installer" the mock
+# serves only touches a marker and, in two cases, puts a mock brew at a sandbox
+# prefix — never the real script. It proves what the gate fixes promise: a failed
+# or empty download never reaches bash, the timeouts are passed, and an installer
+# that fails AFTER putting bin/brew in place is a failure, not a success.
+_INST="$_SANDBOX/inst"
+mkdir -p "$_INST/curlbin"
+cat > "$_INST/curlbin/curl" <<EOF
+#!/bin/sh
+printf '%s\n' "\$*" >> "$_INST/curl_args"
+case "\$CURL_MODE" in
+    fail22) echo "touch $_INST/marker"; exit 22 ;;
+    empty)  exit 0 ;;
+    half)   echo "mkdir -p $_INST/pfx/bin && cp $_MOCKDIR/brew $_INST/pfx/bin/brew && touch $_INST/marker && exit 1" ;;
+    nobrew) echo "touch $_INST/marker" ;;
+    good)   echo "mkdir -p $_INST/pfx/bin && cp $_MOCKDIR/brew $_INST/pfx/bin/brew && touch $_INST/marker" ;;
+esac
+exit 0
+EOF
+chmod +x "$_INST/curlbin/curl"
+
+# _extract_fn <name>: the function's source, from `<name>() {` to its closing `}`.
+_extract_fn() { awk -v n="$1" '$0 == n "() {" {p=1} p {print} p && /^}$/ {exit}' "$_BM"; }
+_INST_FNS="$(_extract_fn _brew_bootstrap_path; _extract_fn _brew_install)"
+_check "the install step and the probe are extracted from the source (not vacuous)" \
+    [ "$(print -r -- "$_INST_FNS" | grep -cxE '_brew_(bootstrap_path|install)\(\) \{')" = 2 \
+      -a "$(print -r -- "$_INST_FNS" | grep -cx '}')" = 2 \
+      -a "$(grep -c '^BREW_INSTALL_URL=' "$_BM")" = 1 ]
+{
+    print -r -- '_err()  { print -r -- "ERR: $*"; }'
+    print -r -- '_info() { print -r -- "INFO: $*"; }'
+    grep '^BREW_INSTALL_URL=' "$_BM"
+    print -r -- "BREW_BIN_CANDIDATES=($_INST/pfx/bin/brew)"
+    print -r -- "$_INST_FNS"
+    print -r -- '_brew_install; _rc=$?; print -r -- "rc=$_rc first=${PATH%%:*}"; exit $_rc'
+} > "$_INST/harness.zsh"
+
+# _run_install <mode>: no brew at the sandbox prefix, no marker, then the harness
+# under launchd's PATH with the mock curl first and the proxies at a closed port.
+_run_install() {
+    rm -f "$_INST/pfx/bin/brew" "$_INST/marker" "$_INST/curl_args"
+    _guarded 30 env -i HOME="$_HOME_DIR" PATH="$_INST/curlbin:$_LAUNCHD_PATH" "${_NOPROXY[@]}" \
+        CURL_MODE="$1" /bin/zsh "$_INST/harness.zsh" </dev/null >"$_INST/out_$1" 2>&1
+}
+_run_install fail22
+_rc=$?
+_check "install step, curl fails (22) after printing a script: rc=1, the script never runs (got ${_rc})" \
+    eval '[ "$_rc" = 1 ] && [ ! -e "$_INST/marker" ] && grep -q "Could not download" "$_INST/out_fail22"'
+_run_install empty
+_rc=$?
+_check "install step, an empty download: rc=1, nothing runs (got ${_rc})" \
+    eval '[ "$_rc" = 1 ] && grep -q "Could not download" "$_INST/out_empty"'
+_run_install half
+_rc=$?
+_check "install step, the installer fails after putting bin/brew in place: rc=1, a failure (got ${_rc})" \
+    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && [ -x "$_INST/pfx/bin/brew" ] && grep -q "installer failed (exit status 1)" "$_INST/out_half"'
+_run_install nobrew
+_rc=$?
+_check "install step, the installer succeeds but no brew at a standard prefix: rc=1 (got ${_rc})" \
+    eval '[ "$_rc" = 1 ] && [ -e "$_INST/marker" ] && grep -q "not at a standard prefix" "$_INST/out_nobrew"'
+_run_install good
+_rc=$?
+_check "install step, a good download and install: rc=0, the new prefix first on PATH (got ${_rc})" \
+    eval '[ "$_rc" = 0 ] && [ -e "$_INST/marker" ] && grep -qx "rc=0 first=$_INST/pfx/bin" "$_INST/out_good"'
+_check "install step: one download, fail-fast with both timeouts, the official URL" \
+    eval '[ "$(grep -c . "$_INST/curl_args")" = 1 ] && grep -qxE -- "-fsSL --connect-timeout [1-9][0-9]* --max-time [1-9][0-9]* https://raw[.]githubusercontent[.]com/Homebrew/install/HEAD/install[.]sh" "$_INST/curl_args"'
 
 # ── tripwire: the runs above must have hit the MOCK brew, not the real one ───
 if [[ -s "$_MOCKDIR/brew_calls" ]]; then
