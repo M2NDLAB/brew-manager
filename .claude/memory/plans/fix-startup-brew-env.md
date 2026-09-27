@@ -3,7 +3,7 @@ type: plan
 prompt: fix-startup-brew-env
 branch: fix/startup-brew-env
 created: 2026-09-27
-status: in-progress
+status: completed
 tags: [plan, startup, launchd, contract, security]
 ---
 # Plan: branch 4 — Homebrew's PATH under launchd, a new exit code, a safe installer
@@ -54,12 +54,14 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
   while looking successful). — commit: this task's commit
 - [x] 5. Security gate (docs/03, adversarial — `brew_manager.sh`): /security-review of the
   branch diff; fixes. — commits: gate `b34e719` `1c6105d` `45c5fd2`; re-gate `3657cc3`
-  `1317307` `b7b56e7` `f68d114` `3c1f76c`; final re-gate the next `test(core)` commit (no
-  CRITICAL/HIGH; the MEDIUM on #21 is the user's to accept — see the session note)
-- [ ] 6. Re-verification under a REAL launchd job with the same test plist (expected
-  "Running modules: 1", a completed dry-run, exit 0); blocks for the user, the corrected
-  poll; outcome recorded in the branch note and STATE #23. — commit: —
-- [ ] 7. /checkpoint and the printed /integrate. — commit: —
+  `1317307` `b7b56e7` `f68d114` `3c1f76c`; final re-gate `ec6da37`; recorded `e14ad02`
+  (no CRITICAL/HIGH; the MEDIUM on #21 resolves with the removal of bk and log — see
+  [[decisions/2026-09-27-personal-terminal-tool]])
+- [-] 6. ~~Re-verification under a REAL launchd job with the same test plist~~ —
+  **DROPPED by the user on 2026-09-27** (scope change: the scheduled agents it verified
+  will be removed; blocks A and B were not run). The found path is covered by the e2e
+  suite in launchd's environment and by the smoke of module 1 with the real brew.
+- [x] 7. /checkpoint and the printed /integrate. — commit: the checkpoint commit
 
 ## Resumption notes
 - Session note: [[sessions/2026-09-26-startup-brew-env]] (the verification before the fix,
@@ -67,9 +69,8 @@ end-to-end in a sandbox and under a REAL launchd job. Decisions:
 - Task 5 grew past its single commit: the gate and two re-gate rounds (IMP-004) each fixed
   what their refuters upheld. The install step is now `_brew_install`, extracted and run
   alone by the suite — no test ever answers the installer prompt.
-- Task 6 reuses the approved plist `logs/com.m2ndlab.verify-n1.plist` (sha256
-  `84e60212…66ff29`); the found path writes a session log and takes about 7 s (smoke
-  under launchd's environment).
+- Task 6 was dropped before any block ran; the approved plist
+  `logs/com.m2ndlab.verify-n1.plist` (sha256 `84e60212…66ff29`, git-ignored) stays unused.
 
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] · [[core-brew-manager]]

@@ -1,13 +1,13 @@
 ---
 date: 2026-09-26
-task: branch 4 of the pre-dashboard debt cleanup — N1 + 4b-0 (Homebrew's PATH under launchd, a new exit code, an installer that honours --dry-run and never starts without a terminal); phase 1: the real-launchd verification
+task: branch 4 of the pre-dashboard debt cleanup — N1 + 4b-0 (Homebrew's PATH under launchd, a new exit code, an installer that honours --dry-run and never starts without a terminal): the real-launchd verification, the fix, the security gate and re-gates, and the scope change
 branch: fix/startup-brew-env
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
-turns: 5
+turns: 9
 tags: [session, debt, launchd, startup, security]
 ---
-# Session 2026-09-26 — debt cleanup, branch 4: startup without Homebrew on PATH (in progress)
+# Session 2026-09-26/27 — debt cleanup, branch 4: startup without Homebrew on PATH
 
 Branch 3 was integrated by the user (merge `050ea6d`). The user approved the real-launchd
 verification plan of [[plans/debt-cleanup-pre-dashboard]] (section "Task 4 — the
@@ -215,6 +215,82 @@ job; an honest CHANGELOG entry).
   of module 1 in `--dry-run` under launchd's environment (`env -i`, launchd's PATH, stdin
   `/dev/null`) ran the real brew read-only: rc 0 in 7 s, "Running modules: 1", DRY-RUN, one
   session log, no process left.
+
+## Task 6 dropped — the scope change (2026-09-27)
+- The blocks A–D of the real-launchd regression were handed over. The user's first reply
+  carried the decision on the MEDIUM (#21: accept it, and move branch 6 before #18) and a
+  question, but no output: the paste still held its placeholder; a read-only check found
+  the job never loaded (no service, no `verify_n1` files, 35 session logs).
+- **The user's question**: under launchd stdin is /dev/null, so does a bk/log agent wait
+  idle, or does the menu loop on every EOF, burning CPU? From the code: the bk menu
+  (`mod_bk_brewfile.sh:286` `while true`, `:318` `read -r bf_choice`) and the log menu
+  (`mod_log_manager.sh:75`, `:89`) read once; an empty answer takes the default `n` and
+  `break`s (`:655-659`, `:190-192`). The one EOF `script(1)` forwards is consumed there;
+  the wait is `_handle_log`'s single `read` (`lib/log.sh:21`, no loop around it). In a
+  sandbox (a farm, a mock brew, `env -i`, launchd's PATH, stdin /dev/null, `bk --yes` and
+  `log --yes`): the parent zsh, `script` and the child zsh stayed in state `S` with the
+  same CPU time at t=5 s and t=15 s (0:00.02, 0:00.00, 0:00.02); the output shows
+  "Skipped" / "Exiting log manager", then the log prompt. The adversarial check of this
+  finding is recorded in STATE #21.
+- **Then the user changed the scope** ([[decisions/2026-09-27-personal-terminal-tool]]):
+  brew-manager becomes a personal terminal tool for the maintenance of the user's Mac, no
+  Dashboard; bk, las, the log module and mas will be removed (2.0.0, a later task).
+  **Task 6 is dropped, not failed**: it verified the fix for scheduled agents, which will
+  be removed, so the user did not run blocks A and B. The PATH fix stays: it is done,
+  tested and through the gate, and it keeps the tool working when started outside a login
+  shell. The evidence for the found path is the e2e suite (`env -i`, launchd's PATH, a
+  probed prefix, through `script(1)`) and the smoke of module 1 under launchd's
+  environment with the real brew. No launchd job was loaded after the fix; the approved
+  test plist stays in the git-ignored `logs/` (sha256 `84e60212…66ff29`), unused.
+- The choice on #21 made in the first reply (accept it as debt, branch 6 before #18) is
+  superseded: the debt resolves with the removal of bk and log.
+- **The adversarial check of the idle-block finding** (two independent refuters: one on
+  the code, `script(1)`'s source and launchd; one measuring six shapes over 95 s with
+  syscall and context-switch counters and call stacks): **confirmed, an idle block.**
+  The parent zsh (`sigsuspend`) and the child zsh (`read`) made 0 syscalls and 0 context
+  switches; `script(1)` wakes only on its 30 s flush (1–2 syscalls, tens to hundreds of
+  µs; Apple's `script.c` stops polling stdin after forwarding the EOF); nothing grows
+  after the first flush. Corrections to the first claim: for `bk,log` the wait is the log
+  menu's read (`mod_log_manager.sh:89`), not `_handle_log`, and the summary is never
+  reached; with stdin CLOSED (not launchd's shape) `script(1)` forwards no EOF and the
+  child blocks in `write()` with no output at all; stopping the job cleans up (launchd
+  kills the group), killing only the parent orphans an idle pair. Recorded in STATE #21.
+
+## Verification
+- `make check` green; `make test` 311 checks green (30+18+49+9+8+38+72+87), no process
+  left; RED shown for every fix (tasks 1–2, eleven mutants at the first gate, two + nine
+  + two at the re-gates, the Ctrl-C orphan).
+- The smoke of module 1 in `--dry-run` under launchd's environment, with the real brew
+  (read-only): rc 0 in 7 s, "Running modules: 1", one session log.
+- Not verified: the post-fix run under a REAL launchd job (task 6, dropped by the user).
+
+## Problems encountered → cause → solution
+1. Two re-gate lenses stalled on all six attempts over a 9.5-hour run, even on trivial
+   greps → most likely the machine slept → reported as incomplete, rerun on the final
+   diff → IMP-028.
+2. A Bash call writing test code was refused → the deny list matched `rm -rf` inside the
+   heredoc text → written with the Edit tool, and the test uses `rm -f` on the one file
+   → IMP-027.
+3. The final re-gate found the harness could not tell `return` from `exit` → nine
+   mutants had all changed WHAT the unit decides, none HOW it fails → a check on the
+   line printed after the function returned, and a static pin → IMP-029.
+4. The first Ctrl-C experiment was void (`setopt monitor` is refused in a non-interactive
+   `zsh -c`, so no SIGINT reached the harness) → redone with the harness in its own
+   process group via perl → RED then GREEN.
+5. The user's reply held a placeholder instead of the block output → checked read-only
+   that nothing had run, asked again; then the scope change made the run unnecessary.
+
+## Proposals
+- IMP-027, IMP-028, IMP-029 (all `Destination: framework`), OPEN in [[LEARNINGS]].
+
+## Follow-up
+- The user integrates `fix/startup-brew-env` (the printed `/integrate` block; no tag).
+- The user's open decisions: the re-plan of [[plans/debt-cleanup-pre-dashboard]] under
+  the new scope; v1.5.0 first or straight to 2.0.0 (docs/04 and the CHANGELOG say "added
+  in v1.5.0"); the 2.0.0 task (removal of bk, las, the log module and mas — what happens
+  to the LaunchAgents already installed on the Mac is part of it).
+- The approved test plist `logs/com.m2ndlab.verify-n1.plist` is unused and git-ignored;
+  the user may delete it.
 
 ## Links
 [[STATE]] · [[plans/debt-cleanup-pre-dashboard]] ·

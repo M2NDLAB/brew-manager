@@ -1,14 +1,14 @@
 ---
 type: state
-updated: 2026-09-26
-branch: chore/gitignore-d10
+updated: 2026-09-27
+branch: fix/startup-brew-env
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-09-26 | Last: **debt cleanup before the Dashboard — branch 3 of 16** (`chore/gitignore-d10`): `.vault-token`, `vault-keys.json` and `*.iml` added to `.gitignore` (#20 closed; `*.log` stays out by decision D10); LEARNINGS re-verified after branch 2 (IMP-001…025, each once, statuses coherent); the IMP-002 widening to output surfaces handed to the improvement's first task (user decision); the **real-launchd verification plan** for branch 4 written, reviewed adversarially and persisted in [[plans/debt-cleanup-pre-dashboard]] (task 4 section). Branch 2 INTEGRATED (merge `9e4f2b4`). Ready for integration (no tag). Next: branch 4 (N1 + 4b-0) ONLY on the user's go, starting with the launchd verification. → [[sessions/2026-09-26-gitignore-and-launchd-plan]] | Index: [[INDEX]]
+> Updated: 2026-09-27 | Last: **branch 4 `fix/startup-brew-env` done — and a SCOPE CHANGE.** Homebrew is found at its standard prefix when PATH lacks it (launchd, a Finder-started app, any non-login start), exit **69** (`EX_UNAVAILABLE`) when it is unavailable, the installer never offered under `--dry-run` or without a terminal and run as `_brew_install` (download with timeouts, the installer's status read); the docs/04 contract, README, SECURITY.md and an honest CHANGELOG entry; the docs/03 gate plus three re-gate rounds (no CRITICAL/HIGH; every upheld finding fixed, RED shown first); 311 tests. #23 FIXED. Then the user decided: **brew-manager becomes a personal terminal tool — no Dashboard; bk, las, the log module and mas will be removed in 2.0.0** ([[decisions/2026-09-27-personal-terminal-tool]]); the post-fix launchd regression (task 6) was dropped for that reason, and #21 resolves with the removal (checked: an idle block, no CPU loop). The pre-Dashboard programme is suspended pending a re-plan. Branch 4 ready for integration (no tag: the release is open). → [[sessions/2026-09-26-startup-brew-env]] | Index: [[INDEX]]
 
-> **Previous**: framework upgrade v1.0.0 → v1.2.0 INTEGRATED (merge `0725ae6`, post-merge checkpoint merged in `8ed9f5c`, pushed; no tag): the method in English, interaction in Italian → [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]].
+> **Previous**: branch 3 of the debt cleanup (`chore/gitignore-d10`: the `.gitignore` patterns, #20 closed; the real-launchd verification plan) INTEGRATED (merge `050ea6d`; no tag) → [[sessions/2026-09-26-gitignore-and-launchd-plan]].
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -173,7 +173,10 @@ tags: [state]
   **INTEGRATED into main** (merge `0725ae6`, pushed; no tag). →
   [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
   [[plans/framework-upgrade-v1.0.0-to-v1.2.0]].
-- [ ] **Debt cleanup before the Dashboard** (from 2026-09-25; decided by the user after
+- [ ] **Debt cleanup before the Dashboard** — **SUSPENDED by the scope change of
+  2026-09-27** (no Dashboard; bk/las/log/mas removed in 2.0.0 →
+  [[decisions/2026-09-27-personal-terminal-tool]]): branches 1–4 done, tasks 5–16
+  re-planned with the user before anything else starts. (From 2026-09-25; decided by the user after
   a read-only multi-agent inventory → [[sessions/2026-09-24-debt-inventory-pre-dashboard]]):
   16 branches in order ([[plans/debt-cleanup-pre-dashboard]]; decisions
   [[decisions/2026-09-25-debt-cleanup-pre-dashboard]]), one at a time, the security
@@ -189,8 +192,17 @@ tags: [state]
     `9e4f2b4`; no tag). → [[sessions/2026-09-25-apply-project-imps]].
   - [x] Branch 3 `chore/gitignore-d10`: the three template patterns (`7ef025b`), the
     IMP-002 hand-over and the reviewed real-launchd verification plan for branch 4
-    (memory), checkpoint. **Ready for integration** (no tag). →
+    (memory), checkpoint. **INTEGRATED** (merge `050ea6d`; no tag). →
     [[sessions/2026-09-26-gitignore-and-launchd-plan]].
+  - [x] Branch 4 `fix/startup-brew-env` (N1 + 4b-0, #23; [[plans/fix-startup-brew-env]]):
+    the pre-fix run under a REAL launchd job CONFIRMED #23 (2026-09-26); the PATH
+    bootstrap (`c277e20`), exit 69 and the installer only at a terminal (`ae022d9`,
+    `feat` → MINOR), the contract and docs (`df8c0ec`), the CHANGELOG (`b1c78f6`); the
+    docs/03 gate (two runs of five lenses) and three IMP-004 re-gate rounds, each finding
+    challenged by a refuter — no CRITICAL/HIGH, the upheld LOW/INFO fixed with RED first
+    (`b34e719` `1c6105d` `45c5fd2` `3657cc3` `1317307` `b7b56e7` `f68d114` `3c1f76c`
+    `ec6da37`); the post-fix launchd regression DROPPED by the user (scope change); 311
+    tests. **Ready for integration** (no tag). → [[sessions/2026-09-26-startup-brew-env]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -204,7 +216,11 @@ tags: [state]
   stat, delta disco e footer identità. Dal **micro-task dry-run** (2026-07-21)
   esporta `HOMEBREW_NO_AUTO_UPDATE=1` SOLO sotto `--dry-run` (riga 160): senza,
   brew rieseguiva `brew update` da sé prima di `outdated`/`upgrade`/`bundle` e
-  una preview riscriveva comunque l'indice. Vedi [[core-brew-manager]].
+  una preview riscriveva comunque l'indice. Since **branch 4** (2026-09-27) it finds
+  Homebrew by itself when PATH lacks it (`_brew_bootstrap_path`: a brew executable on
+  PATH, else `/opt/homebrew`, then `/usr/local`), exits **69** when Homebrew is
+  unavailable (the exit order: `--version` 0 → unknown flag 2 → Homebrew 69 → selection
+  2/1), and offers the installer only to a person at a terminal (`_brew_install`). Vedi [[core-brew-manager]].
 - `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
   (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
   capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
@@ -244,12 +260,16 @@ tags: [state]
   [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0),
   [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **268 check** con anti-vacuità):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **311 check** con anti-vacuità — 268
+  before branch 4, which took `test_exit_codes.zsh` from 6 to 49):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
-  `test_exit_codes.zsh` (6) fissa l'exit end-to-end del binario reale (sandbox
-  symlink-farm + mock brew con tripwire); `test_capabilities.zsh` (30, BM-09) fissa
+  `test_exit_codes.zsh` (49; 6 before branch 4) fissa l'exit end-to-end del binario reale (sandbox
+  symlink-farm + mock brew con tripwire) — since branch 4 also the launchd-shaped
+  minimal environment, every way out of the Homebrew check (69), the exit order, and
+  `_brew_install` extracted and run against a mock curl (no test answers the installer
+  prompt), through a process-group watchdog (stock `/usr/bin/perl`); `test_capabilities.zsh` (30, BM-09) fissa
   detection colore/Unicode, ladder di degradazione, purezza ASCII fallback e l'e2e
   "pipato = zero ANSI" via il vero re-exec `script(1)`; `test_risk_badges.zsh` (38,
   BM-10) fissa la completezza di `MODULE_RISK` vs `MODULE_DESC`, la classificazione,
@@ -310,6 +330,13 @@ tags: [state]
   new exit code for a failed environment precondition (MINOR → v1.5.0),
   `lib/agents.sh`, the bk [4] and las [c] wet-mode behaviour, and the conditions that
   keep #17 and #3b deferred → [[decisions/2026-09-25-debt-cleanup-pre-dashboard]].
+  **Superseded in part on 2026-09-27** by the scope change below.
+- **Scope change (2026-09-27)**: brew-manager becomes a **personal terminal tool for the
+  maintenance of the user's Mac — no Dashboard**; **bk, las, the log module and mas will
+  be removed in 2.0.0** (a later task; removing frozen module names is a MAJOR); the PATH
+  fix of branch 4 stays; its launchd regression was dropped; #21 resolves with the
+  removal. Open, the user's: the re-plan of the programme, and whether a v1.5.0 is cut
+  before 2.0.0 → [[decisions/2026-09-27-personal-terminal-tool]].
 
 ## Debito documentazione
 - ~~README vs realtà di v1.2.0~~ **SALDATO** in BM-19 ristretto (7f7f90d): rimossi
@@ -339,9 +366,27 @@ tags: [state]
   under-states the footprint and the network traffic. Full list:
   [[sessions/2026-09-24-debt-inventory-pre-dashboard]] (section E). Every fix branch
   rewrites its own section (rule 5); the residue goes in branch 15
-  (`docs/readme-truth`), last.
+  (`docs/readme-truth`), last. Scope change 2026-09-27: the items about bk, las, the log
+  module and mas go with those modules in 2.0.0; the rest is re-planned. → TRIGGER: the
+  re-plan after the scope change.
+- **"Added in v1.5.0"** (branch 4, 2026-09-27): docs/04's exit-code contract and the
+  CHANGELOG `[Unreleased]` name v1.5.0 as the release that adds exit 69, and the
+  CHANGELOG upgrade note speaks of LaunchAgents and of a bk/log hang "to be fixed before
+  the next release". With the scope change the next release may be 2.0.0 (bk/las/log/mas
+  removed) instead. → TRIGGER: the user's release decision (v1.5.0 first, or straight to
+  2.0.0) — then align docs/04 and the CHANGELOG in the release branch.
+- **README and SECURITY.md describe bk, las, the log module and mas** (the scope change,
+  2026-09-27): true until they are removed. → TRIGGER: the 2.0.0 task (rule 5: the
+  removal and its docs in the same branch).
 
 ## Attenzione / problemi aperti
+> **Scope change 2026-09-27** ([[decisions/2026-09-27-personal-terminal-tool]]): no
+> Dashboard; bk, las, the log module and mas are removed in 2.0.0. Every trigger below
+> that names a branch of [[plans/debt-cleanup-pre-dashboard]] (tasks 5–16), the
+> Dashboard, the GUI or "the improvement's first task" is SUSPENDED: its trigger is now
+> **the re-plan after the scope change** (with the user, before the next code task).
+> Entries marked **→ moot with 2.0.0** concern only a module being removed: the 2.0.0
+> task closes each one when its module goes (and checks it really went).
 1. ~~**CLI posizionale + plist scheduler**~~ **CHIUSO (M2, BM-08b+BM-08c)**: il
    dispatch posizionale esiste (BM-08b) e gli agenti lo instradano davvero via
    `_resolve_cli` (BM-08c) — un agente esegue la selezione salvata, non più `go`.
@@ -422,7 +467,7 @@ tags: [state]
    daily/singolo giorno. → TRIGGER: se si vuole davvero la feature multi-giorno,
    va riscritta da zero (serve un writer multi-intervallo anche nel restore).
    Debt inventory 2026-09-24: a feature, not a debt → category (c); re-evaluate in the
-   Dashboard design (a multi-day picker would be an M4 feat, MINOR).
+   Dashboard design (a multi-day picker would be an M4 feat, MINOR). **→ moot with 2.0.0** (las and bk removed).
 6b. **bk: the agents-restore preview does not mirror the restore, and the restore
    degrades silently** (INFO at BM-05a → LOW/MEDIUM, widened by the debt inventory
    2026-09-24): the preview mirrors the skip of an invalid `modules=` value, but it
@@ -433,7 +478,7 @@ tags: [state]
    "00"–"09" brew-manager itself writes (an agent at 9:05 is restored at 9:00,
    silently). README :390 and the code comment "the preview never lies" are false. →
    branch 11 (`fix/bk-agent-trust`: one verdict shared by preview and restore, in
-   `lib/agents.sh`).
+   `lib/agents.sh`). **→ moot with 2.0.0** (bk removed).
 7. ~~The pre-existing git history was never scanned~~ **CLOSED** (2026-09-25, branch
    `chore/imp-022-sensitive-selection`): `gitleaks detect --redact --log-opts="--all
    -m"` with gitleaks 8.30.1 and the default rules (no `.gitleaks.toml`, no
@@ -491,7 +536,7 @@ tags: [state]
    reachable once the Dashboard or the BM-15 presets write agents with
    `--only`/`--skip`. README :417 is false. → branch 12 (`fix/las-agent-trust`): read
    the whole
-   argv, validate it with the real grammar, drop the `go` placeholder.
+   argv, validate it with the real grammar, drop the `go` placeholder. **→ moot with 2.0.0** (las removed).
 13. **Agent labels from untrusted data** (PRE-EXISTING, found by the BM-08c gate as
    LOW → LOW/MEDIUM, widened
    2026-09-24): no label validation on las's data paths (recreate, repair, Modify,
@@ -500,7 +545,7 @@ tags: [state]
    and a `../` label makes [5] Remove `rm` any writable `*.plist` outside
    ~/Library/LaunchAgents. → one predicate `^com\.m2ndlab\.brew-manager\.[A-Za-z0-9._-]+$`
    in the new sensitive `lib/agents.sh`: the bk half in branch 11, the las half in
-   branch 12.
+   branch 12. **→ moot with 2.0.0** (bk and las removed).
 14. **`MODULE_DRYRUN` è la lista dei moduli che NON rispettano `--dry-run`**
    (BM-12). ~~`[2]=0` e `[mas]=0`~~ **CHIUSI** (micro-task 2026-07-21: entrambi
    ora `1`, gate dimostrato). Al loro posto `[bk]=0` e `[las]=0`, che erano `1`
@@ -515,7 +560,7 @@ tags: [state]
    lista fallisce, e una voce che non è più debito fallisce pure — quindi al fix
    di #15/#16 va aggiornata `_KNOWN_UNGATED` in `tests/test_run_summary.zsh`.
    → TRIGGER: fix di #15 o #16. Closed inside branches 9 and 10 of the debt cleanup
-   (each flips its own entry).
+   (each flips its own entry). **→ moot with 2.0.0** for bk and las (their `MODULE_DRYRUN` entries and the `_KNOWN_UNGATED` allow-list entries go with them; the allow-list must then be empty and the test adjusted).
 15. **`mod_bk [4] Check` esegue il Brewfile come DSL Ruby in una preview**
    (MEDIUM, gate 2026-07-21, PRE-ESISTENTE — accettato come debito, non fixato
    qui perché `mod_bk` è componente sensibile e merita task+review propri):
@@ -529,7 +574,7 @@ tags: [state]
    bare `read`, so a non-TTY caller writing the answer after the prompt reaches [4]).
    → branch 9 (`fix/bk-dryrun-check`): a static check only in dry-run; in wet mode
    `brew bundle check` behind a confirmation that names the Brewfile execution, with
-   `HOMEBREW_NO_AUTO_UPDATE=1` (user decision).
+   `HOMEBREW_NO_AUTO_UPDATE=1` (user decision). **→ moot with 2.0.0** (bk removed).
 16. **`mod_las [c]` cancella i log di audit senza gate + `mkdir` ungated**
    (MEDIUM+LOW, gate 2026-07-21, PRE-ESISTENTE — stesso motivo di #15):
    il case `c|C` fa `rm -f` su `agents_activity.log` e su tutti i
@@ -544,7 +589,7 @@ tags: [state]
    Debt inventory 2026-09-24: the "mkdir in mod_log:15" part is a no-op
    (brew_manager.sh:67-70 always creates `logs/`); the only mkdir outside the tool is
    `~/Library/LaunchAgents`; [c] has no confirmation in wet mode either. → branch 10
-   (`fix/las-dryrun-clean`), with `_ask_danger` before [c] in wet mode (user decision).
+   (`fix/las-dryrun-clean`), with `_ask_danger` before [c] in wet mode (user decision). **→ moot with 2.0.0** (las removed).
 17. **`(( BREW_MANAGER_DRY_RUN ))` è aritmetica su una stringa d'ambiente**
    (INFO, gate 2026-07-21, PRE-ESISTENTE on every site — 27, see below): in zsh
    `y`/`yes`/`true` valgono "gate spento" e una stringa `NAME=value` in contesto
@@ -591,7 +636,7 @@ tags: [state]
    belong to the same fix. README :565 ("any number is fine internally") is the trap.
    → branch 5 (`refactor/module-fn-names`, through the security gate — dispatch, bk,
    las): `_module_bk/las/mas`, a generic dispatch, a wiring guard test. Details:
-   [[sessions/2026-09-24-debt-inventory-pre-dashboard]] (section B).
+   [[sessions/2026-09-24-debt-inventory-pre-dashboard]] (section B). **→ moot with 2.0.0**: `_module_14/15/16` are bk/las/mas, all removed — the 2.0.0 task checks that no `_module_14`–`16` and no `bk|las|mas` dispatch case is left.
 19. ~~**`lib/selection.sh` missing from the sensitive components**~~ **CLOSED**: IMP-022
    applied on 2026-09-25 (`90cb34c`) — it is in CLAUDE.md rule 8 and the technical
    rules, docs/03, docs/00, [[2026-07-12-componenti-sensibili]] and INDEX, and
@@ -613,12 +658,46 @@ tags: [state]
    pipe EVERY run waits at the log prompt; on a terminal `go --yes` stops there (README
    :162 false). [[lib-common]] recorded a false cause (fixed). → branch 6
    (`fix/headless-prompts`).
+   **2026-09-27 — made reachable by branch 4, then its nature checked.** The gate of
+   branch 4 (MEDIUM, upheld): with Homebrew now found under launchd, installed agents
+   that select bk or log start and hang. The user asked whether that hang burns CPU.
+   **It does not — an idle block** (the user's question; a code trace, a first sandbox
+   run, then two independent refuters — [[sessions/2026-09-26-startup-brew-env]]): each
+   menu reads once and an empty answer takes the default `n` and breaks
+   (`mod_bk_brewfile.sh:286`/`:318`/`:655-659`, `mod_log_manager.sh:75`/`:89`/`:190-192`);
+   the wait is the NEXT menu-driven read — `_handle_log` (lib/log.sh:21) for `bk` or
+   `log` alone, the log menu (`mod_log_manager.sh:89`) for `bk,log`, which then never
+   reaches the summary. Measured over 95 s in launchd's shape: the parent zsh (in
+   `sigsuspend`) and the child zsh (in `read`) made 0 syscalls and 0 context switches;
+   `script(1)` wakes only on its 30 s flush timer (1–2 syscalls, tens to hundreds of µs
+   per tick; per Apple's `script.c` it stops polling stdin after forwarding the EOF);
+   nothing grows after the first flush. Stopping the job (launchd kills the process
+   group) leaves nothing; killing only the parent orphans `script` and the child, still
+   idle. By launchd's one-instance-per-label model (inferred, not tested) a hung agent
+   misses its own later runs, and instances do not pile up. Severity stays MEDIUM.
+   **Decision (the user, 2026-09-27)**: the debt resolves with the removal of bk and log
+   in 2.0.0 ([[decisions/2026-09-27-personal-terminal-tool]]); the same day's earlier
+   choice (accept it and move branch 6 before #18) is superseded. **What survives the
+   removal**: `_handle_log`'s bare `read` is not the log module — it runs at the end of
+   every session and ignores `--yes`, so a terminal run with `--yes` stops at the log
+   prompt and a run whose stdin is an open pipe waits there. → TRIGGER: the 2.0.0 task
+   (bk and log go; re-check `_handle_log` then).
 22. **mod_bk ignores NON_INTERACTIVE** (LOW-MEDIUM, 2026-09-24): its menu and the
    Delete selection read stdin directly and there is no guard like las:19, so a non-TTY
    run WITHOUT --yes, with piped answers, deleted the Brewfile and the agents bundle
    under a banner saying "every prompt is declined, nothing is modified". → branch 6,
-   with #21.
-23. **Startup without Homebrew on PATH; the built-in installer** (MEDIUM, 2026-09-24):
+   with #21. **→ moot with 2.0.0** (bk removed).
+23. ~~**Startup without Homebrew on PATH; the built-in installer**~~ **FIXED on
+   `fix/startup-brew-env` (2026-09-27), closed at its merge** — the PATH bootstrap
+   (`/opt/homebrew`, then `/usr/local`, only when no brew executable is on PATH), exit
+   **69** on every "Homebrew unavailable" way out (docs/04 contract), the installer
+   never offered under `--dry-run` nor without a terminal, `_ask` default `n`, the
+   download with timeouts and the installer's status read (`_brew_install`); the gate and
+   three re-gate rounds; 49 checks in `tests/test_exit_codes.zsh` and a smoke under
+   launchd's environment with the real brew. The post-fix run under a real launchd job
+   was DROPPED by the user (the scope change: the agents go in 2.0.0). → TRIGGER for the
+   residue: none — reopen only if a start outside a login shell fails to find Homebrew.
+   The original entry (MEDIUM, 2026-09-24):
    no PATH bootstrap (`/opt/homebrew/bin`, `/usr/local/bin`) — under launchd or from a
    GUI launched by the Finder (PATH=/usr/bin:/bin:/usr/sbin:/sbin) the tool says
    "Homebrew is not installed" and exits **0**, so the installed LaunchAgents never run
@@ -636,7 +715,7 @@ tags: [state]
 24. **The las recreate fails on zero-padded minutes** (LOW, 2026-09-24): recreating a
    pending conf passes "00"–"09" to `_install_agent`, whose regex rejects them — the
    default agents at 09:00 included; an unknown day becomes a silent daily agent. →
-   branch 12, with the parser shared through `lib/agents.sh`.
+   branch 12, with the parser shared through `lib/agents.sh`. **→ moot with 2.0.0** (las removed).
 25. **The child recomputes LOG_FILE** (LOW, 2026-09-24): it is computed in the parent
    and again in the re-executed child, so across a second boundary (3 of 32 real logs)
    or in the mktemp fallback (always) the banner, the summary and "[3] Delete" point to
@@ -651,7 +730,7 @@ tags: [state]
    2026-09-24): the scheduler accepts, and even suggests, `bk`/`log`/`las`/`mas` as an
    agent selection; non-interactively their menus take the default n (las returns on
    purpose). Refuse them in `_install_agent` and the bk restore, or document it →
-   TRIGGER: the improvement's first task (category (b)), with the outcome contract.
+   TRIGGER: the improvement's first task (category (b)), with the outcome contract. **→ moot with 2.0.0** (las removed: no agents).
 28. **Handoff variables trusted from the environment on a fresh start** (INFO/LOW,
    2026-09-24): an inherited `BREW_MANAGER_RECORDING=1` skips the `script(1)` re-exec
    (no session log, while `_handle_log` names one) and lets TUI_*/NONINTERACTIVE come
@@ -662,7 +741,7 @@ tags: [state]
 29. **bk wet previews trigger Homebrew's auto-update** (INFO, 2026-09-24): `bundle` is
    one of Homebrew's auto-update commands, so the read-only `brew bundle dump`/`check`
    of [2]/[2b]/[4] may rewrite the index despite "no disk writes". → branch 9 (user
-   decision: `HOMEBREW_NO_AUTO_UPDATE=1` on those calls).
+   decision: `HOMEBREW_NO_AUTO_UPDATE=1` on those calls). **→ moot with 2.0.0** (bk removed).
 - [[LEARNINGS]] (retro of the upgrade, 2026-09-24; OPEN, propose-only): **IMP-012**
   hooks-install vs linked worktrees; **IMP-013** the edge-case-4 rollback needs
   `FORCE_OVERWRITE=1`; **IMP-014** docs/05 delimiters without the promised legacy
@@ -680,19 +759,25 @@ tags: [state]
   code already complies); retro: **IMP-025** (applying an IMP: map the proposal, run
   what the rule prescribes; `Destination: framework`), OPEN. Branch 3 (2026-09-26):
   **IMP-026** (command blocks for the user: self-contained, literal, no inline comments;
-  `Destination: framework`), OPEN.
+  `Destination: framework`), OPEN. Branch 4 (2026-09-27): **IMP-027** (the Bash deny patterns
+  match heredoc bodies: write such content with the editor tools), **IMP-028** (a stalled
+  gate lens is a hole: rerun it on the CURRENT diff), **IMP-029** (mutation checks also
+  change HOW a unit fails) — all `Destination: framework`, OPEN.
 
 ## Branch attivi
-- **chore/gitignore-d10** (branch 3 of the debt cleanup: `.gitignore`, and memory: the
-  IMP-002 hand-over, the launchd verification plan) = **READY for the user's
-  integration** (`/integrate` block, no tag).
-- **main** = integration + stable (trunk-based); HEAD `9e4f2b4` (merge of branch 2 of
-  the debt cleanup; below it `73bc5ee` (branch 1), `8ed9f5c`, the post-upgrade
-  checkpoint, `0725ae6`, the framework upgrade, and the release merge `ab45323`),
-  aligned with
-  `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` → `ab45323`) + `v1.3.0`
-  + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]`:
-  empty. `make version-check` green.
+- **fix/startup-brew-env** (branch 4 of the debt cleanup: N1 + 4b-0, #23 — code,
+  tests, docs, CHANGELOG `[Unreleased]`, memory) = **READY for the user's integration**
+  (`/integrate` block; a `feat` inside → MINOR, but no tag now: the release — v1.5.0
+  first, or straight to 2.0.0 — is the user's open decision).
+- **main** = integration + stable (trunk-based); HEAD `050ea6d` (merge of branch 3 of
+  the debt cleanup; below it `9e4f2b4` (branch 2), `73bc5ee` (branch 1), `8ed9f5c`, the
+  post-upgrade checkpoint, `0725ae6`, the framework upgrade, and the release merge
+  `ab45323`), aligned with `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3`
+  → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper).
+  `CHANGELOG [Unreleased]` on main: empty (branch 4 fills it). `make version-check`
+  green.
+- **chore/gitignore-d10** (branch 3 of the debt cleanup) = **INTEGRATED into main**
+  (merge `050ea6d`; no tag), branch deleted.
 - **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) =
   **INTEGRATED into main** (merge `0725ae6`, pushed; no tag), branch deleted. The git
   hooks installed from it (English marker) are the ones `main` now generates; the two

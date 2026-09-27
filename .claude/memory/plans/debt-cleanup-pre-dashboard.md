@@ -8,6 +8,14 @@ tags: [plan, debt, security, dashboard]
 ---
 # Plan: close the open debts before the Dashboard improvement
 
+> **SUPERSEDED IN PART — re-plan pending (2026-09-27).** The user changed the scope:
+> brew-manager becomes a personal terminal tool, there is no Dashboard, and bk, las, the
+> log module and mas will be removed in 2.0.0 (a later task) →
+> [[decisions/2026-09-27-personal-terminal-tool]]. Branches 1–4 are done; the order and
+> the content of tasks 5–16 below no longer hold as written — many concern only the
+> modules being removed or the GUI. They are re-planned with the user; nothing below
+> task 4 starts from this list.
+
 ## Goal
 Every (a) item of [[sessions/2026-09-24-debt-inventory-pre-dashboard]] closed,
 integrated and released as v1.5.0; the (b) items handed to the improvement's first
@@ -37,7 +45,10 @@ task; the (c) items tracked in STATE with their triggers.
   code for the failed environment precondition, added to the docs/04 contract (MINOR);
   the README exit-status paragraph; the real-launchd check with the user (procedure
   below, to run before any code). Gate: yes.
-  — commit: —
+  — done on `fix/startup-brew-env` ([[plans/fix-startup-brew-env]]): the pre-fix run
+  CONFIRMED #23 under a real launchd job (2026-09-26); the fix, exit 69 and the
+  installer rework, the gate and the re-gate rounds; the post-fix launchd regression
+  DROPPED after the scope change (2026-09-27). Ready for integration.
 - [ ] 5. `refactor/module-fn-names` — #18: `_module_bk`/`_module_las`/`_module_mas`, a
   generic dispatch, the `las`/`mas` section headers, the wiring guard test; README
   "Adding a new module", CLAUDE.md, new-component.md. Gate: yes (a light adversarial
@@ -208,6 +219,8 @@ that first task receives, from the inventory and the user's decisions:
 ## Resumption notes
 - Branch names of tasks 4–16 are provisional; each branch's checkpoint records the real
   one and the merge sha here.
+- 2026-09-27: branch 3 INTEGRATED (merge `050ea6d`); branch 4 ready for integration;
+  the scope change suspends tasks 5–16 until the re-plan (see the note at the top).
 
 ## Links
 [[STATE]] · [[sessions/2026-09-24-debt-inventory-pre-dashboard]] ·

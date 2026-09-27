@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-26
+updated: 2026-09-27
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -386,6 +386,52 @@ tags: [improvement]
   template out of the code block.
 - Expected benefit / risk: blocks that paste cleanly into any shell, in any order, with
   no silent widening of a target. Risk: slightly longer blocks.
+- Destination: framework
+
+### IMP-027 — The Bash deny patterns match the whole command text, heredoc bodies included
+- Date: 2026-09-27 | Origin: [[sessions/2026-09-26-startup-brew-env]] — a test-code insertion refused
+- Observed problem: a Bash call that wrote new test code into a file through a python
+  heredoc was refused, because the TEXT being written contained `rm -rf` (a sandbox
+  cleanup inside the test), which `.claude/settings.json` denies. Nothing was going to
+  run `rm -rf`; the deny pattern matched the file content. docs/04's permission section
+  explains `deny` as a list of operations, not as a match on the command text.
+- Proposal: add one line to docs/04 "Permission configuration": deny patterns are
+  matched against the whole command text, heredoc and inline-script bodies included, so
+  file content that mentions a denied command is written with the editor tools
+  (Write/Edit), not through a Bash heredoc — and the deny list is never weakened to make
+  such a write pass.
+- Expected benefit / risk: no refused call and no temptation to widen `allow`. Risk: none.
+- Destination: framework
+
+### IMP-028 — A stalled gate lens is a hole: rerun it on the CURRENT diff, fixes included
+- Date: 2026-09-27 | Origin: [[sessions/2026-09-26-startup-brew-env]] — two of three re-gate lenses stalled
+- Observed problem: in the re-gate of branch 4, two of the three lenses stalled on all
+  six attempts over a 9.5-hour run (even on trivial greps; the machine most likely
+  slept). Meanwhile the third lens's findings had been fixed. Resuming the stale run
+  would have reviewed a diff that no longer existed; reading its one completed lens as
+  "the re-gate" would have been a false pass. docs/03 asks to reconcile the count before
+  acting, but says nothing on what to do with the missing part.
+- Proposal: in docs/03 "Before acting on the findings", add: a lens that did not
+  complete is reported as NOT RUN, never folded into the verdict; it is rerun as a fresh
+  run on the branch's CURRENT diff (the fixes applied meanwhile included), and the brief
+  names what already completed so it is not re-reported.
+- Expected benefit / risk: no false "gate passed" and no review of a stale diff. Risk: an
+  extra run.
+- Destination: framework
+
+### IMP-029 — Mutation checks also change HOW a unit fails, not only what it returns
+- Date: 2026-09-27 | Origin: [[sessions/2026-09-26-startup-brew-env]] — the final re-gate's LOW
+- Observed problem: the suite extracted `_brew_install` and ran it in a harness that
+  ended with `exit $?`, so a `return 1` and an `exit 1` inside the function gave the same
+  status. Nine mutants had been checked, all on WHAT the unit decides (status ignored,
+  timeouts removed, a second download), none on HOW it fails; the final re-gate found
+  that turning the returns into exits — production exit 1 instead of 69 — passed 48/48.
+- Proposal: extend docs/02 "Tests that demonstrate", point (d): among the mutants,
+  include one that changes the failure CHANNEL (return ↔ exit, stdout ↔ stderr, a status
+  ↔ a message only), and when a unit is run through a harness, assert something the
+  harness prints only AFTER the unit returned.
+- Expected benefit / risk: a harness can no longer erase the difference the contract
+  depends on. Risk: one or two more mutants per suite.
 - Destination: framework
 
 <!-- Format of a proposal:
