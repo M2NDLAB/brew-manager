@@ -41,8 +41,9 @@ It is **not** a replacement for Homebrew. It is a maintenance and audit layer on
 brew-manager finds Homebrew on your `PATH` or, when the `PATH` lacks it — a scheduled
 LaunchAgent, an app started from the Finder — at its standard prefix: `/opt/homebrew`
 (Apple Silicon) is tried first, then `/usr/local` (Intel); a `brew` executable already
-on your `PATH` is always used as it is (a shell function or alias named `brew` does not
-count). Scheduled runs do not read your shell profiles, so
+on your `PATH` is always used as it is. A shell function or alias named `brew` does not
+count as Homebrew being installed, but if `~/.zshenv` defines one, brew-manager's
+commands still go through it. Scheduled runs do not read your shell profiles, so
 `HOMEBREW_*` settings exported in `~/.zprofile` or `~/.zshrc` (such as
 `HOMEBREW_NO_ANALYTICS`) do not reach them: put those in `~/.zshenv`, or use a
 persistent setting such as `brew analytics off`. If Homebrew is missing altogether, the tool

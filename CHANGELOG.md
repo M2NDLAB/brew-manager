@@ -38,7 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Now it is never offered under `--dry-run`, a run without a terminal gets no prompt
   at all, and at a terminal it needs an explicit "y" — `--yes` never installs
   Homebrew. The install script is downloaded with timeouts and run only if the
-  download succeeded: a failed or partial download used to be handed to bash.
+  download succeeded: a failed or partial download used to be handed to bash. An
+  installer that fails is reported as a failure even when it left `brew` behind (its
+  last step is a `brew update`, which can fail on a network drop): that used to print
+  "installed successfully" and start the run.
 
 ### Added
 - **Exit status `69` — Homebrew unavailable** (sysexits `EX_UNAVAILABLE`): Homebrew
@@ -47,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - A run that cannot start because Homebrew is missing now exits `69` instead of `0`
-  (and a failed Homebrew installation exits `69` instead of `1`). A script or CI job
+  (and a failed Homebrew installation exits `69` instead of `1`, or instead of going
+  on when the failed installer left `brew` behind). A script or CI job
   that treated such a run as a success will now see it as a failure — which it is.
 - A `brew` defined only as a shell function or an alias (for example in `~/.zshenv`)
   no longer counts as Homebrew: brew-manager needs the `brew` executable on `PATH` or
