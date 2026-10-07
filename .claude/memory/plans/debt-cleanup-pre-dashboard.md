@@ -221,6 +221,10 @@ that first task receives, from the inventory and the user's decisions:
   one and the merge sha here.
 - 2026-09-27: branch 3 INTEGRATED (merge `050ea6d`); branch 4 ready for integration;
   the scope change suspends tasks 5–16 until the re-plan (see the note at the top).
+- 2026-10-07: branch 4 INTEGRATED (merge `bc114b9`). Task 16, the release, brought
+  forward by the user ahead of the re-plan: `chore/release-v1.5.0` (`6815a5c`, VERSION
+  and CHANGELOG only, a light gate) → [[sessions/2026-10-07-release-v1.5.0]]. Tasks 5–15
+  stay suspended.
 
 ## Links
 [[STATE]] · [[sessions/2026-09-24-debt-inventory-pre-dashboard]] ·

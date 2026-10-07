@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-09-27
+updated: 2026-10-07
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -163,7 +163,11 @@ tags: [moc]
   CONFIRMED under a real launchd job, then fixed — the Homebrew PATH bootstrap, exit 69,
   the installer only at a terminal (`_brew_install`); the gate and three re-gate rounds;
   #21 checked as an idle block; the scope change (no Dashboard) and the dropped launchd
-  regression. Ready for integration.
+  regression. INTEGRATED (merge `bc114b9`).
+- [[sessions/2026-10-07-release-v1.5.0]] — release v1.5.0: VERSION 1.5.0, CHANGELOG
+  `[1.5.0]` (the agents of v1.3.0/v1.4.0 never ran Homebrew; Deprecated: bk, las, log,
+  mas go in 2.0.0; Known limitations); version-check proven in a clone with the tag; a
+  light gate. Ready for the user's release merge and tag.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -202,6 +206,7 @@ tags: [moc]
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
 - [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
   branches in order, one at a time; branches 1–4 done; **suspended by the scope change
-  of 2026-09-27**, tasks 5–16 to be re-planned with the user.
+  of 2026-09-27**, tasks 5–15 to be re-planned with the user; task 16 (release v1.5.0)
+  brought forward on 2026-10-07.
 - [[plans/fix-startup-brew-env]] — plan of branch 4 (7 tasks; task 6, the post-fix
   launchd regression, dropped by the user), status: completed.
