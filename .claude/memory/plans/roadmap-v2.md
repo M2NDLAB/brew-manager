@@ -1,5 +1,9 @@
 # brew-manager — Piano di lavoro atomizzato (roadmap v2)
 
+> **SUPERSEDED on 2026-10-07** by [[plans/v2-personal-tool]] (brew-manager 2.0.0, a
+> personal terminal tool — [[decisions/2026-10-07-v2-plan]]): M1–M3 are done; BM-17 goes
+> with las; BM-15, BM-16 and BM-18 are post-2.0.0 candidates only. Kept as history.
+
 Documento di lavoro. Vive in `.claude/memory/plans/roadmap-v2.md`.
 Fonte dello stato del codice: assessment Claude Code (verificato a disco, non dal README).
 Distinzione usata nel testo: **[fatto]** = verificato dall'assessment · **[op]** = opinione tecnica ·

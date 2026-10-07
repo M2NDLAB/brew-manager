@@ -25,12 +25,12 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
 
 ## Tasks
 - [ ] 1. `chore/replan-v2` — memory and process only; no gate, no tag. Tasks:
-  - [ ] 1.1 this plan, the decision record, the assessment note — commit: —
-  - [ ] 1.2 the v1.5.0 reconciliation (STATE front matter, header, progress, decisions,
+  - [x] 1.1 this plan, the decision record, the assessment note — commit: `7b29470`
+  - [x] 1.2 the v1.5.0 reconciliation (STATE front matter, header, progress, decisions,
     branches; INDEX; the old plan's task 16; the release note's outcome) and the triage
     BY DECISION (#17 and #28 accepted, 4b-3, the Dashboard/GUI items, roadmap-v2 and the
     pre-Dashboard plan superseded); module-bound entries pointed at B3; new entries with
-    their branch — commit: —
+    their branch — commit: this task's commit
   - [ ] 1.3 IMP-030 applied: the path-based gate (CLAUDE.md rule 8 and the sensitive
     paragraph, docs/03, docs/00, the 2026-07-12 decision) — commit: —
   - [ ] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: —
