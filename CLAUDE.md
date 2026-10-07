@@ -56,12 +56,15 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
    start over and do NOT delete the branch — discard only the uncommitted half-done
    task (scripts/reset-task.sh) and resume from the first unticked task. The commits
    of completed tasks are never touched.
-8. **Security gate** per 03-security-gate.md: on sensitive components
-   (`mod_00_audit`, `mod_05_cleanup`, `mod_bk_brewfile`, `mod_las_scheduler`,
-   `brew_manager.sh`, `lib/common.sh`, `lib/selection.sh` — list with its rationale
-   in 03-security-gate.md) run /security-review BEFORE the PR; HIGH/CRITICAL
-   findings resolved, MEDIUM resolved or accepted as debt in STATE.md (with the
-   reason), LOW at least recorded.
+8. **Security gate** per 03-security-gate.md — PATH-BASED: a change to a path that
+   deletes, installs, modifies Homebrew's configuration or decides what runs (the
+   paths, and the sensitive components that hold them, are listed with their
+   rationale in 03-security-gate.md) goes through the gate BEFORE the PR: one review
+   lens, plus a refuter only where the change widens what such a path authorises;
+   HIGH/CRITICAL findings resolved, MEDIUM resolved or accepted as debt in STATE.md
+   (with the reason), LOW at least recorded. Other edits, including edits to a
+   sensitive component that do not touch such a path, are verified by the author. No
+   multi-hour review workflows unless the risk justifies them.
 9. **Language** — two axes, and only one of them is yours to choose:
    - **ARTIFACTS: always English.** Everything that lands in the repo — code,
      comments, documentation, memory, future commit messages, IMP entries, session
@@ -156,13 +159,18 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   returns at once without one (its headless smoke only proves the dispatch reaches
   it) — the user smokes those from a real terminal. The menu is checked by the user
   from a real terminal too: a CLI run never renders it.
-- **Sensitive components** (rule 8): `mod_00_audit` (app adoption),
-  `mod_05_cleanup` (autoremove/cleanup), `mod_bk_brewfile` (restore, plist),
-  `mod_las_scheduler` (LaunchAgent persistence), plus `brew_manager.sh` and
-  `lib/common.sh` as the shared infrastructure of the guard-rails (a defect in
-  `_ask`/YES_MODE or in the dispatch propagates to every module), and
-  `lib/selection.sh`, the selection resolver and the per-id registries (a defect
-  there decides WHICH modules run, for the CLI, the menu and the LaunchAgents).
+- **Sensitive components** (rule 8, path-based since IMP-030): the files that hold a
+  gated path — `mod_00_audit` (adoption: installs), `mod_04_updates` (upgrades:
+  installs), `mod_05_cleanup` (autoremove/cleanup: deletes), `mod_10_greedy` (greedy
+  upgrades: installs), `mod_01_health` (the developer-mode restore: modifies Homebrew's
+  configuration, from task 2 of the 2.0.0 plan), `mod_bk_brewfile`, `mod_las_scheduler`,
+  `mod_log_manager` and `mod_mas_mas` (restore, plists, launchctl, deletions, installs —
+  until their removal in 2.0.0), `brew_manager.sh` (the Homebrew installer, the
+  dispatch, `--yes`, the session's own temporary files), `lib/common.sh` (`_ask`,
+  `_read_choice`, YES_MODE, DRY_RUN: a defect there propagates to every module) and
+  `lib/selection.sh` (the resolver and the per-id registries: a defect there decides
+  WHICH modules run). The gate applies to a change to one of those PATHS; any other
+  edit to these files is verified by the author.
 - **Where the project documentation lives** (rule 5): `README.md`.
 - **Interaction language** (rule 9): Italian.
   - Project boundary of rule 9 for the existing memory: the memory written in Italian

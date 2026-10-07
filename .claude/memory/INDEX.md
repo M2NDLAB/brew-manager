@@ -176,7 +176,8 @@ tags: [moc]
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
 - [[2026-07-12-componenti-sensibili]] — the "blast radius on the Mac" criterion
-  and the components under the gate (seven since IMP-022: + `lib/selection.sh`)
+  and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
+  PATH-BASED since IMP-030, 2026-10-07)
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe

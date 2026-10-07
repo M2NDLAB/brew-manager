@@ -304,9 +304,12 @@ tags: [state]
 ## Decisioni prese (non ovvie dal codice)
 - Trunk-based su `main` (integrazione = stabile); `origin/dev` dormiente, non è
   l'integrazione → [[2026-07-12-trunk-based-su-main]].
-- Sensitive components (rule 8 / docs/03): mod_00, mod_05, mod_bk, mod_las +
-  `brew_manager.sh` + `lib/common.sh` + `lib/selection.sh` (the last one since
-  IMP-022, 2026-09-25) → [[2026-07-12-componenti-sensibili]].
+- The security gate is PATH-BASED since IMP-030 (2026-10-07): one lens on a change to a
+  path that deletes, installs, modifies Homebrew's configuration or decides what runs (a
+  refuter only where the change widens what the path authorises); the paths in docs/03,
+  the components that hold them in CLAUDE.md — mod_00, mod_04, mod_05, mod_10, mod_01 (from
+  task 2), bk/las/log/mas until 2.0.0, `brew_manager.sh`, `lib/common.sh`,
+  `lib/selection.sh` → [[2026-07-12-componenti-sensibili]].
 - commitlint mantenuto benché il progetto non usi Node (npx risolve al volo, zero
   footprint nel repo); formattazione hook lasciata commentata (shfmt non installato).
 - Language (since the framework v1.2.0 upgrade, 2026-09-24): artifacts in English

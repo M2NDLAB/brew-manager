@@ -30,9 +30,10 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
     branches; INDEX; the old plan's task 16; the release note's outcome) and the triage
     BY DECISION (#17 and #28 accepted, 4b-3, the Dashboard/GUI items, roadmap-v2 and the
     pre-Dashboard plan superseded); module-bound entries pointed at B3; new entries with
-    their branch — commit: this task's commit
-  - [ ] 1.3 IMP-030 applied: the path-based gate (CLAUDE.md rule 8 and the sensitive
-    paragraph, docs/03, docs/00, the 2026-07-12 decision) — commit: —
+    their branch — commit: `dda0ccb`
+  - [x] 1.3 IMP-030 applied: the path-based gate (CLAUDE.md rule 8 and the sensitive
+    paragraph, docs/03, docs/00, `/new-component`, `/security-review`, the 2026-07-12
+    decision) — commit: this task's commit
   - [ ] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: —
   - [ ] 1.5 /checkpoint and the printed /integrate — commit: —
 - [ ] 2. `fix/homebrew-developer-mode` — module 1 never leaves Homebrew in developer mode;

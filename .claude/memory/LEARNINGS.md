@@ -447,6 +447,26 @@ tags: [improvement]
 
 ## Applicate
 
+### IMP-030 — A path-based, proportionate security gate → applied on 2026-10-07 (approved by the user with the 2.0.0 plan, D11), on chore/replan-v2
+- Date: 2026-10-07 | Origin: [[sessions/2026-10-07-replan-v2-assessment]] — the user's proportionality rule for a personal terminal tool
+- Observed problem: rule 8 gated every branch that touched a sensitive FILE, with
+  /security-review at full size; for this project that meant multi-lens, multi-hour
+  workflows (branch 4: a 5-lens gate in two runs plus three re-gate rounds, one of them
+  9.5 hours) also on edits that changed no dangerous path. Meanwhile real install paths
+  (mod_04's `brew upgrade`, mod_10's greedy upgrade) were outside the gate as "medium
+  risk", and a path that changes Homebrew's configuration had no category at all.
+- Proposal: gate a change to a PATH that deletes, installs, modifies Homebrew's
+  configuration or decides what runs; one lens, a refuter only where the change widens
+  what the path authorises; other edits verified by the author; no multi-hour workflows
+  unless the risk justifies them.
+- Expected benefit / risk: the review effort goes where the blast radius is; install
+  paths outside the old list come in. Risk: a dangerous change mis-classified as "not a
+  path" skips the gate — the path list in docs/03 is the guard, and `/new-component` step
+  6 keeps it in step.
+- Applied: CLAUDE.md rule 8 and the sensitive-components paragraph, docs/03 (the paths,
+  the one lens, the re-gate), docs/00 (cycle step 2), `/new-component` step 6, the
+  2026-07-12 decision (amendment), STATE and INDEX.
+
 ### IMP-003 — Convenzione: mai `echo` per normalizzare DATI (espande gli escape) → applied on 2026-09-25 (explicit user approval), commit `a59d5eb` + review fix `36aa1b2` on chore/apply-project-imps
 - Data: 2026-07-17 | Origine: gate di sicurezza BM-08b, finding MEDIUM R1.
 - Problema osservato: `_n=$(echo "$_n" | tr -d ' ')` nel resolver espandeva i

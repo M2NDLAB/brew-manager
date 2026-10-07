@@ -33,3 +33,15 @@ tags: [decision]
   gate. The flag parsing stays in `brew_manager.sh`. The lists to keep in step:
   CLAUDE.md (rule 8 and the technical rules), docs/03, docs/00, this note and
   INDEX; `/new-component` step 6 names them.
+- **Amendment (2026-10-07, IMP-030, approved by the user with the 2.0.0 plan, D11)**:
+  the gate becomes PATH-BASED. It applies to a change to a path that deletes, installs,
+  modifies Homebrew's configuration or decides what runs; the paths are listed in
+  docs/03, and the files that hold them — the sensitive components — in CLAUDE.md
+  (technical rules). That widens the list to `mod_04_updates` and `mod_10_greedy`
+  (upgrades install: the "medium risk, outside the gate" choice above is reversed) and to
+  `mod_01_health` once it can restore Homebrew's developer mode; `mod_bk`, `mod_las`,
+  `mod_log` and `mod_mas` leave with 2.0.0. The size shrinks: one review lens, a refuter
+  only where a change widens what a path authorises, other edits to these files verified
+  by the author, no multi-hour workflows unless the risk justifies them. Why: the user's
+  proportionality rule for a personal terminal tool —
+  [[2026-10-07-v2-plan]].
