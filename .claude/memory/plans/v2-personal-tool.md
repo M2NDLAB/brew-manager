@@ -33,8 +33,8 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
     their branch — commit: `dda0ccb`
   - [x] 1.3 IMP-030 applied: the path-based gate (CLAUDE.md rule 8 and the sensitive
     paragraph, docs/03, docs/00, `/new-component`, `/security-review`, the 2026-07-12
-    decision) — commit: this task's commit
-  - [ ] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: —
+    decision) — commit: `02cba14`
+  - [x] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: this task's commit
   - [ ] 1.5 /checkpoint and the printed /integrate — commit: —
 - [ ] 2. `fix/homebrew-developer-mode` — module 1 never leaves Homebrew in developer mode;
   heavy enough for its own task plan; gate: one lens on the restore path. (a) Remove

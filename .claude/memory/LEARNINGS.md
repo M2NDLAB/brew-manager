@@ -447,6 +447,20 @@ tags: [improvement]
 
 ## Applicate
 
+### IMP-031 — Homebrew's configuration changes only through an explicit, shown and confirmed action → applied on 2026-10-07 (the user's instruction with the 2.0.0 plan), on chore/replan-v2
+- Date: 2026-10-07 | Origin: [[sessions/2026-10-07-replan-v2-assessment]] — module 1 left Homebrew in developer mode
+- Observed problem: module 1 has run `brew ruby --version`, a Homebrew developer
+  command, since v1.1.0 — also under `--dry-run`. Running one turns Homebrew's developer
+  mode on, and then `brew update` follows Homebrew's `main` branch instead of its release
+  tags: this Mac sits on `6.0.21-70-g…`. No rule covered a change to Homebrew's own
+  configuration: the existing ones speak of mutating actions on packages.
+- Proposal (the user's words): brew-manager does not modify Homebrew's configuration
+  except through an explicit action that is shown and confirmed.
+- Expected benefit / risk: a read-only tool stays read-only for Homebrew too; the
+  developer-mode restore of task 2 is the first action under the rule. Risk: none.
+- Applied: CLAUDE.md, Code conventions (the rule, with `--dry-run` never and a developer
+  command counted as a change). The prevention test arrives with task 2.
+
 ### IMP-030 — A path-based, proportionate security gate → applied on 2026-10-07 (approved by the user with the 2.0.0 plan, D11), on chore/replan-v2
 - Date: 2026-10-07 | Origin: [[sessions/2026-10-07-replan-v2-assessment]] — the user's proportionality rule for a personal terminal tool
 - Observed problem: rule 8 gated every branch that touched a sensitive FILE, with

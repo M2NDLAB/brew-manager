@@ -123,6 +123,13 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   the known ones are closed, STATE.md item 2). **Every mutating action MUST honour `BREW_MANAGER_DRY_RUN` and
   `BREW_MANAGER_YES`** — it is the by-convention rule that prevents the most
   widespread class of defects that emerged from the assessment (see STATE.md).
+  **Homebrew's configuration belongs to the user** (IMP-031): brew-manager never
+  changes a Homebrew setting — developer mode, the configuration of Homebrew's own
+  repository, the tap-trust store, any persisted setting (`brew analytics`, `brew
+  developer`, …) — except through an explicit action that is shown first and confirmed
+  (at its prompt, or by an explicit `--yes`), and never under `--dry-run`. Running a
+  Homebrew DEVELOPER command counts as such a change (it turns developer mode on), so
+  the code never calls one (STATE #30; pinned by a test from task 2 of the 2.0.0 plan).
   **Never pass DATA through `echo`** (new and rewritten code; the existing sites are
   the recorded class STATE Attenzione #3b, fixed in their planned branches): zsh's
   builtin `echo` expands every backslash escape even without `-e` (`\n`, `\t`, `\\`,
