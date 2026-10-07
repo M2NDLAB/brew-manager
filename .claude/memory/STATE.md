@@ -6,7 +6,7 @@ tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-10-07 | Last: **v1.5.0 RELEASED** (release merge `37b8db5`, annotated tag `v1.5.0` → object `deb8f61` → `37b8db5`, pushed by the user; `make version-check` green) and **the 2.0.0 plan APPROVED** — brew-manager as a personal terminal tool, branches B1–B8 and decisions D1–D11 with the user's precisions ([[plans/v2-personal-tool]], [[decisions/2026-10-07-v2-plan]], the evidence in [[sessions/2026-10-07-replan-v2-assessment]]). B1 (`chore/replan-v2`, memory and process) in progress: the reconciliation, the triage by decision, IMP-030 (a path-based gate) and IMP-031 (Homebrew's configuration changes only by an explicit, confirmed action). Next: B2, Homebrew never left in developer mode. | Index: [[INDEX]]
+> Updated: 2026-10-07 | Last: **task 1 of the 2.0.0 plan done** (`chore/replan-v2`, memory and process): v1.5.0 recorded as RELEASED (merge `37b8db5`, annotated tag `v1.5.0` → object `deb8f61`); the plan [[plans/v2-personal-tool]] and its decisions [[decisions/2026-10-07-v2-plan]] (B1–B8, D1–D11, the user's precisions) with the evidence [[sessions/2026-10-07-replan-v2-assessment]]; the STATE triage by decision (#17/#28 accepted, 4b-3 closed, the old plans superseded; new #30–#33); **IMP-030** (a path-based gate) and **IMP-031** (Homebrew's configuration changes only by an explicit, shown and confirmed action) applied. Ready for integration (no tag). Next: task 2, `fix/homebrew-developer-mode`, on the user's go. | Index: [[INDEX]]
 
 > **Previous**: the v1.5.0 release (VERSION + CHANGELOG `[1.5.0]`: the agents of v1.3.0/v1.4.0 never ran Homebrew; Deprecated: bk, las, log, mas) → [[sessions/2026-10-07-release-v1.5.0]].
 
@@ -209,7 +209,7 @@ tags: [state]
     CHANGELOG `[1.5.0]` with Deprecated and Known limitations); version-check proven in a
     clone. → [[sessions/2026-10-07-release-v1.5.0]].
 - [ ] **brew-manager 2.0.0, a personal terminal tool** (approved 2026-10-07):
-  [[plans/v2-personal-tool]] — B1 `chore/replan-v2` (in progress) → B2 Homebrew developer mode → B3 remove
+  [[plans/v2-personal-tool]] — B1 `chore/replan-v2` (done, ready for integration) → B2 Homebrew developer mode → B3 remove
   bk/las/log/mas and module 10 (MAJOR) → B4 session log → B5 Homebrew 6/7 compatibility →
   B6 flag values → B7 module outcomes → B8 release v2.0.0. Decisions:
   [[decisions/2026-10-07-v2-plan]].
@@ -818,11 +818,14 @@ tags: [state]
   `Destination: framework`), OPEN. Branch 4 (2026-09-27): **IMP-027** (the Bash deny patterns
   match heredoc bodies: write such content with the editor tools), **IMP-028** (a stalled
   gate lens is a hole: rerun it on the CURRENT diff), **IMP-029** (mutation checks also
-  change HOW a unit fails) — all `Destination: framework`, OPEN.
+  change HOW a unit fails) — all `Destination: framework`, OPEN. The 2.0.0 plan
+  (2026-10-07): **IMP-030** (a path-based gate) and **IMP-031** (Homebrew's configuration
+  is the user's) APPLIED.
 
 ## Branch attivi
 - **chore/replan-v2** (task 1 of the 2.0.0 plan: memory and process — the v1.5.0
-  reconciliation, the plan, the triage by decision, IMP-030, IMP-031) = in progress.
+  reconciliation, the plan, the triage by decision, IMP-030, IMP-031) = **READY for the
+  user's integration** (`/integrate` block, no tag).
 - **main** = integration + stable (trunk-based); HEAD `37b8db5` (the v1.5.0 release merge;
   below it `bc114b9`, branch 4, and `050ea6d`, branch 3), aligned with `origin/main`; tags
   **`v1.5.0`** (annotated, object `deb8f61` → `37b8db5`) + `v1.4.0` (annotated, object

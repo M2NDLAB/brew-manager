@@ -24,7 +24,7 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
 > authorises; no multi-hour workflows.
 
 ## Tasks
-- [ ] 1. `chore/replan-v2` — memory and process only; no gate, no tag. Tasks:
+- [x] 1. `chore/replan-v2` — memory and process only; no gate, no tag (ready for integration). Tasks:
   - [x] 1.1 this plan, the decision record, the assessment note — commit: `7b29470`
   - [x] 1.2 the v1.5.0 reconciliation (STATE front matter, header, progress, decisions,
     branches; INDEX; the old plan's task 16; the release note's outcome) and the triage
@@ -34,8 +34,8 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
   - [x] 1.3 IMP-030 applied: the path-based gate (CLAUDE.md rule 8 and the sensitive
     paragraph, docs/03, docs/00, `/new-component`, `/security-review`, the 2026-07-12
     decision) — commit: `02cba14`
-  - [x] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: this task's commit
-  - [ ] 1.5 /checkpoint and the printed /integrate — commit: —
+  - [x] 1.4 IMP-031 applied: the Homebrew-configuration rule in CLAUDE.md — commit: `c820c8f`
+  - [x] 1.5 /checkpoint and the printed /integrate — commit: the checkpoint commit
 - [ ] 2. `fix/homebrew-developer-mode` — module 1 never leaves Homebrew in developer mode;
   heavy enough for its own task plan; gate: one lens on the restore path. (a) Remove
   `brew ruby --version` (mod_01:32, a developer command: always blank, and it turns

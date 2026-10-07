@@ -1,10 +1,10 @@
 ---
 date: 2026-10-07
 task: read-only assessment for the 2.0.0 re-plan (a personal terminal tool) — the removal of bk/las/log/mas, the session recording, every open STATE entry, Homebrew 6/7 compatibility; then the critic of the draft plan
-branch: main (read-only at 37b8db5; persisted on chore/replan-v2)
+branch: main (read-only at 37b8db5); then chore/replan-v2 (task 1 of the plan)
 status: completed
 model: 'claude-opus-5-5'
-turns: 1
+turns: 2
 tags: [session, assessment, v2, homebrew, scope]
 ---
 # Session 2026-10-07 — the 2.0.0 re-plan: read-only assessment
@@ -46,6 +46,31 @@ with the session-log branch, B1 closes only by decision, the rule/contract edits
 in the approval, a path-based gate, the session-log branch before the compatibility
 branch, F10 out). The user approved B1–B8 and D1–D11 as recommended, with precisions
 recorded in [[decisions/2026-10-07-v2-plan]].
+
+## Task 1 of the plan — `chore/replan-v2` (after the approval)
+- `7b29470` — the plan [[plans/v2-personal-tool]], the decision record
+  [[decisions/2026-10-07-v2-plan]] and this note (the reports verbatim; the session's
+  scratchpad paths replaced by `<session scratchpad>`).
+- `dda0ccb` — item 0: v1.5.0 RELEASED in STATE, INDEX, the old plan's task 16 and the
+  release note (merge `37b8db5`, tag `v1.5.0` → object `deb8f61`). The triage by decision
+  only: #17 and #28 accepted, 4b-3 closed, roadmap-v2 and the pre-Dashboard plan closed
+  as superseded, STATE-DEC-README closed as superseded; every other open entry names the
+  task that closes it; entries tied to a removed module close in task 3 after a grep;
+  new entries #30 (developer mode), #31 (Homebrew 6/7), #32 (the log prompt's Delete
+  lies), #33 (a stale cause in comments). No sweep of stale line numbers (each branch
+  fixes its own).
+- `02cba14` — IMP-030, the path-based gate: CLAUDE.md rule 8 and the sensitive
+  paragraph (mod_04 and mod_10 come in as install paths; mod_01 from task 2), docs/03
+  (the path list, one lens, the re-gate, author ≠ judge), docs/00, `/new-component`,
+  `/security-review`, the 2026-07-12 decision.
+- `c820c8f` — IMP-031, the user's rule: Homebrew's configuration changes only through an
+  explicit, shown and confirmed action, never under `--dry-run`; a developer command
+  counts as such a change.
+- Verification: memory and process files only; `make check` green; no code, test or
+  user doc touched. Security gate: not applicable (no gated path changed).
+- Retro: no new friction (the refused `rm -rf` is IMP-027 already; the critic of the draft
+  did its job). No IMP.
+- Next: task 2, `fix/homebrew-developer-mode`, on the user's go.
 
 ## Appendix A — Removal of bk, las, log and mas
 
