@@ -1,14 +1,14 @@
 ---
 type: state
-updated: 2026-09-27
-branch: fix/startup-brew-env
+updated: 2026-10-07
+branch: chore/release-v1.5.0
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-09-27 | Last: **branch 4 `fix/startup-brew-env` done — and a SCOPE CHANGE.** Homebrew is found at its standard prefix when PATH lacks it (launchd, a Finder-started app, any non-login start), exit **69** (`EX_UNAVAILABLE`) when it is unavailable, the installer never offered under `--dry-run` or without a terminal and run as `_brew_install` (download with timeouts, the installer's status read); the docs/04 contract, README, SECURITY.md and an honest CHANGELOG entry; the docs/03 gate plus three re-gate rounds (no CRITICAL/HIGH; every upheld finding fixed, RED shown first); 311 tests. #23 FIXED. Then the user decided: **brew-manager becomes a personal terminal tool — no Dashboard; bk, las, the log module and mas will be removed in 2.0.0** ([[decisions/2026-09-27-personal-terminal-tool]]); the post-fix launchd regression (task 6) was dropped for that reason, and #21 resolves with the removal (checked: an idle block, no CPU loop). The pre-Dashboard programme is suspended pending a re-plan. Branch 4 ready for integration (no tag: the release is open). → [[sessions/2026-09-26-startup-brew-env]] | Index: [[INDEX]]
+> Updated: 2026-10-07 | Last: **release v1.5.0 prepared** on `chore/release-v1.5.0` (`6815a5c`): `VERSION` 1.5.0, CHANGELOG `[1.5.0] - 2026-10-07` — the agents of v1.3.0/v1.4.0 never ran Homebrew under launchd, and this is the last release with bk, las, log and mas (**Deprecated**: removed in 2.0.0), the bk/log agent hang under **Known limitations**. MINOR (exit 69). A docs-only release with a light gate (the user's choice); 311 tests green; `make version-check` proven in a throwaway clone with the tag (`aligned with tag v1.5.0`, `--version` = `brew-manager 1.5.0 (v1.5.0)`). Branch 4 INTEGRATED (merge `bc114b9`). Ready for the user's release merge + annotated tag `v1.5.0`. Then: the re-plan and the 2.0.0 task (the user's). → [[sessions/2026-10-07-release-v1.5.0]] | Index: [[INDEX]]
 
-> **Previous**: branch 3 of the debt cleanup (`chore/gitignore-d10`: the `.gitignore` patterns, #20 closed; the real-launchd verification plan) INTEGRATED (merge `050ea6d`; no tag) → [[sessions/2026-09-26-gitignore-and-launchd-plan]].
+> **Previous**: branch 4 `fix/startup-brew-env` (the Homebrew PATH bootstrap, exit 69, the installer only at a terminal; the gate and three re-gates; #23 fixed) and the **scope change** (a personal terminal tool, no Dashboard; bk/las/log/mas removed in 2.0.0) → INTEGRATED (merge `bc114b9`) → [[sessions/2026-09-26-startup-brew-env]] · [[decisions/2026-09-27-personal-terminal-tool]].
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -202,7 +202,12 @@ tags: [state]
     challenged by a refuter — no CRITICAL/HIGH, the upheld LOW/INFO fixed with RED first
     (`b34e719` `1c6105d` `45c5fd2` `3657cc3` `1317307` `b7b56e7` `f68d114` `3c1f76c`
     `ec6da37`); the post-fix launchd regression DROPPED by the user (scope change); 311
-    tests. **Ready for integration** (no tag). → [[sessions/2026-09-26-startup-brew-env]].
+    tests. **INTEGRATED** (merge `bc114b9`; no tag). → [[sessions/2026-09-26-startup-brew-env]].
+  - [ ] **Release v1.5.0** (task 16 of the old plan, brought forward by the user on
+    2026-10-07, before the re-plan): `chore/release-v1.5.0`, `6815a5c` (VERSION 1.5.0,
+    CHANGELOG `[1.5.0]` with Deprecated and Known limitations); version-check proven in a
+    clone. **Ready for the user's release merge + annotated tag `v1.5.0`.** →
+    [[sessions/2026-10-07-release-v1.5.0]].
 
 ## Cosa esiste adesso
 - Albero directory: vedi [[TREE]].
@@ -325,7 +330,8 @@ tags: [state]
 - **VERSION and the release tag move together** (formerly Caution #5b — a permanent,
   mechanised rule, not a debt): `VERSION` and the tag are updated in the SAME commit,
   `[Unreleased]` moves under the new version, and `make version-check` fails on drift
-  → [[2026-07-14-versione-fonte-unica]]. Next application: the v1.5.0 release.
+  → [[2026-07-14-versione-fonte-unica]]. Applied for v1.5.0 (2026-10-07, `6815a5c`); next
+  application: 2.0.0.
 - **Debt cleanup before the Dashboard** (2026-09-25): the categories, the order, the
   new exit code for a failed environment precondition (MINOR → v1.5.0),
   `lib/agents.sh`, the bk [4] and las [c] wet-mode behaviour, and the conditions that
@@ -369,12 +375,9 @@ tags: [state]
   (`docs/readme-truth`), last. Scope change 2026-09-27: the items about bk, las, the log
   module and mas go with those modules in 2.0.0; the rest is re-planned. → TRIGGER: the
   re-plan after the scope change.
-- **"Added in v1.5.0"** (branch 4, 2026-09-27): docs/04's exit-code contract and the
-  CHANGELOG `[Unreleased]` name v1.5.0 as the release that adds exit 69, and the
-  CHANGELOG upgrade note speaks of LaunchAgents and of a bk/log hang "to be fixed before
-  the next release". With the scope change the next release may be 2.0.0 (bk/las/log/mas
-  removed) instead. → TRIGGER: the user's release decision (v1.5.0 first, or straight to
-  2.0.0) — then align docs/04 and the CHANGELOG in the release branch.
+- ~~**"Added in v1.5.0"**~~ **SETTLED** (2026-10-07): the user cut v1.5.0 first, so
+  docs/04's "added in v1.5.0" is true; the CHANGELOG's "fixed before the next release"
+  for the bk/log agent hang was replaced by a Known limitation in `[1.5.0]` (`6815a5c`).
 - **README and SECURITY.md describe bk, las, the log module and mas** (the scope change,
   2026-09-27): true until they are removed. → TRIGGER: the 2.0.0 task (rule 5: the
   removal and its docs in the same branch).
@@ -688,7 +691,8 @@ tags: [state]
    under a banner saying "every prompt is declined, nothing is modified". → branch 6,
    with #21. **→ moot with 2.0.0** (bk removed).
 23. ~~**Startup without Homebrew on PATH; the built-in installer**~~ **FIXED on
-   `fix/startup-brew-env` (2026-09-27), closed at its merge** — the PATH bootstrap
+   `fix/startup-brew-env` (2026-09-27), CLOSED at its merge `bc114b9`, released in
+   v1.5.0** — the PATH bootstrap
    (`/opt/homebrew`, then `/usr/local`, only when no brew executable is on PATH), exit
    **69** on every "Homebrew unavailable" way out (docs/04 contract), the installer
    never offered under `--dry-run` nor without a terminal, `_ask` default `n`, the
@@ -765,17 +769,19 @@ tags: [state]
   change HOW a unit fails) — all `Destination: framework`, OPEN.
 
 ## Branch attivi
-- **fix/startup-brew-env** (branch 4 of the debt cleanup: N1 + 4b-0, #23 — code,
-  tests, docs, CHANGELOG `[Unreleased]`, memory) = **READY for the user's integration**
-  (`/integrate` block; a `feat` inside → MINOR, but no tag now: the release — v1.5.0
-  first, or straight to 2.0.0 — is the user's open decision).
-- **main** = integration + stable (trunk-based); HEAD `050ea6d` (merge of branch 3 of
-  the debt cleanup; below it `9e4f2b4` (branch 2), `73bc5ee` (branch 1), `8ed9f5c`, the
-  post-upgrade checkpoint, `0725ae6`, the framework upgrade, and the release merge
-  `ab45323`), aligned with `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3`
-  → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper).
-  `CHANGELOG [Unreleased]` on main: empty (branch 4 fills it). `make version-check`
-  green.
+- **chore/release-v1.5.0** (release: VERSION + CHANGELOG, memory) = **READY for the
+  user's release merge + annotated tag `v1.5.0` + push of `main` and of the tag**
+  (`/integrate`, release variant). `make version-check` on the branch fails until the
+  tag exists (expected; proven green in a clone with the tag).
+- **main** = integration + stable (trunk-based); HEAD `bc114b9` (merge of branch 4,
+  `fix/startup-brew-env`; below it `050ea6d` (branch 3), `9e4f2b4` (branch 2), `73bc5ee`
+  (branch 1), `0725ae6`, the framework upgrade, and the release merge `ab45323`),
+  aligned with `origin/main`; tags **`v1.4.0`** (annotated, object `d4901b3` →
+  `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper).
+  `CHANGELOG [Unreleased]` on main: branch 4's entries (they move to `[1.5.0]` with the
+  release). `make version-check` green on main (VERSION 1.4.0, tag v1.4.0).
+- **fix/startup-brew-env** (branch 4 of the debt cleanup) = **INTEGRATED into main**
+  (merge `bc114b9`, pushed; no tag), branch deleted.
 - **chore/gitignore-d10** (branch 3 of the debt cleanup) = **INTEGRATED into main**
   (merge `050ea6d`; no tag), branch deleted.
 - **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) =

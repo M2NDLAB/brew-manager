@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-07
+
+The startup release, and the last release with `bk`, `las`, `log` and `mas`.
+**Scheduled runs never ran Homebrew until now:** the LaunchAgents installed with
+v1.3.0 and v1.4.0 (and with every earlier release that had the scheduler) never ran
+`brew` under launchd. Every scheduled run stopped before its first module and still
+looked successful. brew-manager now finds Homebrew by itself when `PATH` lacks it,
+exits `69` when Homebrew is unavailable, and offers its Homebrew installer only to a
+person at a terminal. 2.0.0 will turn brew-manager into a personal terminal tool for
+maintaining one Mac, and it removes those four modules (see Deprecated).
+
 ### Fixed
 - **Scheduled runs never ran Homebrew.** LaunchAgents installed with v1.3.0 and
   v1.4.0 — and with every earlier release that had the scheduler (v1.1.x, v1.2.0) —
@@ -30,8 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   presets run `go --yes`, which includes module 2 (`brew update`) and module 5's
   cleanup (`brew autoremove` and `brew cleanup -s`, auto-confirmed under `--yes`).
   List them with `./brew_manager.sh las` and remove the ones you no longer want. An
-  agent that selects `bk` or `log` can now start and then wait forever on a prompt
-  (a known issue, to be fixed before the next release).
+  agent that selects `bk` or `log` can now start and then wait forever (see Known
+  limitations).
 - **The built-in Homebrew installer honours `--dry-run` and never runs unattended.**
   It used to be offered even in a dry run, and without a terminal it took its answer
   from standard input — so a pipe carrying "y" could start it with nobody watching.
@@ -57,6 +68,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   no longer counts as Homebrew: brew-manager needs the `brew` executable on `PATH` or
   at a standard prefix, and otherwise exits `69`. If your Homebrew lives elsewhere,
   put its `bin` directory on `PATH` in `~/.zshenv`.
+
+### Deprecated
+- **`bk`, `las`, `log` and `mas` are removed in 2.0.0.** This is the last release
+  that ships them:
+  - the Brewfile backup and restore (`bk`);
+  - the LaunchAgent scheduler (`las`);
+  - the log manager (`log`);
+  - the Mac App Store module (`mas`).
+
+  Removing module names is a breaking change, because the module identifiers are
+  part of the public contract, hence the major version. When `las` goes, so does the
+  way to list and remove scheduled agents from brew-manager. Remove the agents you no
+  longer want with `./brew_manager.sh las` while you are on 1.5.0.
+
+### Known limitations
+- **An agent that selects `bk` or `log` waits forever.** Now that scheduled runs
+  really start, such an agent runs its module. The module gets no answer, does
+  nothing, and then waits at a prompt until the agent is stopped: you log out, or the
+  agent is unloaded or removed. It waits idle, using next to no CPU. This will not be
+  fixed in 1.x, because both modules go in 2.0.0. Remove such agents.
+- **The two limitations of 1.4.0 remain.** `bk` option [4] (Check) and `las` option
+  [c] (Clear logs) still act under `--dry-run`, and the session summary says so.
+  They go away with the modules in 2.0.0.
 
 ## [1.4.0] - 2026-07-23
 
