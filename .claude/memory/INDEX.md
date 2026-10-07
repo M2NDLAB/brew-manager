@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-09-24
+updated: 2026-09-27
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -157,8 +157,13 @@ tags: [moc]
   the retro. INTEGRATED (merge `9e4f2b4`).
 - [[sessions/2026-09-26-gitignore-and-launchd-plan]] — branch 3 of the debt cleanup:
   LEARNINGS re-verified, the `.gitignore` patterns (#20), the IMP-002 hand-over, the
-  real-launchd verification plan for branch 4 (reviewed adversarially). Ready for
-  integration.
+  real-launchd verification plan for branch 4 (reviewed adversarially). INTEGRATED
+  (merge `050ea6d`).
+- [[sessions/2026-09-26-startup-brew-env]] — branch 4 of the debt cleanup: #23
+  CONFIRMED under a real launchd job, then fixed — the Homebrew PATH bootstrap, exit 69,
+  the installer only at a terminal (`_brew_install`); the gate and three re-gate rounds;
+  #21 checked as an idle block; the scope change (no Dashboard) and the dropped launchd
+  regression. Ready for integration.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -178,6 +183,9 @@ tags: [moc]
 - [[2026-09-25-debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard:
   categories, order, a new exit code for a failed environment precondition (MINOR →
   v1.5.0), `lib/agents.sh`, bk [4]/las [c] in wet mode, the conditions on #17 and #3b
+  — superseded in part by the next one
+- [[2026-09-27-personal-terminal-tool]] — the scope change: a personal terminal tool, no
+  Dashboard; bk, las, the log module and mas removed in 2.0.0; the PATH fix stays
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -193,5 +201,7 @@ tags: [moc]
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
 - [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
-  branches in order, one at a time; status: in-progress (branches 1–3 done; the
-  launchd verification of task 4 awaits the user's go).
+  branches in order, one at a time; branches 1–4 done; **suspended by the scope change
+  of 2026-09-27**, tasks 5–16 to be re-planned with the user.
+- [[plans/fix-startup-brew-env]] — plan of branch 4 (7 tasks; task 6, the post-fix
+  launchd regression, dropped by the user), status: completed.

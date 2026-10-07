@@ -8,6 +8,14 @@ tags: [plan, debt, security, dashboard]
 ---
 # Plan: close the open debts before the Dashboard improvement
 
+> **SUPERSEDED IN PART — re-plan pending (2026-09-27).** The user changed the scope:
+> brew-manager becomes a personal terminal tool, there is no Dashboard, and bk, las, the
+> log module and mas will be removed in 2.0.0 (a later task) →
+> [[decisions/2026-09-27-personal-terminal-tool]]. Branches 1–4 are done; the order and
+> the content of tasks 5–16 below no longer hold as written — many concern only the
+> modules being removed or the GUI. They are re-planned with the user; nothing below
+> task 4 starts from this list.
+
 ## Goal
 Every (a) item of [[sessions/2026-09-24-debt-inventory-pre-dashboard]] closed,
 integrated and released as v1.5.0; the (b) items handed to the improvement's first
@@ -37,7 +45,10 @@ task; the (c) items tracked in STATE with their triggers.
   code for the failed environment precondition, added to the docs/04 contract (MINOR);
   the README exit-status paragraph; the real-launchd check with the user (procedure
   below, to run before any code). Gate: yes.
-  — commit: —
+  — done on `fix/startup-brew-env` ([[plans/fix-startup-brew-env]]): the pre-fix run
+  CONFIRMED #23 under a real launchd job (2026-09-26); the fix, exit 69 and the
+  installer rework, the gate and the re-gate rounds; the post-fix launchd regression
+  DROPPED after the scope change (2026-09-27). Ready for integration.
 - [ ] 5. `refactor/module-fn-names` — #18: `_module_bk`/`_module_las`/`_module_mas`, a
   generic dispatch, the `las`/`mas` section headers, the wiring guard test; README
   "Adding a new module", CLAUDE.md, new-component.md. Gate: yes (a light adversarial
@@ -71,7 +82,7 @@ task; the (c) items tracked in STATE with their triggers.
   (#4b until the improvement, #17 and #3b with their conditions, #6); the tag is the
   user's. — commit: —
 
-## Task 4 — the real-launchd verification (proposed 2026-09-26, reviewed; awaiting the user's go)
+## Task 4 — the real-launchd verification (reviewed; approved by the user 2026-09-26)
 Asked by the user before branch 4 starts: N1 + 4b-0 (STATE #23) is declared confirmed only
 after a run under a REAL launchd job. Drafted, then reviewed adversarially (a safety lens
 and a validity lens, both "sound with fixes"; the fixes are applied below).
@@ -84,17 +95,32 @@ bare `read` gets EOF (launchd's stdin is /dev/null), and it exits **0** before t
 `script(1)` re-exec. Read-only facts already predict it (brew only in /opt/homebrew/bin,
 `launchctl getenv PATH` empty, an existing gui/501 agent shows the default PATH).
 
-**The job.** The agent writes `/Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist` (logs/ is git-ignored) only after the user's go. It
-mirrors what `mod_las_scheduler.sh:214-238` writes (and the bk restore, same shape): the
-same ProgramArguments form, no EnvironmentVariables. Deliberate differences: label
-`com.m2ndlab.verify-n1` (not the `com.m2ndlab.brew-manager.` prefix, so the las integrity
-scan never sees it); no StartCalendarInterval and RunAtLoad false (on demand only); loaded
-from logs/, never from ~/Library/LaunchAgents (nothing persists at login); arguments
-`1 --dry-run` (the user's choice). On the not-found path the arguments are irrelevant: the
-brew check runs before they are validated, and the installer's bare `read` ignores
-`--yes`/`--dry-run`, so the verdict carries over to real `<modules> --yes` agents.
-ProgramArguments: `/bin/zsh`, `/Users/seco/Projects/brew-manager/brew_manager.sh`, `1`, `--dry-run`; StandardOutPath
-`/Users/seco/Projects/brew-manager/logs/verify_n1.out`; StandardErrorPath `/Users/seco/Projects/brew-manager/logs/verify_n1.err`.
+**The job — the approved plist (confirmed by the user on 2026-09-26).** The file
+`/Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist` (logs/ is git-ignored; sha256
+`84e60212317e0595b05d56f28f8ca081ee6418fbcf3bab0f4dc73e4c8766ff29`) was derived from the plist
+that the REAL `_install_agent` (`mod_las_scheduler.sh:163-266`) wrote in a sandbox (mock
+launchctl, fake HOME, nothing loaded, the repo's agents/ untouched) for modules `1` and a daily
+schedule. It keeps the same invocation environment — `/bin/zsh` + the absolute
+`brew_manager.sh` path + the positional selection in ProgramArguments, no
+EnvironmentVariables, no StandardInPath — and differs only in: the Label
+(`com.m2ndlab.verify-n1`, outside the `com.m2ndlab.brew-manager.` prefix the las integrity scan
+globs); the two log paths (`/Users/seco/Projects/brew-manager/logs/verify_n1.out` and `.err`); `--dry-run` instead of
+`--yes`; no StartCalendarInterval (on demand only, RunAtLoad false). The user's condition
+"only Label and path differ" was over-specified, as the user clarified: the intent was the
+same invocation environment, which this plist keeps; the argument and the schedule are not
+read on the measured path (`brew_manager.sh:186-233`). A las-identical variant (`1 --yes`,
+03:07 schedule) was briefly selected by mistake and reverted before any block was run. It
+is loaded from logs/, never from ~/Library/LaunchAgents: it lasts until the bootout.
+
+**Proofs completed before the run (2026-09-26, read-only).** (1) EOF never counts as a
+confirmation: before `brew_manager.sh:186` nothing reads stdin (no `set -e`/`setopt`; the
+`read`s of lib/ live inside `_handle_log`, `_ask`, `_read_choice`; the first top-level read
+is :393); at :199 `read -r _brew_install_choice` with stdin from /dev/null, closed, or an
+empty pipe returns 1 and leaves the variable EMPTY — even when the environment pre-set it
+to `Y` (tested with /bin/zsh 5.9); :201 `[[ "" =~ ^[Yy]$ ]]` is false → :228-233 "cannot
+continue", `exit 0`; `curl` (:205) and `exec zsh` (:220) sit only inside that `if`.
+(2) The diff las vs test plist: Label, the two log paths, `--dry-run` for `--yes`, no
+StartCalendarInterval; no StandardInPath, no EnvironmentVariables in either (counted: 0).
 
 **Block A — preflight (read-only; the user pastes the whole output back).** Expected:
 `278ce8f` and a clean status; brew only in /opt/homebrew/bin; both zshenv files missing;
@@ -115,16 +141,19 @@ plutil -lint /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
 ```
 
 **Block B — the run (the user pastes the whole output back).** The loop waits up to 120 s
-while the job runs; if `state = running` still shows afterwards, do NOT clean up: report.
+until `last exit code` is a number; if it is not, do NOT clean up: report. (Run of
+2026-09-26: the first version polled on `state = running` and broke on the transitional state
+right after `kickstart` — a race; fixed here. Outcome: CONFIRMED, see the branch note.)
 ```
 launchctl bootstrap gui/501 /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
 launchctl kickstart -p gui/501/com.m2ndlab.verify-n1
-for i in {1..120}; do launchctl print gui/501/com.m2ndlab.verify-n1 | grep -q 'state = running' || break; sleep 1; done
+for i in {1..120}; do launchctl print gui/501/com.m2ndlab.verify-n1 | grep -qE 'last exit code = -?[0-9]' && break; sleep 1; done
 launchctl print gui/501/com.m2ndlab.verify-n1 | grep -E 'state =|runs =|pid =|last exit|last terminating signal'
 launchctl print gui/501/com.m2ndlab.verify-n1 | grep -B3 'PATH =>'
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.out
 cat /Users/seco/Projects/brew-manager/logs/verify_n1.err
 find /Users/seco/Projects/brew-manager/logs -name 'brew_report_*' -newer /Users/seco/Projects/brew-manager/logs/com.m2ndlab.verify-n1.plist
+launchctl print gui/501/com.m2ndlab.verify-n1 | grep -qE 'last exit code = -?[0-9]' || echo 'NOT FINISHED - STOP HERE, NO CLEANUP'
 ```
 
 **Reading the outcome.**
@@ -156,7 +185,9 @@ argv contains the path).
 **Safety.** Brew not found (the expected case): banner, a bare `read` at EOF (the installer
 runs only on `^[Yy]$`), `exit 0` — no curl, no `script(1)`, no /tmp file, no session log;
 logs/ already exists. Brew found: the read-only health module under --dry-run
-(`HOMEBREW_NO_AUTO_UPDATE=1`), `brew doctor` writes the fixed `/tmp/brew_doctor.log` (#11),
+(`HOMEBREW_NO_AUTO_UPDATE=1`; its commands — `brew --version/--prefix/--repository/list/tap/
+ruby --version/doctor`, `git log`, `df` — are no auto-update commands anyway); `brew doctor`
+writes the fixed `/tmp/brew_doctor.log` (#11),
 a session log `logs/brew_report_<ts>.log` stays (kept as evidence: `find` names it), and at
 the end the child removes the fixed /tmp files — hence the "no other session" precondition
 of block A. A hang: the poll bounds the wait; `bootout` stops the job; the recorded child
@@ -188,6 +219,8 @@ that first task receives, from the inventory and the user's decisions:
 ## Resumption notes
 - Branch names of tasks 4–16 are provisional; each branch's checkpoint records the real
   one and the merge sha here.
+- 2026-09-27: branch 3 INTEGRATED (merge `050ea6d`); branch 4 ready for integration;
+  the scope change suspends tasks 5–16 until the re-plan (see the note at the top).
 
 ## Links
 [[STATE]] · [[sessions/2026-09-24-debt-inventory-pre-dashboard]] ·

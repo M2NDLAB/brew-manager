@@ -15,12 +15,15 @@ If you are running an older version, update to the latest release before reporti
 
 ## What this tool does — security context
 
-brew-manager is a shell script that runs with your user account privileges. It does not require `sudo` or root access for any of its standard operations. It reads and writes only within its own directory (`logs/`, `backups/`, `agents/`) and interacts with Homebrew, macOS LaunchAgents, and optionally the Mac App Store via `mas`.
+brew-manager is a shell script that runs with your user account privileges. It does not require `sudo` or root access for any of its standard operations (the optional Homebrew installer runs Homebrew's official script, which asks for your administrator password). It reads and writes only within its own directory (`logs/`, `backups/`, `agents/`) and interacts with Homebrew, macOS LaunchAgents, and optionally the Mac App Store via `mas`.
 
 The only network activity performed by this script is:
 - `brew update` / `brew upgrade` — standard Homebrew operations
 - `mas upgrade` — if you use the MAS module and confirm the upgrade
-- Homebrew installation — if brew is not present and you confirm the install
+- Homebrew installation — only if brew is not present (neither on `PATH` nor at its
+  standard prefix), at an interactive terminal, and after you confirm it: never under
+  `--dry-run`, never in a run without a terminal (a LaunchAgent, a pipe), and never
+  implied by `--yes`
 
 No data is sent to M2NDLAB or any third party.
 

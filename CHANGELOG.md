@@ -8,6 +8,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Scheduled runs never ran Homebrew.** LaunchAgents installed with v1.3.0 and
+  v1.4.0 — and with every earlier release that had the scheduler (v1.1.x, v1.2.0) —
+  never ran brew under launchd, while looking successful. launchd starts a job with
+  `PATH=/usr/bin:/bin:/usr/sbin:/sbin`, and a non-login zsh never reads
+  `~/.zprofile`, so the tool found no `brew`, printed "Homebrew is not installed",
+  declined its own installer prompt and exited `0`: every scheduled run ended before
+  any module, and launchd recorded a success. Confirmed under a real launchd job
+  before the fix. The exceptions are Macs where Homebrew's prefix reached launchd jobs
+  some other way: a launchd `PATH` (for example `launchctl config user path`), or a
+  `~/.zshenv` or `/etc/zshenv` that sets `PATH` or runs `brew shellenv` — zsh reads it
+  even as launchd's non-login shell.
+  brew-manager now finds Homebrew at its standard prefix (`/opt/homebrew` on Apple
+  Silicon, `/usr/local` on Intel) when `PATH` lacks it, which also covers an app
+  started from the Finder.
+  **Upgrade note — review your agents before updating.** Existing agents need no
+  reinstall: they run `brew_manager.sh`, which now finds Homebrew by itself. That is
+  exactly why they should be reviewed first: at its next scheduled time every agent
+  runs its modules for real — for most of them, the first time. The weekly and daily
+  presets run `go --yes`, which includes module 2 (`brew update`) and module 5's
+  cleanup (`brew autoremove` and `brew cleanup -s`, auto-confirmed under `--yes`).
+  List them with `./brew_manager.sh las` and remove the ones you no longer want. An
+  agent that selects `bk` or `log` can now start and then wait forever on a prompt
+  (a known issue, to be fixed before the next release).
+- **The built-in Homebrew installer honours `--dry-run` and never runs unattended.**
+  It used to be offered even in a dry run, and without a terminal it took its answer
+  from standard input — so a pipe carrying "y" could start it with nobody watching.
+  Now it is never offered under `--dry-run`, a run without a terminal gets no prompt
+  at all, and at a terminal it needs an explicit "y" — `--yes` never installs
+  Homebrew. The install script is downloaded with timeouts and run only if the
+  download succeeded: a failed or partial download used to be handed to bash. An
+  installer that fails is reported as a failure even when it left `brew` behind (its
+  last step is a `brew update`, which can fail on a network drop): that used to print
+  "installed successfully" and start the run.
+
+### Added
+- **Exit status `69` — Homebrew unavailable** (sysexits `EX_UNAVAILABLE`): Homebrew
+  is neither on `PATH` nor at a standard prefix, and the installer was not offered,
+  was declined or failed. Part of the exit-code contract, next to `0`, `1` and `2`.
+
+### Changed
+- A run that cannot start because Homebrew is missing now exits `69` instead of `0`
+  (and a failed Homebrew installation exits `69` instead of `1`, or instead of going
+  on when the failed installer left `brew` behind). A script or CI job
+  that treated such a run as a success will now see it as a failure — which it is.
+- A `brew` defined only as a shell function or an alias (for example in `~/.zshenv`)
+  no longer counts as Homebrew: brew-manager needs the `brew` executable on `PATH` or
+  at a standard prefix, and otherwise exits `69`. If your Homebrew lives elsewhere,
+  put its `bin` directory on `PATH` in `~/.zshenv`.
+
 ## [1.4.0] - 2026-07-23
 
 The interface release. brew-manager now renders itself for the terminal it is

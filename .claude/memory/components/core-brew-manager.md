@@ -1,7 +1,7 @@
 ---
 type: component
 component: core-brew-manager
-updated: 2026-07-21
+updated: 2026-09-27
 tags: [component]
 ---
 # core-brew-manager (brew_manager.sh)
@@ -16,6 +16,24 @@ hardcoded). Dal BM-08a la selezione moduli è delegata a `_resolve_selection`
 (2026-07-18) il PARENT propaga l'exit del figlio attraverso il wrapper
 script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
 (sandbox a symlink farm + mock brew). Il resto del core resta senza test.
+
+**Startup without Homebrew on PATH (branch `fix/startup-brew-env`, 2026-09-27; STATE
+#23).** Before anything else runs, `_brew_bootstrap_path` looks for a brew EXECUTABLE on
+PATH (`whence -p`: a function or alias named brew does not count) and, if there is none,
+probes `BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)` in order and
+prepends the first hit's `bin` and `sbin` to the exported PATH (no `eval "$(brew
+shellenv)"`). It covers launchd's and a Finder-started app's PATH
+(`/usr/bin:/bin:/usr/sbin:/sbin`) and any start outside a login shell. When Homebrew is
+still missing the check exits **69** (`EXIT_ENV_UNAVAILABLE`, sysexits `EX_UNAVAILABLE`)
+on every way out: `--dry-run` never offers the installer; no terminal (`NON_INTERACTIVE`,
+stdout not a TTY, or the recorded child) gets no prompt at all; at a terminal `_ask`
+with default `n` (so `--yes` never installs). The download-and-run is `_brew_install`
+(download first with timeouts, a non-empty body, the installer's own exit status read,
+then the probe; it only RETURNS, and only a full success re-execs). The exit order:
+`--version` (0) → an unknown flag (2) → Homebrew (69) → the selection (2 or 1).
+`tests/test_exit_codes.zsh` pins it (49 checks): the minimal environment through
+`script(1)`, each guard clause alone, `_brew_install` extracted and run against a mock
+curl — no test ever answers the installer prompt.
 
 ## Cosa espone / responsabilità
 - Flag CLI: `--dry-run`, `--yes|-y` (auto-attivo se stdin non è TTY),
@@ -75,7 +93,7 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
   riconciliato 2026-07-18).
 - I moduli sono funzioni SOURCATE nello stesso processo: condividono l'ambiente;
   una variabile "locale" non dichiarata `local` inquina lo stato globale.
-- **`--dry-run` spegne anche l'auto-update di Homebrew** (riga 152, micro-task
+- **`--dry-run` spegne anche l'auto-update di Homebrew** (line 160 since branch 4; riga 152 when written, micro-task
   2026-07-21): `(( DRY_RUN )) && export HOMEBREW_NO_AUTO_UPDATE=1`. Senza,
   `brew` eseguiva `brew update --auto-update` da sé prima di
   `install|outdated|upgrade|bundle|release`, quindi moduli che "si limitano a
@@ -86,8 +104,9 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
   `script(1)` (`tests/test_dryrun_gates.zsh`).
 - Il re-exec sotto script(1) fa ripartire lo script dall'inizio: tutto ciò che
   precede il guard `BREW_MANAGER_RECORDING` viene eseguito DUE volte.
-- Installer Homebrew integrato (curl + exec zsh): non toccare senza rileggere il
-  flusso di re-exec.
+- The built-in Homebrew installer (`_brew_install`, then `exec zsh "$0" "$@"` at top
+  level — inside a function `$0` would be the function's name): re-read the re-exec flow,
+  the guards and the suite's extraction harness before touching it.
 - Nessuna trap su Ctrl+C: il salvataggio del log è garantito dal processo esterno
   di script(1), non da handler interni.
 
@@ -100,3 +119,5 @@ script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
 - [[sessions/2026-07-20-bm11-menu-redesign]] (banner flat + menu a card allineate)
 - [[sessions/2026-07-21-bm12-progress-summary]] (tracking per-posizione + summary di sessione)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (HOMEBREW_NO_AUTO_UPDATE sotto --dry-run)
+- [[sessions/2026-09-26-startup-brew-env]] (the Homebrew PATH bootstrap, exit 69, the
+  installer only at a terminal)
