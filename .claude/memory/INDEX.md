@@ -167,12 +167,17 @@ tags: [moc]
 - [[sessions/2026-10-07-release-v1.5.0]] — release v1.5.0: VERSION 1.5.0, CHANGELOG
   `[1.5.0]` (the agents of v1.3.0/v1.4.0 never ran Homebrew; Deprecated: bk, las, log,
   mas go in 2.0.0; Known limitations); version-check proven in a clone with the tag; a
-  light gate. Ready for the user's release merge and tag.
+  light gate. RELEASED (merge `37b8db5`, annotated tag `v1.5.0` → object `deb8f61`).
+- [[sessions/2026-10-07-replan-v2-assessment]] — the read-only assessment for the 2.0.0
+  re-plan (four analysts and a critic, verbatim): the removal of bk/las/log/mas, the
+  session recording, the triage of every STATE entry, Homebrew 6/7 compatibility (developer
+  mode left on by module 1, module 10 never matched, brew's ask mode, tap trust).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
 - [[2026-07-12-componenti-sensibili]] — the "blast radius on the Mac" criterion
-  and the components under the gate (seven since IMP-022: + `lib/selection.sh`)
+  and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
+  PATH-BASED since IMP-030, 2026-10-07)
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
@@ -190,6 +195,10 @@ tags: [moc]
   — superseded in part by the next one
 - [[2026-09-27-personal-terminal-tool]] — the scope change: a personal terminal tool, no
   Dashboard; bk, las, the log module and mas removed in 2.0.0; the PATH fix stays
+- [[2026-10-07-v2-plan]] — the 2.0.0 plan: D1–D11 (recording kept without the end prompt,
+  Ctrl+C → 130, module 10 retired, `HOMEBREW_NO_ASK`/`--no-quit` once verified, Homebrew
+  6.0+, a path-based gate) and the user's precisions (never leave Homebrew in developer
+  mode; a Homebrew-configuration rule; F10 not planned)
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -200,13 +209,16 @@ tags: [moc]
   debt #15/#16 declared. Integrated outside the roadmap: framework upgrades → v1.0.0
   and → v1.2.0 (merge `0725ae6`). Next: the debt cleanup before the Dashboard
   ([[plans/debt-cleanup-pre-dashboard]]), which closes #15/#16 and the `_module_14`
-  collision (STATE #18) before M4.
+  collision (STATE #18) before M4. **SUPERSEDED on 2026-10-07** by [[plans/v2-personal-tool]].
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
-- [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: 16
-  branches in order, one at a time; branches 1–4 done; **suspended by the scope change
-  of 2026-09-27**, tasks 5–15 to be re-planned with the user; task 16 (release v1.5.0)
-  brought forward on 2026-10-07.
+- [[plans/debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard: branches
+  1–4 and task 16 (release v1.5.0) done; **closed on 2026-10-07, superseded** by the next
+  plan, status: completed.
 - [[plans/fix-startup-brew-env]] — plan of branch 4 (7 tasks; task 6, the post-fix
   launchd regression, dropped by the user), status: completed.
+- [[plans/v2-personal-tool]] — **brew-manager 2.0.0, a personal terminal tool**: B1 the
+  re-plan → B2 Homebrew developer mode → B3 remove bk/las/log/mas and module 10 (MAJOR) →
+  B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
+  status: in-progress.

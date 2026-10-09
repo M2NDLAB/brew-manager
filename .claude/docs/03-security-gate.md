@@ -24,33 +24,42 @@ authentication/authorisation, handling of payments or money, personal data, the 
 that performs enforcement (gateway/proxy), any surface that performs actions on
 behalf of a client (e.g. a tool/automation server).
 
-> **Which ones, concretely, in this project.** brew-manager has no auth and no
-> payments: here "sensitive" = blast radius on the user's real Mac (removed files,
-> packages installed/uninstalled, launchd persistence). These fall under the gate:
+> **Which paths, concretely, in this project — PATH-BASED since IMP-030 (2026-10-07).**
+> brew-manager has no auth and no payments: here "sensitive" = blast radius on the
+> user's real Mac (removed files, packages installed or upgraded, Homebrew's
+> configuration, launchd persistence). The gate applies to a change to a path that:
 >
-> - `modules/mod_00_audit.sh` — app adoption with `brew install --cask --adopt`
-> - `modules/mod_05_cleanup.sh` — `brew autoremove` + `brew cleanup -s` (removals)
-> - `modules/mod_bk_brewfile.sh` — restore (installs packages, writes plists,
->   `launchctl load`)
-> - `modules/mod_las_scheduler.sh` — LaunchAgent persistence in `~/Library/LaunchAgents`
-> - `brew_manager.sh` — dispatch, flag parsing, execution with `--yes`
-> - `lib/common.sh` — shared guard-rail infrastructure (`_ask`, `_read_choice`,
->   YES_MODE, DRY_RUN): a defect here propagates to ALL modules
-> - `lib/selection.sh` — the selection resolver (`_resolve_selection`,
->   `_resolve_cli`, `_collect_module_tokens`, `_selection_is_valid`) and the per-id
->   registries (`MODULE_IDS`, `MODULE_DESC`, `MODULE_RISK`, `MODULE_DRYRUN`, …): a
->   defect here decides WHICH modules run — for the CLI, the menu and the
->   LaunchAgents alike — and what the session summary attests about them
+> - **deletes** — `modules/mod_05_cleanup.sh` (`brew autoremove`, `brew cleanup -s`);
+>   the session's own temporary files in `brew_manager.sh`; until 2.0.0 also the
+>   deletions of `mod_las_scheduler.sh` ([c], Remove), `mod_bk_brewfile.sh` (Delete) and
+>   `mod_log_manager.sh`
+> - **installs** — `modules/mod_00_audit.sh` (`brew install --cask --adopt`),
+>   `modules/mod_04_updates.sh` (`brew upgrade`), `modules/mod_10_greedy.sh` (`brew
+>   upgrade --cask --greedy`, retired in 2.0.0), the Homebrew installer in
+>   `brew_manager.sh`; until 2.0.0 also the restore of `mod_bk_brewfile.sh` and
+>   `mod_mas_mas.sh` (`brew install mas`, `mas upgrade`)
+> - **modifies Homebrew's configuration** — the developer-mode restore of
+>   `modules/mod_01_health.sh` (from task 2 of the 2.0.0 plan) and any code that writes
+>   a Homebrew setting (CLAUDE.md: only through an explicit, shown and confirmed action)
+> - **decides what runs** — `brew_manager.sh` (flag parsing, dispatch, `--yes`),
+>   `lib/selection.sh` (the resolver and the per-id registries: `MODULE_IDS`,
+>   `MODULE_DESC`, `MODULE_RISK`, `MODULE_DRYRUN`, …), `lib/common.sh` (`_ask`,
+>   `_read_choice`, YES_MODE, DRY_RUN — a defect here propagates to ALL modules); until
+>   2.0.0 also the LaunchAgent persistence of `mod_las_scheduler.sh`
 >
-> Medium risk, outside the gate but to be handled with care (preview + confirmations):
-> `mod_04_updates`, `mod_10_greedy`, `mod_mas_mas` (global upgrades / mas install).
+> The files that hold these paths are the **sensitive components** (the list in
+> CLAUDE.md, technical rules). An edit to one of them that does not touch such a path —
+> wording, a read-only part, a comment — is verified by the author.
 
 ## How the gate works
 
 On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
 (PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** run on the branch diff.
+1. **One review lens** (`/security-review` scoped to the changed paths), asking what the
+   change does and *what does this now AUTHORISE?*; a **refuter** (a second agent with
+   an explicit mandate to refute) only where the change widens what such a path
+   authorises. No multi-hour review workflows unless the risk justifies them.
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
    `memory/STATE.md`, with the reason for accepting them.
@@ -66,8 +75,8 @@ not). Before declaring it closed, `grep` the pattern over the WHOLE code base,
 enumerate the sites, and fix or record each one — the usual miss is the twin in
 another module. When the fix touches a consent or safety guard-rail, the verification
 also asks *what does this now AUTHORISE?* (adversarially), not only *does it work?*.
-After a substantive fix to shared sensitive code, re-run the gate on the whole branch
-diff, the fix included.
+After a substantive fix to a gated path, re-run the lens on the whole branch diff, the
+fix included.
 
 ## When the review must be adversarial (author ≠ judge)
 
@@ -79,6 +88,11 @@ The criterion is not nominal severity but the **blast radius** of the defect:
   own work tends to re-read their own assumptions.
 - **Author-verifies** — sufficient (and adversarial review is overhead): for factual
   reconnaissance and inspectable local fixes, with zero blast radius.
+
+> **In brew-manager (IMP-030).** The one lens on a gated path is run by a delegated
+> reviewer, never by the author re-reading their own change: that is the "second pass".
+> The refuter on top of it is added only where the change widens what the path
+> authorises.
 
 **Before acting on the findings.** In a multi-agent review — especially after
 interruptions or resumes — check COMPLETENESS against the right numbers: the

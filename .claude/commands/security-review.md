@@ -24,4 +24,7 @@ stack-agnostic — adapt/extend those specific to your technology
 
 Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
 finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
-PR, MEDIUM resolved or accepted in STATE.md, LOW at least recorded.
+PR, MEDIUM resolved or accepted in STATE.md, LOW at least recorded. In brew-manager
+the gate is path-based (IMP-030): scope the review to the changed paths that delete,
+install, modify Homebrew's configuration or decide what runs, ask what the change now
+AUTHORISES, and keep it to one lens (a refuter only where the change widens that).

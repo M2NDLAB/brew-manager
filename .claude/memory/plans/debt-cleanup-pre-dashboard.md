@@ -3,11 +3,15 @@ type: plan
 prompt: debt-cleanup-pre-dashboard
 branch: one branch per task (listed below)
 created: 2026-09-25
-status: in-progress
+status: completed
 tags: [plan, debt, security, dashboard]
 ---
 # Plan: close the open debts before the Dashboard improvement
 
+> **CLOSED on 2026-10-07 — superseded by [[plans/v2-personal-tool]]**
+> ([[decisions/2026-10-07-v2-plan]]): branches 1–4 and task 16 done; tasks 5–15 re-planned
+> there. What follows is the history.
+>
 > **SUPERSEDED IN PART — re-plan pending (2026-09-27).** The user changed the scope:
 > brew-manager becomes a personal terminal tool, there is no Dashboard, and bk, las, the
 > log module and mas will be removed in 2.0.0 (a later task) →
@@ -78,9 +82,10 @@ task; the (c) items tracked in STATE with their triggers.
 - [ ] 15. `docs/readme-truth` — the README residue (R2, R2b, R3, R4, R5, R10, R11–R13,
   M3), SECURITY.md, the "managed with Claude Code" decision; a claim-by-claim final
   check. Gate: no. — commit: —
-- [ ] 16. `chore/release-v1.5.0` — VERSION + CHANGELOG `[1.5.0]` with Known limitations
+- [x] 16. `chore/release-v1.5.0` — VERSION + CHANGELOG `[1.5.0]` with Known limitations
   (#4b until the improvement, #17 and #3b with their conditions, #6); the tag is the
-  user's. — commit: —
+  user's. — done 2026-10-07, brought forward: `6815a5c`, RELEASED by the user (merge
+  `37b8db5`, annotated tag `v1.5.0` → object `deb8f61`).
 
 ## Task 4 — the real-launchd verification (reviewed; approved by the user 2026-09-26)
 Asked by the user before branch 4 starts: N1 + 4b-0 (STATE #23) is declared confirmed only
