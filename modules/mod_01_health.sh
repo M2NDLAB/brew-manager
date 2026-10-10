@@ -11,7 +11,7 @@ _module_1() {
     echo ""
     echo -e "  ${C_GRAY}Runs a full diagnostic of your Homebrew installation. Checks:${NC}"
     echo ""
-    printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Homebrew version"    "Current version and last DB update time"
+    printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Homebrew version"    "Current version and the date of Homebrew's code"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Xcode CLI Tools"     "Required for building formulae from source"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Prefix permissions"  "Checks that brew can write to its install directory"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Disk space"          "Free space on the volume containing brew prefix"
@@ -23,14 +23,25 @@ _module_1() {
     _hline "·" "$C_GRAY"
 
     echo ""
-    local _brew_ver _brew_prefix _brew_repo _macos_ver _arch _ruby_ver
+    local _brew_ver _brew_prefix _brew_repo _macos_ver _arch _ruby_ver _code_date
     _brew_ver="$(brew --version 2>/dev/null | head -1 | awk '{print $2}')"
     _brew_prefix="$(brew --prefix 2>/dev/null)"
     _brew_repo="$(brew --repository 2>/dev/null)"
     _macos_ver="$(sw_vers -productVersion 2>/dev/null)"
     _arch="$(uname -m)"
-    _ruby_ver="$(brew ruby --version 2>/dev/null | awk '{print $2}' || echo 'n/a')"
-    _last_update="$(cd "$_brew_repo" 2>/dev/null && git log -1 --format='%ar' 2>/dev/null || echo 'n/a')"
+    # NOTE: never `brew ruby` — it is a Homebrew DEVELOPER command, and running one
+    # turns Homebrew's developer mode on (`brew update` then follows Homebrew's
+    # main branch instead of its releases). This line did exactly that from v1.1.0
+    # on, even under --dry-run (STATE #30); `brew config` is a regular command and
+    # reports the same Ruby. tests/test_homebrew_developer.zsh keeps developer
+    # commands out of the code.
+    _ruby_ver="$(brew config 2>/dev/null | awk -F': ' '/^Homebrew Ruby:/ {split($2, a, " "); print a[1]; exit}')"
+    [[ -n "$_ruby_ver" ]] || _ruby_ver="n/a"
+    # The date of Homebrew's own code (its repository's last commit: the release
+    # date on a stable tag). Not the package index: since Homebrew 4 that comes
+    # from the JSON API, so the old "Last DB update" label was wrong.
+    _code_date="$(cd "$_brew_repo" 2>/dev/null && git log -1 --format='%ar' 2>/dev/null)"
+    [[ -n "$_code_date" ]] || _code_date="n/a"
     _cask_count="$(brew list --cask 2>/dev/null | wc -l | tr -d ' ')"
     _formula_count="$(brew list --formula 2>/dev/null | wc -l | tr -d ' ')"
 
@@ -40,7 +51,7 @@ _module_1() {
     printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%-26s${NC}  ${C_CYAN_B}%-20s${NC}  ${C_WHITE}%s${NC}\n" \
         "macOS" "$_macos_ver" "Arch" "$_arch"
     printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%-26s${NC}  ${C_CYAN_B}%-20s${NC}  ${C_WHITE}%s${NC}\n" \
-        "Last DB update" "$_last_update" "Ruby (internal)" "$_ruby_ver"
+        "Homebrew code dated" "$_code_date" "Ruby (internal)" "$_ruby_ver"
     printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%-26s${NC}  ${C_CYAN_B}%-20s${NC}  ${C_WHITE}%s${NC}\n" \
         "Repository (core+cask)" "API JSON" "Installed casks" "$_cask_count"
     printf "  ${C_CYAN_B}%-26s${NC}  ${C_WHITE}%s${NC}\n" \

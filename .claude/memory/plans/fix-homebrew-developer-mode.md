@@ -20,7 +20,7 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
   OFF (`brew developer state`: "Developer mode is disabled."). The Homebrew reflog shows the
   switch "from main to stable" on 2026-10-07 18:37:09 — outside this project's sessions (no
   command of the session or of its agents ran then; the transcripts were checked).
-- Developer commands = the files in `Library/Homebrew/dev-cmd/` (69 names, identical in
+- Developer commands = the files in `Library/Homebrew/dev-cmd/` (68 names, identical in
   6.0.21 and 7.0.8) + the aliases `lc` → livecheck, `tc` → typecheck (`commands.rb`).
   `brew.sh:556-576`: running one as a non-developer writes `homebrew.devcmdrun true` into
   the git config of Homebrew's repository and prints a warning.
@@ -35,11 +35,14 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
 - `brew config` is a regular command; its "Homebrew Ruby:" line gives the Ruby version.
 
 ## Tasks
-- [ ] 1. This plan. — commit: —
-- [ ] 2. Prevention + the root cause: a new suite `tests/test_homebrew_developer.zsh` whose
+- [x] 1. This plan. — commit: `265bb83`
+- [x] 2. Prevention + the root cause: a new suite `tests/test_homebrew_developer.zsh` whose
   static scan fails when a developer command appears in the code (RED shown on `brew ruby`
   at mod_01:32); mod_01 reads the Ruby version from `brew config` and relabels "Last DB
-  update" (it is the date of Homebrew's code). — commit: —
+  update" (it is the date of Homebrew's code). — commit: this task's commit (RED: the
+  scan found exactly mod_01:32; a first matcher also flagged mod_09's label "brew formula",
+  so it was narrowed to command position; GREEN 4/4; a real `1 --dry-run` smoke left
+  Homebrew's `.git/config` untouched)
 - [ ] 3. Detection + restore in mod_01 (`_m01_dev_mode_state`, `_m01_developer_mode`): off →
   a green row; the setting → a warning, a preview under `--dry-run`, `_ask_danger` (default
   `y`: `--yes` proceeds, Enter at the prompt declines, non-interactive declines), then `brew
