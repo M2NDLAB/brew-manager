@@ -1,14 +1,14 @@
 ---
 type: state
 updated: 2026-10-07
-branch: chore/replan-v2
+branch: fix/homebrew-developer-mode
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-10-07 | Last: **task 1 of the 2.0.0 plan done** (`chore/replan-v2`, memory and process): v1.5.0 recorded as RELEASED (merge `37b8db5`, annotated tag `v1.5.0` → object `deb8f61`); the plan [[plans/v2-personal-tool]] and its decisions [[decisions/2026-10-07-v2-plan]] (B1–B8, D1–D11, the user's precisions) with the evidence [[sessions/2026-10-07-replan-v2-assessment]]; the STATE triage by decision (#17/#28 accepted, 4b-3 closed, the old plans superseded; new #30–#33); **IMP-030** (a path-based gate) and **IMP-031** (Homebrew's configuration changes only by an explicit, shown and confirmed action) applied. Ready for integration (no tag). Next: task 2, `fix/homebrew-developer-mode`, on the user's go. | Index: [[INDEX]]
+> Updated: 2026-10-10 | Last: **task 2 of the 2.0.0 plan done** (`fix/homebrew-developer-mode`): module 1 no longer runs `brew ruby` (a Homebrew developer command that turned developer mode on at every run since v1.1.0, also under `--dry-run`); a new suite keeps developer commands out of the code; module 1 reports developer mode read-only and offers to restore it (`brew developer off` + `brew update`, previewed under `--dry-run`, confirmed or `--yes`; the environment only reported); `[W]`; the one-lens gate (no C/H/M; 3 LOW + 7 INFO fixed or recorded); 333 tests. #30 FIXED (closes at the merge). Found: this Mac was already back on stable 7.0.8 with developer mode off (since 2026-10-07 18:37, outside the session), so the user's test sequence creates the condition on purpose. Task 1 INTEGRATED (merge `f232f12`). Ready for integration (no tag). → [[sessions/2026-10-10-homebrew-developer-mode]] | Index: [[INDEX]]
 
-> **Previous**: the v1.5.0 release (VERSION + CHANGELOG `[1.5.0]`: the agents of v1.3.0/v1.4.0 never ran Homebrew; Deprecated: bk, las, log, mas) → [[sessions/2026-10-07-release-v1.5.0]].
+> **Previous**: task 1 of the 2.0.0 plan (`chore/replan-v2`: the v1.5.0 reconciliation, the plan and decisions, the triage by decision, IMP-030 and IMP-031) → INTEGRATED (merge `f232f12`) → [[sessions/2026-10-07-replan-v2-assessment]].
 
 ## Stato avanzamento
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
@@ -209,7 +209,7 @@ tags: [state]
     CHANGELOG `[1.5.0]` with Deprecated and Known limitations); version-check proven in a
     clone. → [[sessions/2026-10-07-release-v1.5.0]].
 - [ ] **brew-manager 2.0.0, a personal terminal tool** (approved 2026-10-07):
-  [[plans/v2-personal-tool]] — B1 `chore/replan-v2` (done, ready for integration) → B2 Homebrew developer mode → B3 remove
+  [[plans/v2-personal-tool]] — B1 `chore/replan-v2` (INTEGRATED, merge `f232f12`) → B2 `fix/homebrew-developer-mode` (done, ready for integration) → B3 remove
   bk/las/log/mas and module 10 (MAJOR) → B4 session log → B5 Homebrew 6/7 compatibility →
   B6 flag values → B7 module outcomes → B8 release v2.0.0. Decisions:
   [[decisions/2026-10-07-v2-plan]].
@@ -254,8 +254,8 @@ tags: [state]
   dimostrato) e `[bk]`/`[las]` 0 (dichiarati onestamente, #15/#16). Vedi
   [[lib-selection]].
 - 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
-  `log`/`mas` (per nome). 9 moduli read-only; mutanti: 00, 02, 04, 05, 10, bk,
-  las, log, mas. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
+  `log`/`mas` (per nome). 8 read-only modules (module 1 is `write` since 2026-10-10: its developer-mode restore); mutating: 00, 01, 02, 04, 05, 10, bk,
+  las, log, mas. Module 1's note: [[mod-01-health]]. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
   [[mod-bk-brewfile]], [[mod-las-scheduler]].
 - The `.claude/` process framework (docs, commands, memory), CLAUDE.md, Makefile, git
   hooks (gitleaks + commitlint), CHANGELOG.md. **Method at framework v1.2.0** (from
@@ -270,8 +270,10 @@ tags: [state]
   [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0),
   [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0).
-- Test: `tests/` (zsh puro, zero-dip, `make test`, **311 check** con anti-vacuità — 268
-  before branch 4, which took `test_exit_codes.zsh` from 6 to 49):
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **333 check** con anti-vacuità — 268
+  before branch 4, which took `test_exit_codes.zsh` from 6 to 49; 311 before task 2 of the
+  2.0.0 plan, which added `test_homebrew_developer.zsh` (22): no Homebrew developer command in
+  the code, and module 1's developer-mode detection and restore against a mock brew):
   `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
   `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
   (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
@@ -473,6 +475,9 @@ tags: [state]
    through LastExitStatus, or BM-17 is brought forward. Idiosyncrasy: Ctrl+C → exit 2
    (the raw signal number of macOS `script(1)`), indistinguishable from "unknown
    token". → [[sessions/2026-09-24-debt-inventory-pre-dashboard]] (section C).
+   **2026-10-10**: module 1's developer-mode restore is a new mutating path with the same
+   blind spot — a failed `brew developer off` or `brew update` is reported on screen, but
+   the summary shows ✓ (gate INFO, task 2).
    **2.0.0 plan (2026-10-07)**: 4b-1 and a reduced 4b-2 (declined/skipped/failed/unmeasured states; no JSON schema, no `_mod_outcome` channel) → **task 7**, with the raw output on failure into the log. **4b-3 CLOSED** by decision: its triggers (the Dashboard's LastExitStatus, BM-17) are gone; it can come back as a MINOR.
 5. ~~**Tag esistenti lightweight**~~ **CONVENZIONE IN VIGORE da v1.2.0**: `v1.2.0`
    è il primo tag di release **annotato** (i legacy v1.1.1/v1.1.2 restano
@@ -776,6 +781,11 @@ tags: [state]
    `MODULE_DRYRUN[1]=1` attests something false). `mod_01:33` also labels the last commit
    of Homebrew's code as "Last DB update". → **task 2** of [[plans/v2-personal-tool]]: a prevention test, a
    read-only detection, a restore with preview and confirmation (the user's precisions).
+   **FIXED on `fix/homebrew-developer-mode` (2026-10-10), closes at its merge**: `brew ruby`
+   gone (Ruby from `brew config`), the label fixed, `tests/test_homebrew_developer.zsh`, the
+   detection and the confirmed restore in module 1 ([[mod-01-health]]). The cause on this Mac
+   is moot: it was already back on stable 7.0.8 with developer mode off (2026-10-07 18:37,
+   outside the session). → [[sessions/2026-10-10-homebrew-developer-mode]].
 31. **Homebrew 6.0/7.0 compatibility of the remaining modules** (2026-10-07; appendix D of
    the assessment; the installed brew is 6.0.21, upstream 7.0.8): F1 module 10's detection
    never matched (it greps `auto_updates: true`; brew prints `(auto_updates)`), so its
@@ -820,17 +830,21 @@ tags: [state]
   gate lens is a hole: rerun it on the CURRENT diff), **IMP-029** (mutation checks also
   change HOW a unit fails) — all `Destination: framework`, OPEN. The 2.0.0 plan
   (2026-10-07): **IMP-030** (a path-based gate) and **IMP-031** (Homebrew's configuration
-  is the user's) APPLIED.
+  is the user's) APPLIED. Task 2 (2026-10-10): **IMP-032** (a verification record reads the
+  environment at that moment; `Destination: framework`), OPEN.
 
 ## Branch attivi
-- **chore/replan-v2** (task 1 of the 2.0.0 plan: memory and process — the v1.5.0
-  reconciliation, the plan, the triage by decision, IMP-030, IMP-031) = **READY for the
-  user's integration** (`/integrate` block, no tag).
-- **main** = integration + stable (trunk-based); HEAD `37b8db5` (the v1.5.0 release merge;
-  below it `bc114b9`, branch 4, and `050ea6d`, branch 3), aligned with `origin/main`; tags
-  **`v1.5.0`** (annotated, object `deb8f61` → `37b8db5`) + `v1.4.0` (annotated, object
-  `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) + `v1.1.2-baseline` (helper).
-  `CHANGELOG [Unreleased]`: empty. `make version-check` green (VERSION 1.5.0).
+- **fix/homebrew-developer-mode** (task 2 of the 2.0.0 plan: module 1 never leaves
+  Homebrew in developer mode — code, tests, docs, memory) = **READY for the user's
+  integration** (`/integrate` block; a `feat` inside, no tag until the v2.0.0 release).
+- **main** = integration + stable (trunk-based); HEAD `f232f12` (merge of task 1,
+  `chore/replan-v2`; below it `37b8db5`, the v1.5.0 release merge), aligned with
+  `origin/main`; tags **`v1.5.0`** (annotated, object `deb8f61` → `37b8db5`) + `v1.4.0`
+  (annotated, object `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) +
+  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]` on main: empty. `make
+  version-check` green (VERSION 1.5.0).
+- **chore/replan-v2** (task 1 of the 2.0.0 plan) = **INTEGRATED into main** (merge
+  `f232f12`, pushed; no tag), branch deleted.
 - **chore/release-v1.5.0** (the release) = **RELEASED** (merge `37b8db5`, annotated tag
   `v1.5.0`, both pushed by the user), branch deleted.
 - **fix/startup-brew-env** (branch 4 of the debt cleanup) = **INTEGRATED into main**

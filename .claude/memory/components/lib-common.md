@@ -37,7 +37,8 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 
 ## Risk badges (BM-10) — presentazione del rischio
 - `_risk_badge <level>` / `_risk_caption <level>`: renderer PURI (level-driven) per
-  il badge `[RO]`/`[W]`/`[!]` e la sua caption. Colore dalla palette semantica
+  il badge `[RO]`/`[W]`/`[!]` e la sua caption (the `write` one reads "Writes metadata,
+  cache or Homebrew's settings — never packages" since 2026-10-10). Colore dalla palette semantica
   (`C_OK/C_WARN/C_DANGER`) → **vuoti a L0** (badge in ASCII puro se pipato/NO_COLOR).
   Badge a **larghezza visibile fissa (4 col)** → colonne del menu allineate. Il
   livello per-modulo vive in `MODULE_RISK` ([[lib-selection]]), non qui (renderer

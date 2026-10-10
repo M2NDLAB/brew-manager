@@ -32,6 +32,8 @@ tags: [moc]
 - [[lib-common]] — rendering TUI capability-aware + guard-rail condivisi
   `_ask`/`_read_choice` (sensibile; layer detection/palette/box dal BM-09)
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
+- [[mod-01-health]] — the health check; since 2026-10-10 Homebrew's developer mode:
+  read-only detection and a confirmed restore (a gated path, IMP-030)
 - [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
   `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
@@ -172,6 +174,10 @@ tags: [moc]
   re-plan (four analysts and a critic, verbatim): the removal of bk/las/log/mas, the
   session recording, the triage of every STATE entry, Homebrew 6/7 compatibility (developer
   mode left on by module 1, module 10 never matched, brew's ask mode, tap trust).
+- [[sessions/2026-10-10-homebrew-developer-mode]] — task 2: module 1 never leaves Homebrew
+  in developer mode (`brew ruby` gone, a prevention suite, a read-only detection, a
+  confirmed restore); this Mac was already back on stable 7.0.8; the one-lens gate (no
+  C/H/M). Ready for integration.
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -221,4 +227,5 @@ tags: [moc]
 - [[plans/v2-personal-tool]] — **brew-manager 2.0.0, a personal terminal tool**: B1 the
   re-plan → B2 Homebrew developer mode → B3 remove bk/las/log/mas and module 10 (MAJOR) →
   B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
-  status: in-progress.
+  status: in-progress (task 1 integrated; task 2 ready).
+- [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.

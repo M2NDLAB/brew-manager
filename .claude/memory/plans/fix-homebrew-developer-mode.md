@@ -3,7 +3,7 @@ type: plan
 prompt: fix-homebrew-developer-mode
 branch: fix/homebrew-developer-mode
 created: 2026-10-10
-status: in-progress
+status: completed
 tags: [plan, homebrew, developer-mode, mod_01, gate]
 ---
 # Plan: task 2 of the 2.0.0 plan — brew-manager never leaves Homebrew in developer mode
@@ -58,12 +58,12 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
   configuration and run `brew update` after confirmation), CHANGELOG `[Unreleased]`. —
   commit: `5309684`
 - [x] 5. The gate (IMP-030): one lens on the restore path, as the user asked; fixes. —
-  commit: this task's commit. The lens: no CRITICAL/HIGH/MEDIUM; 3 LOW + 7 INFO, all
+  commit: `ded74f6`. The lens: no CRITICAL/HIGH/MEDIUM; 3 LOW + 7 INFO, all
   fixed or recorded (the summary blind spot under #4b). Six mutants of the fixes, each
   caught; suite 333.
-- [ ] 6. /checkpoint; the printed /integrate; the user's test sequence on this Mac (with
+- [x] 6. /checkpoint; the printed /integrate; the user's test sequence on this Mac (with
   developer mode created on purpose, since it is off today) and the manual fallback. —
-  commit: —
+  commit: the checkpoint commit
 
 ## Resumption notes
 - The user believed the Mac was in developer mode on 2026-10-10; it is not (see above). The

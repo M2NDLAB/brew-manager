@@ -40,8 +40,9 @@ del tokenizer trovati e fixati).
 - `MODULE_RISK` (assoc, BM-10): id → `ro|write|danger`, 1 voce per chiave di
   `MODULE_DESC` = single source of truth del **badge di rischio**. **Presentazione
   pura**: NON alimenta il resolver (nessun impatto sul contratto di selezione).
-  Livelli da audit adversariale (mai sottostimare, docs/03): `ro` 1,3,6,7,8,9,11,12,13
-  · `write` 2,log · `danger` 0,4,5,10,bk,las,mas. `_about_risk <id>` compone
+  Livelli da audit adversariale (mai sottostimare, docs/03): `ro` 3,6,7,8,9,11,12,13
+  · `write` 1,2,log · `danger` 0,4,5,10,bk,las,mas (module 1 `write` since 2026-10-10: its
+  developer-mode restore changes Homebrew's own setting and code). `_about_risk <id>` compone
   badge+caption (renderer puri in [[lib-common]]) per il blocco About dei moduli.
   Pinnato da `tests/test_risk_badges.zsh` (completezza vs MODULE_DESC, sensibili=danger).
 - `_resolve_selection <spec> [invalid_mode]`: popola il GLOBALE `MODULES_TO_RUN`

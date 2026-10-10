@@ -30,7 +30,7 @@ line numbers are those of `main` at `37b8db5`.
   job loaded; mod_10's grep for `auto_updates: true` never matches (brew prints
   `(auto_updates)` in the title; all 5 recorded logs say "Casks with auto_updates flag
   0"); mod_01:32 runs `brew ruby --version`, a developer command.
-- **The user's question on D3, verified on the installed brew (6.0.21)**: plain `brew
+- **The user's question on D3, verified on the installed brew** (Level-1 correction, 2026-10-10: it was already 7.0.8 at that moment — Homebrew's reflog shows the switch from `main` to `stable` at 18:37:09 that day, outside the session — not 6.0.21 as first written; the 5.1.6/6.0.0 facts come from the tags and stand): plain `brew
   upgrade` upgrades an `auto_updates` cask when the app bundle is OLDER than the tap
   version (`cask/cask.rb:445-448`, `auto_updates_bundle_outdated?`). The behaviour
   arrived in 5.1.6 as opt-in (default only with `HOMEBREW_DEVELOPER`) and became the
