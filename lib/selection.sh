@@ -123,15 +123,19 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 # reach — a badge that understates risk is a security bug (docs/03) — so it was
 # set from an adversarially-verified per-module audit (workflow, 2026-07-20):
 #   ro     — only reads/reports, changes nothing.
-#   write  — mutates only metadata/cache or the tool's OWN files (logs/, backups/,
+#   write  — mutates only metadata/cache, Homebrew's own settings and code (module 1's
+#            developer-mode restore, module 2's brew update) or the tool's OWN files (logs/, backups/,
 #            agents/); installs/removes nothing on the system.
 #   danger — can remove/install/adopt packages, or persist/load a LaunchAgent.
+# Module 1 is `write` since it can restore Homebrew from developer mode (`brew
+# developer off` + `brew update`, after a confirmation): Homebrew's own setting
+# and code, like module 2's `brew update` — no package installed or removed.
 # Kept in lockstep with MODULE_DESC: tests/test_risk_badges.zsh fails if any id is
 # missing, carries a level outside {ro,write,danger}, or the sensitive modules
 # (docs/03: 0,5,bk,las) are not 'danger'. A gate on the SELECTION contract, not
 # the risk one, so this array is presentation-only: it never feeds the resolver.
 typeset -gA MODULE_RISK=(
-    [0]=danger  [1]=ro      [2]=write   [3]=ro      [4]=danger
+    [0]=danger  [1]=write   [2]=write   [3]=ro      [4]=danger
     [5]=danger  [6]=ro      [7]=ro      [8]=ro      [9]=ro
     [10]=danger [11]=ro     [12]=ro     [13]=ro
     [log]=write [bk]=danger [las]=danger [mas]=danger

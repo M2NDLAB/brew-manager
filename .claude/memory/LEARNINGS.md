@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-27
+updated: 2026-10-10
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -432,6 +432,23 @@ tags: [improvement]
   harness prints only AFTER the unit returned.
 - Expected benefit / risk: a harness can no longer erase the difference the contract
   depends on. Risk: one or two more mutants per suite.
+- Destination: framework
+
+### IMP-032 — A verification record reads the environment at that moment, never from memory
+- Date: 2026-10-10 | Origin: [[sessions/2026-10-10-homebrew-developer-mode]] — a wrong version in a verification record
+- Observed problem: on 2026-10-07 a check of Homebrew's behaviour was recorded as
+  "verified on the installed brew (6.0.21)". The version came from an hour-old analysis;
+  in between, Homebrew had been moved to 7.0.8 outside the session. The conclusion
+  survived, by luck (it rested on the tags), but the record named the wrong environment,
+  and three days later the user's own premise ("my Mac is in developer mode") was stale
+  in the same way. docs/02's "verify against REAL artifacts" covers the artifact, not
+  the record of WHERE it was verified.
+- Proposal: add to docs/02, "Verify against REAL artifacts": a verification that names
+  an environment (a tool version, a machine state) reads it with a command in the same
+  step and records that output; an environment fact older than the current session is
+  re-read before it is relied on.
+- Expected benefit / risk: records that stay true, and stale premises caught before code
+  is written. Risk: one more read-only command per verification.
 - Destination: framework
 
 <!-- Format of a proposal:

@@ -57,8 +57,8 @@ _expect_level() {
     [[ "$got" == "$exp" ]] && _pass "level: $id = $exp" \
                            || _fail "level: $id = $got, expected $exp"
 }
-for _id in 1 3 6 7 8 9 11 12 13; do _expect_level "$_id" ro;     done
-for _id in 2 log;               do _expect_level "$_id" write;  done
+for _id in 3 6 7 8 9 11 12 13;   do _expect_level "$_id" ro;     done
+for _id in 1 2 log;             do _expect_level "$_id" write;  done
 for _id in 0 4 5 10 bk las mas; do _expect_level "$_id" danger; done
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 TUI_COLOR_LEVEL=0; _init_palette
 _about5="$(_about_risk 5)"      # danger module
-_about1="$(_about_risk 1)"      # ro module
+_about1="$(_about_risk 3)"      # ro module (3; module 1 is write since its developer-mode restore)
 if [[ "$_about5" == *'[!]'* && "$_about5" == *'system'* ]] && ! has_esc "$_about5"; then
     _pass "_about_risk: danger module shows [!] + caption, plain at L0"
 else
@@ -146,9 +146,10 @@ else
 fi
 
 # no destructive _ask left un-framed in the danger modules: every _ask ("... ?")
-# guarding a mutation must now be _ask_danger. Scan the 6 wired modules.
+# guarding a mutation must now be _ask_danger. Scan the 7 wired modules (mod_01
+# since its developer-mode restore).
 _bare=()
-for _m in mod_00_audit mod_04_updates mod_05_cleanup mod_10_greedy mod_bk_brewfile mod_mas_mas; do
+for _m in mod_00_audit mod_01_health mod_04_updates mod_05_cleanup mod_10_greedy mod_bk_brewfile mod_mas_mas; do
     _f="$_ROOT/modules/$_m.sh"
     # a bare `_ask "` still present (not `_ask_danger`) at a mutation site is a miss
     grep -nE '(^|[^_])_ask "' "$_f" >/dev/null 2>&1 && _bare+=("$_m")
