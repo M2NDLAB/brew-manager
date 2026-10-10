@@ -98,7 +98,7 @@ Every module also carries a **risk badge** that makes its blast radius visible a
 | Badge | Meaning |
 |-------|---------|
 | `[RO]` | **Read-only** — inspects and reports, changes nothing. |
-| `[W]`  | **Writes metadata/cache only** — refreshes Homebrew's index or the tool's own files; installs and removes nothing on your system. |
+| `[W]`  | **Writes metadata, cache or Homebrew's settings** — refreshes Homebrew's index, changes a Homebrew setting after you confirm (module `1`), or writes the tool's own files; never installs or removes a package. |
 | `[!]`  | **Can change your system** — removes packages/cache, installs, adopts apps, or schedules a LaunchAgent. |
 
 Before a `[!]` action actually runs, brew-manager draws a **framed danger box** that names the exact command and spells out what it will do, then asks you to confirm. Under `--dry-run` you get a preview instead and are never asked; in an unattended run consent still comes only from `--yes` (see [Available flags](#available-flags)).

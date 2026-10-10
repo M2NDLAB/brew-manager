@@ -56,9 +56,11 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
   Homebrew's .git/config untouched); `b478bb2`
 - [x] 4. Docs: README (module 1), SECURITY.md (module 1 may change Homebrew's
   configuration and run `brew update` after confirmation), CHANGELOG `[Unreleased]`. —
-  commit: this task's commit
-- [ ] 5. The gate (IMP-030): one lens on the restore path, as the user asked; fixes. —
-  commit: —
+  commit: `5309684`
+- [x] 5. The gate (IMP-030): one lens on the restore path, as the user asked; fixes. —
+  commit: this task's commit. The lens: no CRITICAL/HIGH/MEDIUM; 3 LOW + 7 INFO, all
+  fixed or recorded (the summary blind spot under #4b). Six mutants of the fixes, each
+  caught; suite 333.
 - [ ] 6. /checkpoint; the printed /integrate; the user's test sequence on this Mac (with
   developer mode created on purpose, since it is off today) and the manual fallback. —
   commit: —

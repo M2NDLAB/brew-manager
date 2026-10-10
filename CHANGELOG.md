@@ -28,12 +28,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     off` followed by `brew update`, which brings Homebrew back to its latest stable
     release.
   - It is previewed under `--dry-run` and runs only after you confirm, or with `--yes`.
-  - Developer mode set by `HOMEBREW_DEVELOPER` in your environment is only reported.
+    A scheduled agent that runs module 1 (or `go`) with `--yes` will therefore turn
+    developer mode off on its own, even one you turned on with `brew developer on`.
+  - Before you confirm it shows the version Homebrew moves from. `brew update` checks
+    Homebrew out at its latest release tag, which can be older than the main-branch
+    commit it was on. It also warns when Homebrew's repository has local changes:
+    `brew update` stashes them and does not restore them.
+  - Developer mode set in your environment (`HOMEBREW_DEVELOPER`,
+    `HOMEBREW_DEV_CMD_RUN`) is only reported.
+  - With developer mode off, the row turns yellow when Homebrew is not on a release,
+    for example after a failed update.
   - A test keeps Homebrew developer commands out of brew-manager's code.
 
 ### Changed
 - Module 1's risk badge is `[W]` instead of `[RO]`: after a confirmation, it can change
-  Homebrew's developer-mode setting and run `brew update`.
+  Homebrew's developer-mode setting and run `brew update`. The `[W]` caption now reads
+  "Writes metadata, cache or Homebrew's settings — never packages".
 
 ## [1.5.0] - 2026-10-07
 

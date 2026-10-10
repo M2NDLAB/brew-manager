@@ -123,7 +123,8 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 # reach — a badge that understates risk is a security bug (docs/03) — so it was
 # set from an adversarially-verified per-module audit (workflow, 2026-07-20):
 #   ro     — only reads/reports, changes nothing.
-#   write  — mutates only metadata/cache or the tool's OWN files (logs/, backups/,
+#   write  — mutates only metadata/cache, Homebrew's own settings and code (module 1's
+#            developer-mode restore, module 2's brew update) or the tool's OWN files (logs/, backups/,
 #            agents/); installs/removes nothing on the system.
 #   danger — can remove/install/adopt packages, or persist/load a LaunchAgent.
 # Module 1 is `write` since it can restore Homebrew from developer mode (`brew

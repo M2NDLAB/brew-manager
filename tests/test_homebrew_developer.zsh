@@ -66,41 +66,57 @@ done
 _DEVCMDS=(${(u)_DEVCMDS})
 
 # _scan_devcmds <file...> — print "file:line:text" for every line that RUNS
-# `brew <developer command>`: `brew` in command position (the start of a line,
-# after `$(`, `;`, `|`, `&`, `(`, `{` or a backquote, after if/then/do/else/
-# elif/while/until/!/command/exec/time/nohup, or as xargs' command), options
-# allowed before the command name, which must be a whole word. Comment lines
-# are skipped, and so is a mention inside a string ("brew formula" is mod_09's
-# label for a binary's source, not a call).
+# `brew <developer command>`. `brew` must be in command position: the start of a
+# line, after `$(`, `;`, `|`, `&`, `(`, `{` or a backquote, after if/then/do/
+# else/elif/while/until/!, or as xargs' command — optionally behind variable
+# assignments (`HOMEBREW_NO_AUTO_UPDATE=1 brew …`) and a wrapper (env, sudo,
+# timeout, arch, nice, nohup, time, command, exec, with their arguments). `brew`
+# may be a path (`/opt/homebrew/bin/brew`) or a variable named after it
+# (`"$_brew_bin"`); options may come before the command name, which may be
+# quoted and must be a whole word. Comment lines are skipped, and so is a mention
+# inside a string ("brew formula" is mod_09's label for a binary's source).
 _scan_devcmds() {
     local _alt="${(j:|:)_DEVCMDS}"
-    local _pre='(^|[;&|({`]|\$\(|(^|[[:space:]])(if|then|do|else|elif|while|until|!|command|exec|time|nohup)[[:space:]]|xargs[^|;]*[[:space:]])'
-    grep -nE "${_pre}[[:space:]]*brew[[:space:]]+(-[^[:space:]]+[[:space:]]+)*(${_alt})([[:space:]]|\$|[;|&)\"'\`])" "$@" 2>/dev/null \
+    local _pre='(^|[;&|({`]|\$\(|(^|[[:space:]])(if|then|do|else|elif|while|until|!)[[:space:]]|xargs[^|;]*[[:space:]])'
+    local _asg='([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*'
+    local _wrap='((env|sudo|timeout|arch|nice|nohup|time|command|exec)([[:space:]]+[^[:space:]]+)*[[:space:]]+)?'
+    local _bin='("?\$\{?[A-Za-z0-9_]*brew[A-Za-z0-9_]*\}?"?|([^[:space:]"'"'"'`;|&()]*/)?brew)'
+    grep -nE "${_pre}[[:space:]]*${_asg}${_wrap}${_asg}${_bin}[[:space:]]+(-[^[:space:]]+[[:space:]]+)*[\"']?(${_alt})[\"']?([[:space:]]|\$|[;|&)\"'\`])" "$@" 2>/dev/null \
         | grep -vE '^([^:]+:)?[0-9]+:[[:space:]]*#'
 }
 
 (( _PINNED_COUNT >= 60 )) && _pass "devcmd: the pinned list has $_PINNED_COUNT names" \
                           || _fail "devcmd: the pinned list is too short ($_PINNED_COUNT)"
 
-# The matcher has teeth: it finds a call in $(...), an alias, a condition, an
-# xargs command and a call with an option first; it ignores mentions in
-# strings, regular commands, comments and the word inside "homebrew".
+# The matcher has teeth: it finds every call form above (lines 1-14) and ignores
+# mentions in strings, regular commands, comments and the word inside "homebrew".
 cat > "$_SANDBOX/probe.sh" <<'EOF'
 _v="$(brew ruby --version 2>/dev/null)"
     brew tc
 if brew test foo; then :; fi
 brew list --formula | xargs -I {} brew audit {}
 brew --verbose livecheck x
+HOMEBREW_NO_AUTO_UPDATE=1 brew ruby -e 1
+env HOMEBREW_X=1 brew audit foo
+/opt/homebrew/bin/brew ruby -e 1
+"$_brew_bin" ruby -e 1
+timeout 10 brew livecheck x
+arch -arm64 brew test x
+sudo -u me brew edit x
+brew "ruby" -e 1
+brew 'tc'
 _info "run 'brew audit' to check"
 _source="brew formula"
 brew config | grep Ruby
 brew developer state
+HOMEBREW_NO_AUTO_UPDATE=1 brew list --formula
 # brew ruby in a comment is not a call
 echo "homebrew test suite"
 EOF
 _hits="$(_scan_devcmds "$_SANDBOX/probe.sh" | cut -d: -f1 | tr '\n' ' ')"
-[[ "$_hits" == "1 2 3 4 5 " ]] && _pass "devcmd: the matcher catches every call form, and no mention, regular command or comment" \
-                               || _fail "devcmd: the matcher caught lines [$_hits], expected [1 2 3 4 5 ]"
+[[ "$_hits" == "1 2 3 4 5 6 7 8 9 10 11 12 13 14 " ]] \
+    && _pass "devcmd: the matcher catches every call form (14), and no mention, regular command or comment" \
+    || _fail "devcmd: the matcher caught lines [$_hits], expected [1 … 14]"
 
 # The scan reads real code: brew_manager.sh, lib/ and every module. Anti-vacuity:
 # it must see plenty of ordinary brew invocations, or it scanned nothing.
@@ -132,9 +148,18 @@ TUI_COLOR_LEVEL=0; _init_palette; TUI_UNICODE=0; _init_symbols; TUI_TTY=0
 
 _MOCKDIR="$_SANDBOX/mock"; _STATEF="$_SANDBOX/devstate"; _CALLS="$_MOCKDIR/brew_calls"
 mkdir -p "$_MOCKDIR" "$_SANDBOX/prefix" "$_SANDBOX/repo"
+# A git repository with a local change, for the "brew update stashes it" notice.
+mkdir -p "$_SANDBOX/dirtyrepo"
+git -C "$_SANDBOX/dirtyrepo" init -q 2>/dev/null && print -r -- x > "$_SANDBOX/dirtyrepo/local-change"
+# The mock plays Homebrew's developer mode from the state file — env-aware as
+# Homebrew is: "env" and "both" print the variable's message only while
+# HOMEBREW_DEVELOPER is set (otherwise "disabled" / the setting's message), and
+# "pinned" adds the HOMEBREW_UPDATE_TO_TAG line.
 cat > "$_MOCKDIR/brew" <<EOF
 #!/bin/zsh
 print -r -- "\$*" >> "$_CALLS"
+_dev='Developer mode is enabled because HOMEBREW_DEVELOPER is set.'
+_set='Developer mode is enabled because a developer command or \`brew developer on\` was run.'
 case "\$1" in
     developer)
         case "\$2" in
@@ -143,23 +168,26 @@ case "\$1" in
                 case "\$(cat "$_STATEF")" in
                     off)     print -r -- "Developer mode is disabled."
                              print -r -- "\\\`brew update\\\` will update to the latest stable tag." ;;
-                    setting) print -r -- "Developer mode is enabled because a developer command or \\\`brew developer on\\\` was run."
+                    setting) print -r -- "\$_set"
                              print -r -- "\\\`brew update\\\` will update to the latest commit on the \\\`main\\\` branch." ;;
-                    env)     print -r -- "Developer mode is enabled because HOMEBREW_DEVELOPER is set." ;;
+                    pinned)  print -r -- "\$_set"
+                             print -r -- "However, \\\`brew update\\\` will update to the latest stable tag because HOMEBREW_UPDATE_TO_TAG is set." ;;
+                    env)     if [[ -n "\$HOMEBREW_DEVELOPER" ]]; then print -r -- "\$_dev"; else print -r -- "Developer mode is disabled."; fi ;;
+                    both)    if [[ -n "\$HOMEBREW_DEVELOPER" ]]; then print -r -- "\$_dev"; else print -r -- "\$_set"; fi ;;
                     *)       print -r -- "Something Homebrew never said." ;;
                 esac ;;
             off)
                 [[ -n "\$MOCK_OFF_FAIL" ]] && { print -r -- "Error: cannot write the setting"; exit 1; }
-                [[ "\$(cat "$_STATEF")" == setting ]] && print -r -- off > "$_STATEF" ;;
+                [[ "\$(cat "$_STATEF")" == (setting|pinned) ]] && print -r -- off > "$_STATEF" ;;
         esac ;;
     update)
         [[ -n "\$MOCK_UPDATE_FAIL" ]] && { print -r -- "Error: network down"; exit 1; }
         print -r -- "Updated Homebrew from 6.0.21-70-g2316567 to 7.0.8." ;;
-    --version)    print -r -- "Homebrew 7.0.8" ;;
+    --version)    print -r -- "Homebrew \${MOCK_VERSION:-7.0.8}" ;;
     config)       print -r -- "HOMEBREW_VERSION: 7.0.8"
                   print -r -- "Homebrew Ruby: 9.9.9 => /mock/ruby" ;;
     --prefix)     print -r -- "$_SANDBOX/prefix" ;;
-    --repository) print -r -- "$_SANDBOX/repo" ;;
+    --repository) print -r -- "\${MOCK_REPO:-$_SANDBOX/repo}" ;;
     doctor)       print -r -- "Your system is ready to brew." ;;
 esac
 exit 0
@@ -169,12 +197,13 @@ _SAFE_PATH="$_MOCKDIR:/usr/bin:/bin:/usr/sbin:/sbin"
 
 # _dev_case <state> <dry> <yes> <noninteractive> [VAR=value ...] → the output of
 # _m01_developer_mode; the calls it made are in $_CALLS. Feed stdin at the call
-# site to answer the prompt.
+# site to answer the prompt. No version argument: the function asks the mock.
 _dev_case() {
     local _st="$1" _dry="$2" _yes="$3" _ni="$4"; shift 4
     print -r -- "$_st" > "$_STATEF"; : > "$_CALLS"
     (
         PATH="$_SAFE_PATH"
+        unset HOMEBREW_DEVELOPER HOMEBREW_DEV_CMD_RUN HOMEBREW_UPDATE_TO_TAG
         BREW_MANAGER_DRY_RUN=$_dry BREW_MANAGER_YES=$_yes BREW_MANAGER_NONINTERACTIVE=$_ni
         (( $# )) && export "$@"
         _m01_developer_mode 2>&1
@@ -190,52 +219,75 @@ _no_devcmd_called() {
     done
     return 0
 }
+_READ='developer state | --version | --repository'           # the setting, read-only part
+_RESTORE="$_READ | developer off | update | developer state | --version"
 
-# (a) off: a green row, nothing offered, only the read
+# (a) off on a release: green, nothing offered; off NOT on a release: yellow advice
 _out="$(_dev_case off 0 1 1 </dev/null)"
-[[ "$(_calls)" == "developer state" && "$_out" == *"Developer mode"*"off"* ]] \
-    && _pass "off: reported as off, only 'brew developer state' was called" \
+[[ "$(_calls)" == "developer state | --version" && "$_out" == *"off — Homebrew 7.0.8, a stable release"* ]] \
+    && _pass "off on a release: green, only read" \
     || _fail "off: calls [$(_calls)], output: $_out"
+_out="$(_dev_case off 0 1 1 MOCK_VERSION=6.0.21-70-g2316567 </dev/null)"
+[[ "$(_calls)" == "developer state | --version" && "$_out" == *"not a release — run brew update"* ]] \
+    && _pass "off but on a main-branch commit: reported, advice only, nothing run" \
+    || _fail "off, not a release: calls [$(_calls)], output: $_out"
 
-# (b) the setting, --dry-run (with --yes too): a preview, nothing changed
+# (b) the setting, --dry-run (with --yes too): a preview, no confirmation, nothing changed
 _out="$(_dev_case setting 1 1 1 </dev/null)"
-if [[ "$(_calls)" == "developer state" && "$_out" == *"ON"* && "$_out" == *"would run: brew developer off, then brew update"* \
+if [[ "$(_calls)" == "$_READ" && "$_out" == *"set by a developer command or 'brew developer on'"* \
+      && "$_out" == *"would run: brew developer off, then brew update"* \
+      && "$_out" != *"Restore Homebrew's stable releases"* && "$_out" != *"[auto:"* \
       && "$(<"$_STATEF")" == setting ]]; then
-    _pass "setting + --dry-run --yes: a preview, no off, no update, the setting untouched"
+    _pass "setting + --dry-run --yes: a preview, no confirmation box, no off, no update"
 else
     _fail "setting + --dry-run: calls [$(_calls)], state $(<"$_STATEF"), output: $_out"
 fi
+_out="$(print -r -- y | _dev_case setting 1 0 0)"
+[[ "$(_calls)" == "$_READ" && "$_out" != *"(y/N)"* && "$(<"$_STATEF")" == setting ]] \
+    && _pass "setting + --dry-run at a prompt with 'y' typed: never asked, nothing run" \
+    || _fail "setting + --dry-run at a prompt: calls [$(_calls)], output: $_out"
 
 # (c) the setting, no terminal, no --yes: declined (fail-closed)
 _out="$(_dev_case setting 0 0 1 </dev/null)"
-[[ "$(_calls)" == "developer state" && "$_out" == *"left on"* && "$(<"$_STATEF")" == setting ]] \
+[[ "$(_calls)" == "$_READ" && "$_out" == *"left on"* && "$(<"$_STATEF")" == setting ]] \
     && _pass "setting, no terminal, no --yes: declined, nothing run" \
     || _fail "setting, no terminal: calls [$(_calls)], output: $_out"
 
-# (d) the setting, --yes: off, then update, then the re-read — in that order
+# (d) the setting, --yes: shown (from → to), then off, update, re-read — in order
 _out="$(_dev_case setting 0 1 1 </dev/null)"
-if [[ "$(_calls)" == "developer state | developer off | update | developer state | --version" \
-      && "$(<"$_STATEF")" == off && "$_out" == *"off — Homebrew 7.0.8"* ]]; then
-    _pass "setting + --yes: brew developer off, then brew update, then re-read: off, Homebrew 7.0.8"
+if [[ "$(_calls)" == "$_RESTORE" && "$(<"$_STATEF")" == off \
+      && "$_out" == *"From: Homebrew 7.0.8"* && "$_out" == *"off — Homebrew 7.0.8, a stable release"* ]]; then
+    _pass "setting + --yes: shown, then brew developer off, brew update, re-read: off on a release"
 else
     _fail "setting + --yes: calls [$(_calls)], state $(<"$_STATEF"), output: $_out"
 fi
 
 # (e) the setting at a prompt: an explicit "y" restores; Enter declines
 _out="$(print -r -- y | _dev_case setting 0 0 0)"
-[[ "$(_calls)" == "developer state | developer off | update | developer state | --version" ]] \
+[[ "$(_calls)" == "$_RESTORE" ]] \
     && _pass "setting at a prompt, answer 'y': restored" \
     || _fail "setting at a prompt, 'y': calls [$(_calls)]"
 _out="$(print -r -- "" | _dev_case setting 0 0 0)"
-[[ "$(_calls)" == "developer state" && "$(<"$_STATEF")" == setting ]] \
+[[ "$(_calls)" == "$_READ" && "$(<"$_STATEF")" == setting ]] \
     && _pass "setting at a prompt, Enter: declined (the default is shown as N)" \
     || _fail "setting at a prompt, Enter: calls [$(_calls)]"
 
-# (f) HOMEBREW_DEVELOPER: reported, never "fixed", even under --yes
-_out="$(_dev_case env 0 1 1 </dev/null)"
-[[ "$(_calls)" == "developer state" && "$_out" == *"HOMEBREW_DEVELOPER is set"* && "$_out" == *"shell profile"* ]] \
-    && _pass "HOMEBREW_DEVELOPER + --yes: reported, the user's environment left alone, nothing run" \
+# (f) the environment: reported, never "fixed", even under --yes — HOMEBREW_DEVELOPER,
+#     HOMEBREW_DEV_CMD_RUN (Homebrew's `state` would say "disabled"), and the variable
+#     together with the setting (the advice names both)
+_out="$(_dev_case env 0 1 1 HOMEBREW_DEVELOPER=1 </dev/null)"
+[[ "$(_calls)" == "developer state | developer state" && "$_out" == *"HOMEBREW_DEVELOPER is set in your environment"* \
+      && "$_out" == *"shell profile"* && "$_out" != *"setting is on as well"* ]] \
+    && _pass "HOMEBREW_DEVELOPER + --yes: reported, the environment left alone, nothing run" \
     || _fail "HOMEBREW_DEVELOPER: calls [$(_calls)], output: $_out"
+_out="$(_dev_case off 0 1 1 HOMEBREW_DEV_CMD_RUN=1 </dev/null)"
+[[ "$(_calls)" == "developer state" && "$_out" == *"HOMEBREW_DEV_CMD_RUN is set in your environment"* ]] \
+    && _pass "HOMEBREW_DEV_CMD_RUN + --yes: reported as on although 'state' says disabled, nothing run" \
+    || _fail "HOMEBREW_DEV_CMD_RUN: calls [$(_calls)], output: $_out"
+_out="$(_dev_case both 0 1 1 HOMEBREW_DEVELOPER=1 </dev/null)"
+[[ "$(_calls)" == "developer state | developer state" && "$_out" == *"setting is on as well"* && "$(<"$_STATEF")" == both ]] \
+    && _pass "HOMEBREW_DEVELOPER and the setting: both named, nothing run" \
+    || _fail "variable + setting: calls [$(_calls)], output: $_out"
 
 # (g) an unreadable state (an unknown message, or a failed call): reported, never acted on
 _out="$(_dev_case reworded 0 1 1 </dev/null)"
@@ -246,13 +298,25 @@ _out2="$(_dev_case setting 0 1 1 MOCK_STATE_FAIL=1 </dev/null)"
 
 # (h) a failed `developer off` stops before the update; a failed update is reported
 _out="$(_dev_case setting 0 1 1 MOCK_OFF_FAIL=1 </dev/null)"
-[[ "$(_calls)" == "developer state | developer off" && "$_out" == *"brew developer off failed (exit status 1)"* ]] \
+[[ "$(_calls)" == "$_READ | developer off" && "$_out" == *"brew developer off failed (exit status 1)"* ]] \
     && _pass "developer off fails: reported, brew update not run" \
     || _fail "developer off fails: calls [$(_calls)], output: $_out"
 _out="$(_dev_case setting 0 1 1 MOCK_UPDATE_FAIL=1 </dev/null)"
-[[ "$(_calls)" == "developer state | developer off | update" && "$_out" == *"brew update failed (exit status 1)"* ]] \
+[[ "$(_calls)" == "$_READ | developer off | update" && "$_out" == *"brew update failed (exit status 1)"* ]] \
     && _pass "brew update fails: reported, nothing claimed" \
     || _fail "brew update fails: calls [$(_calls)], output: $_out"
+
+# (j) HOMEBREW_UPDATE_TO_TAG with the setting: no false "follows main"; local
+#     changes in Homebrew's repository: the stash is announced (preview and box)
+_out="$(_dev_case pinned 1 0 1 </dev/null)"
+[[ "$_out" == *"still follows stable releases here (HOMEBREW_UPDATE_TO_TAG"* && "$_out" != *"follows Homebrew's main branch"* ]] \
+    && _pass "setting + HOMEBREW_UPDATE_TO_TAG: reported as still on stable, no false claim" \
+    || _fail "pinned: output: $_out"
+_out="$(_dev_case setting 1 0 1 MOCK_REPO="$_SANDBOX/dirtyrepo" </dev/null)"
+_out2="$(_dev_case setting 0 0 1 MOCK_REPO="$_SANDBOX/dirtyrepo" </dev/null)"
+[[ "$_out" == *"would stash them and not restore them"* && "$_out2" == *"stashes them and does not restore them"* ]] \
+    && _pass "local changes in Homebrew's repository: announced in the preview and in the confirmation box" \
+    || _fail "dirty repository: outputs: $_out / $_out2"
 
 # (i) the whole module 1 under --dry-run, with the setting on: the check is wired
 #     in, the preview shows, Ruby comes from `brew config`, and no developer
