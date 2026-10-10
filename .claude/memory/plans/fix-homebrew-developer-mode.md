@@ -53,10 +53,10 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
   commit (16 checks; eight mutants — no dry-run gate, default n, the off status ignored,
   HOMEBREW_DEVELOPER or an unknown state treated as the setting, not wired, update before
   off, `brew ruby` back — each caught; suite 327; a real `1 --dry-run` smoke: [W], "off",
-  Homebrew's .git/config untouched)
-- [ ] 4. Docs: README (module 1), SECURITY.md (module 1 may change Homebrew's
+  Homebrew's .git/config untouched); `b478bb2`
+- [x] 4. Docs: README (module 1), SECURITY.md (module 1 may change Homebrew's
   configuration and run `brew update` after confirmation), CHANGELOG `[Unreleased]`. —
-  commit: —
+  commit: this task's commit
 - [ ] 5. The gate (IMP-030): one lens on the restore path, as the user asked; fixes. —
   commit: —
 - [ ] 6. /checkpoint; the printed /integrate; the user's test sequence on this Mac (with

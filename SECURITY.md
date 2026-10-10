@@ -17,8 +17,10 @@ If you are running an older version, update to the latest release before reporti
 
 brew-manager is a shell script that runs with your user account privileges. It does not require `sudo` or root access for any of its standard operations (the optional Homebrew installer runs Homebrew's official script, which asks for your administrator password). It reads and writes only within its own directory (`logs/`, `backups/`, `agents/`) and interacts with Homebrew, macOS LaunchAgents, and optionally the Mac App Store via `mas`.
 
+brew-manager changes Homebrew's own configuration only through an explicit action that it shows first and that you confirm (or pass `--yes` for), and never under `--dry-run`. Today that is one action: turning off Homebrew's developer mode in module `1`, followed by `brew update`.
+
 The only network activity performed by this script is:
-- `brew update` / `brew upgrade` — standard Homebrew operations
+- `brew update` / `brew upgrade` — standard Homebrew operations (module `1` runs `brew update` only to bring Homebrew back from developer mode to its latest stable release, after you confirm)
 - `mas upgrade` — if you use the MAS module and confirm the upgrade
 - Homebrew installation — only if brew is not present (neither on `PATH` nor at its
   standard prefix), at an interactive terminal, and after you confirm it: never under

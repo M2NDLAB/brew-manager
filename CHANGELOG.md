@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Module 1 turned Homebrew's developer mode on.**
+  - Cause: it read the Ruby version with `brew ruby --version`, a Homebrew developer
+    command. Running one turns developer mode on, and from then on `brew update`
+    follows Homebrew's `main` branch instead of its stable releases.
+  - Every run of module 1 did this, from v1.1.0 on and also under `--dry-run`, and the
+    Ruby value was always blank anyway.
+  - If `brew --version` shows something like `6.0.21-70-g2316567` instead of a plain
+    release number, this is the likely reason. Module 1 now offers to restore Homebrew
+    (see Added), or you can run `brew developer off` and then `brew update` yourself.
+  - The Ruby version now comes from `brew config`.
+  - The row labelled "Last DB update" showed the date of Homebrew's own code, not of
+    the package index. It now reads "Homebrew code dated".
+
+### Added
+- **Module 1 reports Homebrew's developer mode and offers to turn it off.**
+  - When a developer command left developer mode on, module 1 offers `brew developer
+    off` followed by `brew update`, which brings Homebrew back to its latest stable
+    release.
+  - It is previewed under `--dry-run` and runs only after you confirm, or with `--yes`.
+  - Developer mode set by `HOMEBREW_DEVELOPER` in your environment is only reported.
+  - A test keeps Homebrew developer commands out of brew-manager's code.
+
+### Changed
+- Module 1's risk badge is `[W]` instead of `[RO]`: after a confirmation, it can change
+  Homebrew's developer-mode setting and run `brew update`.
+
 ## [1.5.0] - 2026-10-07
 
 The startup release, and the last release with `bk`, `las`, `log` and `mas`.

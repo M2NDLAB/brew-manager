@@ -232,10 +232,11 @@ Adoptable apps are listed with a number. Enter the numbers you want (`1,3`), `al
 
 Runs a full diagnostic of your Homebrew installation and the underlying system:
 
-- Homebrew version, prefix path, and last database update time
+- Homebrew version, prefix path, the date of Homebrew's own code, and the Ruby it uses
 - Xcode Command Line Tools status (required for building formulae from source)
 - Prefix write permissions (checks that brew can install to its directory)
 - Free disk space on the volume containing the brew prefix
+- Homebrew's **developer mode**. When it is on, `brew update` follows Homebrew's `main` branch instead of its stable releases. If a developer command left it on, the module offers to turn it off and update Homebrew back to its latest stable release (`brew developer off`, then `brew update`). It shows what it would run under `--dry-run` and runs it only after you confirm, or with `--yes`. If `HOMEBREW_DEVELOPER` is set in your environment, the module only reports it: your shell profile is yours to change.
 - Active tap repositories (official JSON API + any extra taps you have added)
 - `brew doctor` — Homebrew's own diagnostic that checks PATH, symlinks, permissions, and known problem patterns. Warnings from `brew doctor` are informational and rarely block normal usage.
 
