@@ -3,6 +3,109 @@
 # modules/mod_01_health.sh — Homebrew system health check
 # =============================================================================
 
+# _m01_dev_mode_state — Homebrew's developer mode, read READ-ONLY. Prints one
+# word: off | setting | env | unknown.
+# `brew developer state` is a regular command (cmd/developer.rb, not dev-cmd/),
+# so running it never turns developer mode on; it only prints (checked on
+# Homebrew 6.0.21 and 7.0.8 — the same source — with Homebrew's .git/config
+# untouched). Its exit status is always 0, so the FIRST LINE is matched:
+#   "Developer mode is disabled."                           → off
+#   "... enabled because HOMEBREW_DEVELOPER is set."        → env (the user's
+#        environment: brew-manager reports it and never touches it)
+#   "... enabled because a developer command or `brew developer on` was run."
+#                                                           → setting (the
+#        `devcmdrun` key in Homebrew's repository, which `brew developer off`
+#        removes)
+# Anything else — a failed call, a message reworded by a later Homebrew — is
+# "unknown", and nothing is offered on it: a guess must never lead to a change.
+_m01_dev_mode_state() {
+    local _out _first
+    _out="$(brew developer state 2>/dev/null)" || { print -r -- unknown; return 0; }
+    _first="${_out%%$'\n'*}"
+    case "$_first" in
+        "Developer mode is disabled."*)                           print -r -- off ;;
+        "Developer mode is enabled because"*HOMEBREW_DEVELOPER*)  print -r -- env ;;
+        "Developer mode is enabled because a developer command"*) print -r -- setting ;;
+        *)                                                        print -r -- unknown ;;
+    esac
+}
+
+# _m01_developer_mode — report Homebrew's developer mode in the system checks and,
+# when brew-manager can undo it, offer to. With developer mode on, `brew update`
+# follows Homebrew's main branch instead of its stable releases (STATE #30: this
+# tool itself used to turn it on).
+# Homebrew's configuration belongs to the user (CLAUDE.md, IMP-031): the undo is
+# shown first and runs only after a confirmation — `_ask_danger` with default `y`,
+# so an explicit --yes proceeds, Enter at the prompt declines, and a run with no
+# terminal and no --yes declines — and never under --dry-run, which previews it.
+# The undo is `brew developer off` (it removes the devcmdrun setting), then `brew
+# update`, which without developer mode moves Homebrew to its latest stable
+# release tag (Homebrew's cmd/update.sh). Each status is read: a failed `off`
+# stops before the update. Developer mode set by HOMEBREW_DEVELOPER is only
+# reported (the environment is the user's), and an unreadable state is only
+# reported. brew output is relayed with printf %s, never echoed (CLAUDE.md).
+_m01_developer_mode() {
+    local _state _line _rc _ver
+    _state="$(_m01_dev_mode_state)"
+    case "$_state" in
+        off)
+            printf "  ${C_GREEN_B}${SYM_OK}${NC}  ${C_WHITE}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+                "Developer mode" "off — brew update follows stable releases"
+            return 0 ;;
+        unknown)
+            printf "  ${C_YELLOW}${SYM_WARN}${NC}  ${C_YELLOW}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+                "Developer mode" "could not be read (brew developer state)"
+            return 0 ;;
+        env)
+            printf "  ${C_YELLOW}${SYM_WARN}${NC}  ${C_YELLOW}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+                "Developer mode" "ON — HOMEBREW_DEVELOPER is set"
+            _info "brew update follows Homebrew's main branch, not its stable releases."
+            _info "HOMEBREW_DEVELOPER comes from your environment, which brew-manager does not change:"
+            _info "remove it from your shell profile to turn developer mode off."
+            return 0 ;;
+    esac
+
+    printf "  ${C_YELLOW}${SYM_WARN}${NC}  ${C_YELLOW}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+        "Developer mode" "ON — left by a developer command"
+    _info "brew update follows Homebrew's main branch instead of its stable releases."
+    if (( BREW_MANAGER_DRY_RUN )); then
+        _info "Dry-run — would run: brew developer off, then brew update (back to the latest stable release)."
+        return 0
+    fi
+    if ! _ask_danger "Restore Homebrew's stable releases" \
+            "Turn developer mode off and update Homebrew to its latest stable release?" "y" \
+            "Runs: brew developer off  (removes the developer-mode setting)" \
+            "Then: brew update  (Homebrew moves to its latest stable release)"; then
+        _info "Developer mode left on. To restore it by hand: brew developer off, then brew update"
+        return 0
+    fi
+
+    brew developer off 2>&1 | while IFS= read -r _line; do printf '    %s\n' "$_line"; done
+    _rc=${pipestatus[1]}
+    if (( _rc != 0 )); then
+        _err "brew developer off failed (exit status $_rc) — brew update was not run."
+        return 0
+    fi
+    _info "Updating Homebrew to its latest stable release"
+    brew update 2>&1 | while IFS= read -r _line; do printf '    %s\n' "$_line"; done
+    _rc=${pipestatus[1]}
+    if (( _rc != 0 )); then
+        _err "brew update failed (exit status $_rc) — developer mode is off; run brew update again later."
+        return 0
+    fi
+
+    _state="$(_m01_dev_mode_state)"
+    _ver="$(brew --version 2>/dev/null | head -1 | awk '{print $2}')"
+    if [[ "$_state" == off ]]; then
+        printf "  ${C_GREEN_B}${SYM_OK}${NC}  ${C_WHITE}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+            "Developer mode" "off — Homebrew ${_ver:-n/a}"
+    else
+        printf "  ${C_YELLOW}${SYM_WARN}${NC}  ${C_YELLOW}%-30s${NC}  ${C_GRAY}%s${NC}\n" \
+            "Developer mode" "still reads '$_state' after the restore — check brew developer state"
+    fi
+    return 0
+}
+
 _module_1() {
     _section "1" "Homebrew System Health"
     echo ""
@@ -15,6 +118,7 @@ _module_1() {
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Xcode CLI Tools"     "Required for building formulae from source"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Prefix permissions"  "Checks that brew can write to its install directory"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Disk space"          "Free space on the volume containing brew prefix"
+    printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Developer mode"      "Off keeps brew update on stable releases; offers to turn it off"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "Taps"                "Lists active formula repositories"
     printf "  ${C_GREEN}${SYM_OK}${NC}  ${C_GRAY}%-24s${NC}  %s\n" "brew doctor"         "Official Homebrew diagnostics — flags known issues"
     echo ""
@@ -86,6 +190,11 @@ _module_1() {
     if [[ -n "$_disk_free" ]]; then
         printf "  ${C_GREEN_B}${SYM_OK}${NC}  ${C_WHITE}%-30s${NC}  ${C_GRAY}%s free${NC}\n" "Disk space" "$_disk_free"
     fi
+
+    # Developer mode (STATE #30): reported read-only; the restore is offered only
+    # for the devcmdrun setting, previewed under --dry-run, run after a
+    # confirmation. Before brew doctor, so the doctor sees the restored Homebrew.
+    _m01_developer_mode
 
     # Taps — since Homebrew 4.x, core and cask use JSON API, not local repos
     echo ""

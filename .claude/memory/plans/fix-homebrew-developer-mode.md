@@ -39,17 +39,21 @@ it, offers `brew developer off` + `brew update` (back to the latest stable relea
 - [x] 2. Prevention + the root cause: a new suite `tests/test_homebrew_developer.zsh` whose
   static scan fails when a developer command appears in the code (RED shown on `brew ruby`
   at mod_01:32); mod_01 reads the Ruby version from `brew config` and relabels "Last DB
-  update" (it is the date of Homebrew's code). — commit: this task's commit (RED: the
+  update" (it is the date of Homebrew's code). — commit: `9f1d672` (RED: the
   scan found exactly mod_01:32; a first matcher also flagged mod_09's label "brew formula",
   so it was narrowed to command position; GREEN 4/4; a real `1 --dry-run` smoke left
   Homebrew's `.git/config` untouched)
-- [ ] 3. Detection + restore in mod_01 (`_m01_dev_mode_state`, `_m01_developer_mode`): off →
+- [x] 3. Detection + restore in mod_01 (`_m01_dev_mode_state`, `_m01_developer_mode`): off →
   a green row; the setting → a warning, a preview under `--dry-run`, `_ask_danger` (default
   `y`: `--yes` proceeds, Enter at the prompt declines, non-interactive declines), then `brew
   developer off` and `brew update`, each status read; `HOMEBREW_DEVELOPER` → reported, never
   "fixed" (the environment is the user's); unknown → reported, no offer. `MODULE_RISK[1]` →
   `write`; mod_01 joins the `_ask_danger` wiring scan. Runtime tests against a mock brew
-  (every case, call ORDER, and no developer command ever called). — commit: —
+  (every case, call ORDER, and no developer command ever called). — commit: this task's
+  commit (16 checks; eight mutants — no dry-run gate, default n, the off status ignored,
+  HOMEBREW_DEVELOPER or an unknown state treated as the setting, not wired, update before
+  off, `brew ruby` back — each caught; suite 327; a real `1 --dry-run` smoke: [W], "off",
+  Homebrew's .git/config untouched)
 - [ ] 4. Docs: README (module 1), SECURITY.md (module 1 may change Homebrew's
   configuration and run `brew update` after confirmation), CHANGELOG `[Unreleased]`. —
   commit: —
