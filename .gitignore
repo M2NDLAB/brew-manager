@@ -75,6 +75,9 @@ Icon?
 
 # Personal Claude Code permissions — never committed (see .claude/docs/04)
 .claude/settings.local.json
+# Worktrees Claude Code creates for isolated agents (docs/04, "Delegated agents and the
+# shared working tree"): transient, never content of the repository
+.claude/worktrees/
 
 # Obsidian vault metadata (the .claude/ folder can be opened as a vault)
 .obsidian/

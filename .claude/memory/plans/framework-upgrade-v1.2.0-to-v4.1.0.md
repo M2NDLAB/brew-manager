@@ -33,7 +33,7 @@ content untouched, and no tag. The user's decisions U1–U24:
 - [x] 5. `docs(memory)`: the memory templates (components, plans, sessions READMEs; the LEARNINGS header and format comment, U16) — commit: 2129ec9
 - [x] 6. The boundary: `scripts/agent-git-guard.mjs`, `scripts/state-inject.sh`, `.claude/settings.json` (3-way in T, checked as JSON, written at once: U6, U21) and their two self-tests — commit: 5c0cd1b
 - [x] 7. The Makefile (`PROTECTED_BRANCHES = main dev` carried first, U10), then `reset-task.sh`, `repo-snapshot.sh`, `check-prerequisites.sh`, their self-tests and `scripts/README.md` from v4.1.0; modes 100755; `.gitattributes` moved here from task 9, because `test-check-prerequisites.sh` copies it — commit: f4af521
-- [ ] 8. `scripts/hooks-install.sh` (3-way, mode 100755) with `scripts/test-hooks-install.sh` in the same commit; `make test-scripts` — commit: —
+- [x] 8. `scripts/hooks-install.sh` (3-way, mode 100755) with `scripts/test-hooks-install.sh` in the same commit; `make test-scripts` — commit: c9701eb
 - [ ] 9. `.gitignore` (`.claude/worktrees/` only, U11) — commit: —
 - [ ] 10. The pin to v4.1.0 (`chore: upgrade the framework from v1.2.0 to v4.1.0`; `grafted: 2026-07-12`, U1); then `/fw:security-review` by an independent, delegated reviewer on the branch's diff, this commit the reviewed tip — commit: —
 - [ ] 11. `/fw:retro` (the IMPs of the decision record) and `/fw:checkpoint` (the session note; STATE with the framework version and no more; TREE; INDEX); this plan completed — commit: —
