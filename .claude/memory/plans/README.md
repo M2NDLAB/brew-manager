@@ -19,13 +19,13 @@ are ticked. At the start of every session, an `in-progress` plan signals where t
 resume.
 
 ## Naming
-`<id-prompt>.md` — e.g. `01-scaffold.md`, `03-modulo-x.md`.
+`<prompt-id>.md` — e.g. `01-scaffold.md`, `03-module-x.md`.
 
 ## Format
 ```markdown
 ---
 type: plan
-prompt: <id-prompt>
+prompt: <prompt-id>
 branch: <dedicated feature branch>
 created: YYYY-MM-DD
 status: in-progress | completed

@@ -21,12 +21,10 @@ tags: [improvement]
 >
 > **The `Destination: framework` attribute.** In a CLIENT project an IMP may concern
 > the FRAMEWORK rather than this project: it is marked with the line
-> `- Destination: framework` (a single physical line, so `/harvest-framework` picks
+> `- Destination: framework` (a single physical line, so `/fw:harvest-framework` picks
 > it up via grep). Omitted = a lesson about this project, which stays in the client.
 > It is a DESTINATION attribute, not a level: the lesson stays a Level 2 one — see
-> `docs/06-self-improvement.md`, *"The bridge to the framework"*. IN THE FRAMEWORK
-> REPO the attribute is moot (every IMP is already about the framework) and is not
-> used on the entries.
+> `docs/06-self-improvement.md`, *"The bridge to the framework"*.
 
 ## OPEN proposals (awaiting the user's decision)
 
@@ -458,8 +456,14 @@ tags: [improvement]
 - Proposal: <what to change and where: CLAUDE.md / docs/NN / command / hook / process>
 - Expected benefit / risk:
 - Resumption trigger: <if it is not applicable now: which event brings it back into play>
-- Destination: framework   (OPTIONAL — only if the lesson must be sent upstream to the
-                            framework; a single physical line, for the grep of /harvest-framework)
+- Destination: framework   (OPTIONAL — only in a client project and only if the lesson
+                            must be sent upstream to the framework; a single physical
+                            line, for the grep)
+Once applied, the entry moves under "Applied" and is rewritten in its final form — what
+was verified, the decisions, what stays uncovered —, its evidence condensed; the detail
+stays in the session notes and the git history. Every applied entry cites the session
+note its evidence comes from: [[<session note>]] — from the release that brought this
+line on; older entries are not backfilled.
 -->
 
 ## Applied
