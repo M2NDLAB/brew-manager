@@ -1,12 +1,14 @@
 ---
 type: state
-updated: 2026-10-07
-branch: fix/homebrew-developer-mode
+updated: 2026-10-19
+branch: main
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-10-10 | Last: **task 2 of the 2.0.0 plan done** (`fix/homebrew-developer-mode`): module 1 no longer runs `brew ruby` (a Homebrew developer command that turned developer mode on at every run since v1.1.0, also under `--dry-run`); a new suite keeps developer commands out of the code; module 1 reports developer mode read-only and offers to restore it (`brew developer off` + `brew update`, previewed under `--dry-run`, confirmed or `--yes`; the environment only reported); `[W]`; the one-lens gate (no C/H/M; 3 LOW + 7 INFO fixed or recorded); 333 tests. #30 FIXED (closes at the merge). Found: this Mac was already back on stable 7.0.8 with developer mode off (since 2026-10-07 18:37, outside the session), so the user's test sequence creates the condition on purpose. Task 1 INTEGRATED (merge `f232f12`). Ready for integration (no tag). → [[sessions/2026-10-10-homebrew-developer-mode]] | Index: [[INDEX]]
+> Updated: 2026-10-19 | Last: **framework upgrade v1.2.0 → v4.1.0 done** (`chore/framework-upgrade-v1.2.0-to-v4.1.0`, process only): the core rules in `.claude/rules/fw-core.md`, CLAUDE.md = the answers the method reads + the technical rules, commands `/fw:…`, the boundary (guard, state-inject, pre-push), the memory's titles and labels in the method's English form; gate passed (reviewed tip `56d3b1a`: 0 C/H/M); 333 tests. Ready for integration (no tag). STATE not condensed on purpose: the first checkpoint after the merge does it (#37). → [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] | Index: [[INDEX]]
+
+> **Previous**: task 2 of the 2.0.0 plan (`fix/homebrew-developer-mode`) → INTEGRATED (merge `8a7e6a2`). Its status line, kept: **task 2 of the 2.0.0 plan done** (`fix/homebrew-developer-mode`): module 1 no longer runs `brew ruby` (a Homebrew developer command that turned developer mode on at every run since v1.1.0, also under `--dry-run`); a new suite keeps developer commands out of the code; module 1 reports developer mode read-only and offers to restore it (`brew developer off` + `brew update`, previewed under `--dry-run`, confirmed or `--yes`; the environment only reported); `[W]`; the one-lens gate (no C/H/M; 3 LOW + 7 INFO fixed or recorded); 333 tests. #30 FIXED (closes at the merge). Found: this Mac was already back on stable 7.0.8 with developer mode off (since 2026-10-07 18:37, outside the session), so the user's test sequence creates the condition on purpose. Task 1 INTEGRATED (merge `f232f12`). Ready for integration (no tag). → [[sessions/2026-10-10-homebrew-developer-mode]] | Index: [[INDEX]]
 
 > **Previous**: task 1 of the 2.0.0 plan (`chore/replan-v2`: the v1.5.0 reconciliation, the plan and decisions, the triage by decision, IMP-030 and IMP-031) → INTEGRATED (merge `f232f12`) → [[sessions/2026-10-07-replan-v2-assessment]].
 
@@ -173,6 +175,12 @@ tags: [state]
   **INTEGRATED into main** (merge `0725ae6`, pushed; no tag). →
   [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
   [[plans/framework-upgrade-v1.0.0-to-v1.2.0]].
+- [x] **Framework upgrade v1.2.0 → v4.1.0** (2026-10-19, process only; the FOURTH upgrade,
+  one jump): FERMATA 1 read-only assessment → the user's decisions U1–U24 → 11 task
+  commits on `chore/framework-upgrade-v1.2.0-to-v4.1.0`; FERMATA 2: 131 answers verified,
+  0 lost; the gate on the boundary passed (reviewed tip `56d3b1a`). Ready for the user's
+  integration (no tag). → [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] ·
+  [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] · [[decisions/2026-10-19-framework-upgrade-v4.1.0]].
 - [x] **Debt cleanup before the Dashboard** — **CLOSED on 2026-10-07, superseded by [[plans/v2-personal-tool]]** (branches 1–4 and the v1.5.0 release done; tasks 5–15 re-planned there). It was SUSPENDED by the scope change of
   2026-09-27** (no Dashboard; bk/las/log/mas removed in 2.0.0 →
   [[decisions/2026-09-27-personal-terminal-tool]]): branches 1–4 done, tasks 5–16
@@ -257,19 +265,20 @@ tags: [state]
   `log`/`mas` (per nome). 8 read-only modules (module 1 is `write` since 2026-10-10: its developer-mode restore); mutating: 00, 01, 02, 04, 05, 10, bk,
   las, log, mas. Module 1's note: [[mod-01-health]]. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
   [[mod-bk-brewfile]], [[mod-las-scheduler]].
-- The `.claude/` process framework (docs, commands, memory), CLAUDE.md, Makefile, git
-  hooks (gitleaks + commitlint), CHANGELOG.md. **Method at framework v1.2.0** (from
-  v1.0.0, 2026-09-24): the whole method in English (rule 9), interaction in Italian,
-  the Italian memory headings frozen and mapped in the CLAUDE.md technical rules (D1);
-  /checkpoint writes `model`/`turns` into session notes; IMP format
-  `Origin: [[<session note>]] — <problem>`; `docs/04` keeps brew's public contract
-  (flags, selection grammar, frozen module ids, exit codes 0/1/2, plist format); hooks
-  carry the English marker (the Italian one is accepted as legacy). Provenance pin
-  `.claude/framework-version` at 1.2.0 / `7d6a9f7`, outside memory/. History:
+- The `.claude/` process framework (rules, docs, commands, memory), CLAUDE.md, Makefile,
+  git hooks (gitleaks + commitlint + the pre-push push boundary), CHANGELOG.md. **Method at
+  framework v4.1.0** (from v1.2.0, 2026-10-19, on its branch until the merge): the core in
+  `.claude/rules/fw-core.md` (loaded at every launch), CLAUDE.md = *The answers the method
+  reads* (brew's public contract, sensitive components as code paths, branches, merge …) +
+  the technical rules; commands `/fw:…`; the PreToolUse guard and the SessionStart
+  injection (`scripts/state-inject.sh`) wired in `settings.json`; the memory's titles and
+  labels in the method's English form, the content as written. Provenance pin
+  `.claude/framework-version` at v4.1.0 / `18c04a1…`, grafted 2026-07-12. History:
   [[sessions/2026-07-11-innesto-note]] (graft v0.2.0),
   [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
   [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0),
-  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0).
+  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0),
+  [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] (→v4.1.0).
 - Test: `tests/` (zsh puro, zero-dip, `make test`, **333 check** con anti-vacuità — 268
   before branch 4, which took `test_exit_codes.zsh` from 6 to 49; 311 before task 2 of the
   2.0.0 plan, which added `test_homebrew_developer.zsh` (22): no Homebrew developer command in
@@ -392,7 +401,10 @@ tags: [state]
   (`docs/readme-truth`), last. Scope change 2026-09-27: the items about bk, las, the log
   module and mas go with those modules in 2.0.0; the rest is re-planned. → TRIGGER: each
   branch of [[plans/v2-personal-tool]] rewrites its own section (rule 5); the residue (R4, R9–R11, R13,
-  M3, SECURITY.md) in its task 8.
+  M3, SECURITY.md) in its task 8. Added by the framework upgrade's gate (F5, LOW, 2026-10-19):
+  SECURITY.md:36-41 says secret scanning runs "on every commit" and sensitive changes get a
+  security review, wider than v4.1.0's docs/03 declares (the hook's limits; the gate's
+  scope) → task 8, narrowed to what holds.
 - ~~**"Added in v1.5.0"**~~ **SETTLED** (2026-10-07): the user cut v1.5.0 first, so
   docs/04's "added in v1.5.0" is true; the CHANGELOG's "fixed before the next release"
   for the bk/log agent hang was replaced by a Known limitation in `[1.5.0]` (`6815a5c`).
@@ -408,6 +420,9 @@ tags: [state]
 > only a removed module close in **task 3**, after a grep proves the code is gone. Closed
 > by decision on 2026-10-07: #17 and #28 (accepted), 4b-3. The evidence for every verdict,
 > with file:line at `37b8db5`: [[sessions/2026-10-07-replan-v2-assessment]] (appendix C).
+> **Framework upgrade v4.1.0, 2026-10-19**: this file is over its 8,000-character budget and
+> NOT condensed on purpose — the first `/fw:checkpoint` after the upgrade's merge condenses it
+> and works its list (#37); the upgrade's open threads are #34–#37, at the end of this section.
 1. ~~**CLI posizionale + plist scheduler**~~ **CHIUSO (M2, BM-08b+BM-08c)**: il
    dispatch posizionale esiste (BM-08b) e gli agenti lo instradano davvero via
    `_resolve_cli` (BM-08c) — un agente esegue la selezione salvata, non più `go`.
@@ -808,6 +823,32 @@ tags: [state]
    "noise" until "BM-18"; the inventory found they are uniformly 0, and BM-18 is the
    doctor self-check of the old roadmap, not the return contract; docs/04:143-145 repeats
    the id. → **task 7**.
+34. **`make lint` does not run** (2026-10-19, the user): shellcheck is absent — at the
+   restore point too, the recipe unchanged — and it does not support zsh anyway (SC1071),
+   while the project is all zsh. Options: remove the target (and `Bash(shellcheck:*)` with
+   it); keep it with `--shell=bash` and motivated directives; accept that the static check
+   is `zsh -n` alone (`make check`). → TRIGGER: the user decides after the upgrade's merge.
+35. **The user's local permissions are wider than docs/04 claims** (the upgrade's gate, F2
+   LOW + F3 INFO, pre-existing): `.claude/settings.local.json` allows `git checkout *`,
+   `git tag *`, `gh repo *`, `git ls-remote *`, `make check *`, `make test *` — discards
+   (`git checkout -- …`, `make check reset-task YES=1`), tags, forge writes with no prompt
+   and, in auto mode, unseen by the classifier; docs/04:268-269 and :537 do not hold here.
+   The file is the user's (U24, three rules already removed). → TRIGGER: the user narrows
+   them (e.g. `gh repo view *`, `git tag -l *`, exact `make check`/`make test`, no
+   `git checkout *`) or accepts them; [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]].
+36. **The upgrade's commits carry a `Claude-Session:` URL trailer** (the gate, F6 INFO): the
+   first in the repository's public history; docs/04 keeps external references out of
+   shared history. → TRIGGER: the user decides before the push — keep and declare, or
+   reword the local commits (that rewrites the reviewed tip `56d3b1a`: the gate runs again).
+37. **The first `/fw:checkpoint` after the framework upgrade's merge** — the next deliverable
+   (the user's decision): condense this file and work the list in
+   [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] (*Follow-up*) — task 2's
+   acceptance run of 2026-10-10 and its two defects (→ tasks 7 and 4/5), STATE's
+   frontmatter, #30 closed, the memory claims the upgrade made stale (the gate and language
+   decisions, two decision notes, D1 superseded, the 2.0.0 plan's targets in docs/0N and "one
+   lens", INDEX:197), task 8's gate status, the language of condensed entries; BEFORE it the
+   user decides the form of the anchors that code and tests use for STATE entries (U23). →
+   TRIGGER: the merge of `chore/framework-upgrade-v1.2.0-to-v4.1.0`.
 - [[LEARNINGS]] (retro of the upgrade, 2026-09-24; OPEN, propose-only): **IMP-012**
   hooks-install vs linked worktrees; **IMP-013** the edge-case-4 rollback needs
   `FORCE_OVERWRITE=1`; **IMP-014** docs/05 delimiters without the promised legacy
@@ -831,14 +872,18 @@ tags: [state]
   change HOW a unit fails) — all `Destination: framework`, OPEN. The 2.0.0 plan
   (2026-10-07): **IMP-030** (a path-based gate) and **IMP-031** (Homebrew's configuration
   is the user's) APPLIED. Task 2 (2026-10-10): **IMP-032** (a verification record reads the
-  environment at that moment; `Destination: framework`), OPEN.
+  environment at that moment; `Destination: framework`), OPEN. The framework upgrade v4.1.0
+  (2026-10-19): **IMP-033…IMP-049**, all `Destination: framework`, OPEN — the decisions at the
+  periodic retrospective after the merge, with the OPEN IMPs v4.1.0 covers upstream.
 
 ## Active branches
-- **fix/homebrew-developer-mode** (task 2 of the 2.0.0 plan: module 1 never leaves
-  Homebrew in developer mode — code, tests, docs, memory) = **READY for the user's
-  integration** (`/integrate` block; a `feat` inside, no tag until the v2.0.0 release).
-- **main** = integration + stable (trunk-based); HEAD `f232f12` (merge of task 1,
-  `chore/replan-v2`; below it `37b8db5`, the v1.5.0 release merge), aligned with
+- **chore/framework-upgrade-v1.2.0-to-v4.1.0** (the framework upgrade, process only) =
+  **READY for the user's integration** (`/fw:integrate`, no tag; the gate's reviewed tip
+  `56d3b1a`).
+- **fix/homebrew-developer-mode** (task 2 of the 2.0.0 plan) = **INTEGRATED into main**
+  (merge `8a7e6a2`; no tag), branch deleted.
+- **main** = integration + stable (trunk-based); HEAD `8a7e6a2` (merge of task 2; below it
+  `f232f12`, task 1, and `37b8db5`, the v1.5.0 release merge), aligned with
   `origin/main`; tags **`v1.5.0`** (annotated, object `deb8f61` → `37b8db5`) + `v1.4.0`
   (annotated, object `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) +
   `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]` on main: empty. `make

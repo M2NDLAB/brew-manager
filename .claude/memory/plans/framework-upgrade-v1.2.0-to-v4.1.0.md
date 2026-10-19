@@ -3,7 +3,7 @@ type: plan
 prompt: framework-upgrade-v1.2.0-to-v4.1.0
 branch: chore/framework-upgrade-v1.2.0-to-v4.1.0
 created: 2026-10-19
-status: in-progress
+status: completed
 tags: [plan, framework, upgrade, process, security-gate]
 ---
 # Plan: upgrade the grafted claude-code-framework v1.2.0 → v4.1.0
@@ -35,8 +35,8 @@ content untouched, and no tag. The user's decisions U1–U24:
 - [x] 7. The Makefile (`PROTECTED_BRANCHES = main dev` carried first, U10), then `reset-task.sh`, `repo-snapshot.sh`, `check-prerequisites.sh`, their self-tests and `scripts/README.md` from v4.1.0; modes 100755; `.gitattributes` moved here from task 9, because `test-check-prerequisites.sh` copies it — commit: f4af521
 - [x] 8. `scripts/hooks-install.sh` (3-way, mode 100755) with `scripts/test-hooks-install.sh` in the same commit; `make test-scripts` — commit: c9701eb
 - [x] 9. `.gitignore` (`.claude/worktrees/` only, U11) — commit: d9e86ef
-- [ ] 10. The pin to v4.1.0 (`chore: upgrade the framework from v1.2.0 to v4.1.0`; `grafted: 2026-07-12`, U1); then `/fw:security-review` by an independent, delegated reviewer on the branch's diff, this commit the reviewed tip — commit: —
-- [ ] 11. `/fw:retro` (the IMPs of the decision record) and `/fw:checkpoint` (the session note; STATE with the framework version and no more; TREE; INDEX); this plan completed — commit: —
+- [x] 10. The pin to v4.1.0 (`chore: upgrade the framework from v1.2.0 to v4.1.0`; `grafted: 2026-07-12`, U1); then `/fw:security-review` by an independent, delegated reviewer on the branch's diff, this commit the reviewed tip — commit: 56d3b1a (gate: 0 C/H/M, every finding closed or declared)
+- [x] 11. `/fw:retro` (IMP-033…049) and `/fw:checkpoint` (the session note; STATE updated without condensing: the framework version, the upgrade's open threads #34–#37 and the gate's declared items; TREE; INDEX); this plan completed — commit: this checkpoint, the branch's last commit
 
 Between tasks 9 and 10, with no commit: Step 4 (`make hooks-install` from the main worktree,
 the `.bak` files against the photograph, gitleaks and commitlint proofs, the marker grep,
@@ -45,6 +45,10 @@ titles' functional check) → FERMATA 2. After task 11: `/fw:integrate` → FERM
 block 0, no tag; merge and push are the user's.
 
 ## Resumption notes
+- COMPLETED 2026-10-19: tasks 1–11 committed, Step 4 and Step 5 green, the gate passed on
+  the reviewed tip `56d3b1a`. Awaiting the user's integration (`/fw:integrate`, no tag).
+  The first deliverable after the merge is its `/fw:checkpoint` (STATE #37). →
+  [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]].
 - The memory's closed list during the upgrade: the templates, the declared title/label
   rename, this plan, the decision record, the session note, and STATE/TREE/INDEX at the
   checkpoint. IMP entries are written only at task 11, after `invariant`.

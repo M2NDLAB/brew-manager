@@ -178,6 +178,10 @@ tags: [moc]
   in developer mode (`brew ruby` gone, a prevention suite, a read-only detection, a
   confirmed restore); this Mac was already back on stable 7.0.8; the one-lens gate (no
   C/H/M). Ready for integration.
+- [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — framework upgrade v1.2.0 →
+  v4.1.0 (fourth upgrade, one jump): FERMATA 1 assessment, the user's U1–U24, 11 task
+  commits, 131 answers verified (0 lost), the gate on the boundary (reviewed tip `56d3b1a`,
+  0 C/H/M), the graft date proven by git, IMP-033…049. Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
@@ -205,6 +209,11 @@ tags: [moc]
   Ctrl+C → 130, module 10 retired, `HOMEBREW_NO_ASK`/`--no-quit` once verified, Homebrew
   6.0+, a path-based gate) and the user's precisions (never leave Homebrew in developer
   mode; a Homebrew-configuration rule; F10 not planned)
+- [[decisions/2026-10-19-framework-upgrade-v4.1.0]] — the framework upgrade to v4.1.0: the
+  user's U1–U24 (IMP-030 under the v4 core: the sensitive components as code paths; the
+  Releases rule; the allow list; `grafted` = 2026-07-12), the divergences from the v1.2.0
+  method, the IMPs the retro must record; supersedes D1 of
+  [[2026-09-24-language-rule-prospective]] in part
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -229,3 +238,5 @@ tags: [moc]
   B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
   status: in-progress (task 1 integrated; task 2 ready).
 - [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.
+- [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] — plan of the framework upgrade v1.2.0 →
+  v4.1.0 (11 tasks), status: completed.
