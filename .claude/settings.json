@@ -1,20 +1,24 @@
 {
+  "env": {
+    "AGENT_GIT_BOUNDARY": "1",
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "0"
+  },
   "permissions": {
     "allow": [
       "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git show:*)",
       "Bash(git tag)",
       "Bash(git describe:*)",
-      "Bash(tree:*)",
-      "Bash(zsh -n:*)",
       "Bash(shellcheck:*)",
       "Bash(brew list:*)",
       "Bash(brew info:*)"
+    ],
+    "ask": [
+      "Edit(/.claude/settings.json)",
+      "Edit(/scripts/agent-git-guard.mjs)",
+      "Edit(/scripts/state-inject.sh)"
     ],
     "deny": [
       "Bash(git push:*)",
@@ -35,7 +39,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: see .claude/memory/'"
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/state-inject.sh\" || { echo '=== PROJECT MEMORY (STATE.md) ==='; if head -c 1 \"${CLAUDE_PROJECT_DIR:-.}/.claude/memory/STATE.md\" >/dev/null 2>&1; then echo '(scripts/state-inject.sh could not run: the first 8000 bytes of STATE.md follow, as they are)'; head -c 8000 \"${CLAUDE_PROJECT_DIR:-.}/.claude/memory/STATE.md\"; echo; else echo '(scripts/state-inject.sh could not run, and STATE.md could not be read)'; fi; echo '=== Read .claude/memory/STATE.md whole before acting on what it holds. ==='; }"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Monitor",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat) || exit 2; out=$(printf '%s' \"$input\" | node \"$CLAUDE_PROJECT_DIR/scripts/agent-git-guard.mjs\" 2>&1); rc=$?; case $rc in 0) exit 0;; 2) printf '%s\\n' \"$out\" >&2; exit 2;; esac; case \"$input\" in *'\"agent_id\"'*) printf 'agent-git-guard: cannot run (exit %s): delegated agents are blocked until it is repaired\\n%s\\n' \"$rc\" \"$out\" >&2; exit 2;; *) printf 'agent-git-guard: cannot run (exit %s): delegated agents are blocked until it is repaired; this session is not\\n%s\\n' \"$rc\" \"$out\" >&2; exit 1;; esac",
+            "timeout": 30
           }
         ]
       }
