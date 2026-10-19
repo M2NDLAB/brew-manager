@@ -167,7 +167,8 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     temporarily break the implementation against the contract (e.g. invert a return),
     watch the suite fail, then restore it — before declaring the suite done.
 - **Security gate** (IMP-030, IMP-004 — what brew adds to the core's rule 8; the
-  components are the answer **Sensitive components**): every review under the gate is
+  components are the answer **Sensitive components**): every review under the gate
+  (`/fw:security-review`) is
   run by one independent reviewer, delegated, never the author re-reading their own
   change; it asks what the change does and *what does this now AUTHORISE?*; a
   **refuter** (a second agent with an explicit mandate to refute) is added where the
