@@ -26,7 +26,7 @@ content untouched, and no tag. The user's decisions U1–U24:
   (`grafted`, closed at task 10 by U1).
 
 ## Tasks
-- [ ] 1. Commands to the `fw:` namespace: the eight renames (3-way where customised, v4.1.0's copy where =v1.2.0), `fw/plan.md`, the old files removed; U12, U13, U14 — commit: —
+- [x] 1. Commands to the `fw:` namespace: the eight renames (3-way where customised, v4.1.0's copy where =v1.2.0), `fw/plan.md`, the old files removed; U12, U13, U14 — commit: 2231311
 - [ ] 2. The core rules (`fw-core.md`, `fw-boundary.md`, `fw-code-quality.md` with U15's globs) and CLAUDE.md rebuilt from v4.1.0: the nine answers carried, the project's technical rules kept, the map removed, the Security gate, Releases and MINOR-examples lines (U2, U5, U14), IMP-002 (U7), anchors (U17) — commit: —
 - [ ] 3. docs 00–06 brought over from v4.1.0 (their answers carried by task 2) — commit: —
 - [ ] 4. `docs(memory)`: the memory's titles (6 in STATE, 4 in LEARNINGS) and 56 field-label lines to v4.1.0's form, one edit per line — commit: —
