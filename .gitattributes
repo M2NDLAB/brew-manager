@@ -1,0 +1,13 @@
+# The framework's files keep LF line ends on every platform, whatever core.autocrlf says:
+# bash cannot run a script with CRLF line ends, and the upgrade's checks compare these
+# files with the framework's own. Only the framework's paths are named here: the project's
+# other files follow the project's own rules.
+/.claude/** text=auto eol=lf
+/scripts/*.sh text eol=lf
+/scripts/*.mjs text eol=lf
+/scripts/README.md text eol=lf
+/CLAUDE.md text eol=lf
+/Makefile text eol=lf
+/commitlint.config.cjs text eol=lf
+/.gitignore text eol=lf
+/.gitattributes text eol=lf
