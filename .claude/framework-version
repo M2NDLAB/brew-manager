@@ -4,6 +4,6 @@
 # as the certain baseline of the 3-way merge.
 # Flat `key: value` lines, no parser. It lives OUTSIDE .claude/memory/ on purpose,
 # so the upgrade's "empty diff on memory/" invariant stays intact.
-version: 1.2.0
+version: v1.2.0
 commit: 7d6a9f7
 grafted: n/d (retrofit 2026-07-19)
