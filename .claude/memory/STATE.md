@@ -10,7 +10,7 @@ tags: [state]
 
 > **Previous**: task 1 of the 2.0.0 plan (`chore/replan-v2`: the v1.5.0 reconciliation, the plan and decisions, the triage by decision, IMP-030 and IMP-031) → INTEGRATED (merge `f232f12`) → [[sessions/2026-10-07-replan-v2-assessment]].
 
-## Stato avanzamento
+## Progress
 - [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
   Homebrew, 14 moduli standard + 4 speciali, LaunchAgent scheduler, backup Brewfile).
 - [x] Innesto del claude-code-framework v0.2.0 — branch `chore/innesto-framework`
@@ -214,7 +214,7 @@ tags: [state]
   B6 flag values → B7 module outcomes → B8 release v2.0.0. Decisions:
   [[decisions/2026-10-07-v2-plan]].
 
-## Cosa esiste adesso
+## What exists now
 - Albero directory: vedi [[TREE]].
 - `brew_manager.sh` — entry point TUI, stabile; dispatch, parsing flag, recording
   sessione via script(1). Selezione da CLI (posizionale + `--only`/`--skip`,
@@ -303,7 +303,7 @@ tags: [state]
   Resto del codice non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
   formattazione predisposto ma commentato nell'hook). CI: assente.
 
-## Decisioni prese (non ovvie dal codice)
+## Decisions made (not obvious from the code)
 - Trunk-based su `main` (integrazione = stabile); `origin/dev` dormiente, non è
   l'integrazione → [[2026-07-12-trunk-based-su-main]].
 - The security gate is PATH-BASED since IMP-030 (2026-10-07): one lens on a change to a
@@ -361,7 +361,7 @@ tags: [state]
   precisions: B2 never leaves Homebrew in developer mode, a Homebrew-configuration rule
   (IMP-031), F10 not planned → [[decisions/2026-10-07-v2-plan]].
 
-## Debito documentazione
+## Documentation debt
 - ~~README vs realtà di v1.2.0~~ **SALDATO** in BM-19 ristretto (7f7f90d): rimossi
   gli over-claim (CLI posizionale, scheduling per-modulo, esempi `./brew_manager.sh
   bk`), aggiornati i comportamenti (adozione, cleanup, restore, greedy, integrity),
@@ -400,7 +400,7 @@ tags: [state]
   2026-09-27): true until they are removed. → TRIGGER: task 3 of [[plans/v2-personal-tool]] (rule 5: the
   removal and its docs in the same branch).
 
-## Attenzione / problemi aperti
+## Caution & open issues
 > **The 2.0.0 plan, 2026-10-07** ([[plans/v2-personal-tool]], [[decisions/2026-10-07-v2-plan]]): every open
 > entry below now carries the TASK of that plan that closes it ("→ task N"). Its trigger is
 > that task; the older triggers that name a branch of the pre-Dashboard plan, the
@@ -833,7 +833,7 @@ tags: [state]
   is the user's) APPLIED. Task 2 (2026-10-10): **IMP-032** (a verification record reads the
   environment at that moment; `Destination: framework`), OPEN.
 
-## Branch attivi
+## Active branches
 - **fix/homebrew-developer-mode** (task 2 of the 2.0.0 plan: module 1 never leaves
   Homebrew in developer mode — code, tests, docs, memory) = **READY for the user's
   integration** (`/integrate` block; a `feat` inside, no tag until the v2.0.0 release).
