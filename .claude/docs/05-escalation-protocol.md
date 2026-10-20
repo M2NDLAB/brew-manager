@@ -20,7 +20,7 @@ genuinely help.
 
 BEFORE producing the report: re-read the relevant docs and `STATE.md` — the answer is
 often already there. The report is the last resort, not the first. The user can force
-it at any moment with `/sos`.
+it at any moment with `/fw:sos`.
 
 ## FORMAT of the report (produce EXACTLY this block)
 

@@ -7,14 +7,31 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be enabled)
+hooks-install: ## Install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 	bash scripts/hooks-install.sh
 
-reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
-	bash scripts/reset-task.sh
+# The branches reset-task must never touch: brew-manager is trunk-based on main, its
+# integration and stable branch at once (CLAUDE.md, Branches); "dev" stays protected because
+# it exists as a historical remote branch. A plain `=`, not `?=`: an exported
+# environment variable must not silently replace the project's list; one run can still
+# override it on the command line: make reset-task PROTECTED_BRANCHES="main trunk".
+# YES=1 discards without asking — the user's form, never an agent's (the core's Resumption);
+# make reads YES from the environment too, and any non-empty value skips the question.
+PROTECTED_BRANCHES = main dev
 
-test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
+reset-task: ## Discard the interrupted half-done task, preserving branch and commits (YES=1: no prompt)
+	PROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh $(if $(YES),--yes)
+
+# The last line runs the framework repository's own documentation check — tools/ is never
+# copied into a project, where the line does nothing.
+test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check, reset-task, the STATE injection)
 	bash scripts/test-hooks-install.sh
+	bash scripts/test-agent-git-guard.sh
+	bash scripts/test-repo-snapshot.sh
+	bash scripts/test-check-prerequisites.sh
+	bash scripts/test-reset-task.sh
+	bash scripts/test-state-inject.sh
+	@if [ -f tools/docs-check.mjs ]; then bash tools/test-docs-check.sh && node tools/docs-check.mjs; fi
 
 # ============================================================================
 # brew-manager-specific targets (zsh, no build).

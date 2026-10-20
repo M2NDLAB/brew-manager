@@ -1,5 +1,6 @@
 ---
-description: Scaffold a new brew-manager module according to the project's conventions
+description: Scaffold a new brew-manager module according to the project's conventions - run by the user only
+disable-model-invocation: true
 ---
 Create a new module named $ARGUMENTS following the project's conventions EXACTLY (a
 "component" in brew-manager IS a module; see also the
@@ -9,7 +10,9 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    module in .claude/memory/components/ to replicate its structure and conventions.
 2. Create `modules/mod_NN_slug.sh` (numeric, NN two-digit zero-padded, the next free
    number) or `modules/mod_<alias>_slug.sh` (a special module invoked by name). The
-   file is loaded automatically by the `mod_*.sh` glob: no loading registration.
+   file is loaded automatically by the `mod_*.sh` glob: no loading registration. No
+   production artefact: the module file ships with the repository, distributed via
+   `git clone` (CLAUDE.md's answer **Production artifact**).
 3. Define the `_module_NN` function (number WITHOUT zero-padding, e.g. `_module_5`)
    or `_module_<alias>` (today only `log` uses it: bk/las/mas are `_module_14`,
    `_module_15` and `_module_16`, so a new module 14 would be shadowed by bk — fix
@@ -62,12 +65,11 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
    - if the module is mutating: check that with the default answer to the prompts it
      changes nothing.
 6. If the module has a gated path (it deletes, installs, modifies Homebrew's
-   configuration or decides what runs — see docs/03, path-based since IMP-030): add the
-   path to docs/03 and the module to the sensitive components of CLAUDE.md (technical
-   rules), and amend the decision note
+   configuration or decides what runs): add the path, with the file that holds it, to
+   CLAUDE.md's answer **Sensitive components**, and amend the decision note
    `.claude/memory/decisions/2026-07-12-componenti-sensibili.md`; its first merge goes
-   through the gate.
+   through the gate (`/fw:security-review`).
 7. Update the documentation: the module's card in the "Modules" section of README.md
    (rule 5).
 8. Create the note in .claude/memory/components/<module>.md and update INDEX.md,
-   STATE.md, TREE.md (via /checkpoint).
+   STATE.md, TREE.md (via /fw:checkpoint).

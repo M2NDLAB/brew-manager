@@ -9,15 +9,15 @@ it this way?" — and the best source of improvement proposals (see
 `docs/06-self-improvement.md`).
 
 ## When to write one
-At the end of a task/session, typically inside `/checkpoint`. An escalation
+At the end of a task/session, typically inside `/fw:checkpoint`. An escalation
 (`docs/05`) is recorded here too, with its ID. And ALWAYS before a `/clear` or a
 model switch, if the chat holds expensive work not yet persisted (an assessment, a
 review, decisions taken on the fly): the chat context is lost, the note is not —
 and the next prompt will be able to POINT at the note instead of rebuilding it.
 
 ## Naming
-`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-setup-iniziale.md`,
-`2026-06-15-modulo-pagamenti.md`. The leading date keeps the chronological order.
+`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-initial-setup.md`,
+`2026-06-15-payments-module.md`. The leading date keeps the chronological order.
 
 ## Format
 ```markdown
@@ -35,6 +35,11 @@ tags: [session, <area>]
 ## Done
 - <itemised list of what was produced, with the relevant commits/shas>
 
+## Security gate
+- <the outcome of `/fw:security-review` and the tip its report names as reviewed (`<short
+  sha>`) — or "not applicable" —, and why: under the gate for a sensitive component or a
+  security property the product asserts, or neither>
+
 ## Problems encountered → cause → solution
 1. <symptom> → <root cause> → <fix>
 
@@ -45,8 +50,24 @@ tags: [session, <area>]
 - IMP-nnn (in LEARNINGS.md): <any improvement proposal that emerged>
 
 ## Follow-up
-- <any open threads picked up at a later date>
+- <any open threads picked up at a later date; one that awaits the user or a later
+  session — a question, a measurement — also gets its entry in STATE.md's "Caution &
+  open issues", with its trigger: the resumption reads STATE, not this note>
 ```
+
+## The security gate's line
+
+The note that closes a deliverable states the gate's verdict, always, with its reason: the
+outcome of `/fw:security-review` and the tip it reviewed when the deliverable is under the
+gate — a sensitive component, or a security property its product asserts (`docs/03`) —,
+"not applicable" and why when it is not. A gate skipped and a gate forgotten must not look
+the same in the memory: a closing note without the line is a forgotten gate. The tip is the
+one the review's report names (`Reviewed: <base>..<sha>`), never a later HEAD: a fix
+committed after the review is a new tip, reviewed again.
+`/fw:integrate` reads the line before it prints its blocks, and stops on a missing line, on
+a review other than the method's, and on a commit of a shipped file the review did not see.
+Notes written
+before this line existed stay valid as they are.
 
 ## The `model` and `turns` fields
 
@@ -56,7 +77,7 @@ many exchanges the recorded work took — an objective proxy of its friction.
 
 - **Absent = not recorded.** Notes that predate the fields stay valid; never backfill
   them — the values would be reconstructed, not recorded. The fields are historical
-  attributes of the note: for `/lint-memory` they are neither stale claims (check 3)
+  attributes of the note: for `/fw:lint-memory` they are neither stale claims (check 3)
   nor concepts that call for a page of their own (check 5).
 - **`model`** — the identifier of the model running the main session, **as the runtime
   exposes it to the agent**, verbatim. A free value, never an enum: model names change.

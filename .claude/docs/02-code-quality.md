@@ -8,9 +8,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
 
 - Every public unit (class, module, exported function): a documentation comment with
   its responsibility, why it exists, its invariants, and a usage example if the API
-  is not obvious. *(The tool in this project: a block of `#` comments before the
-  function, as already used in `lib/common.sh` and in the modules — zsh has no
-  native doc comments.)*
+  is not obvious. *(The tool — the language's doc comment — is the project's answer
+  **Doc comments**: `CLAUDE.md`, *The answers the method reads*.)*
 - Every non-trivial public function: what it does, parameters with their constraints
   (range, null), what it throws/returns on error and when, side effects.
 - Blocks of complex logic: a comment BEFORE the block explaining the intent and why
@@ -30,11 +29,9 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   swallow an error.
 - Error hierarchy: domain errors extend common bases; the application edge translates
   them into a uniform response format. Expose a structured, stable error format to
-  the client *(in this project the "client" is the terminal: errors ONLY through
-  `_err`/`_warn` of `lib/common.sh`, with an actionable message; the raw output of
-  failed commands goes to the session log, not to the screen)*, never
-  stacktraces/queries/internal paths/library versions: the detail goes to the log
-  (with a correlation id), the client gets the concise message.
+  the client *(which one — the answer **Error format** in `CLAUDE.md`)*, never stacktraces/queries/
+  internal paths/library versions: the detail goes to the log (with a correlation
+  id), the client gets the concise message.
 - Resources: always released safely (the language's idiomatic construct). I/O
   operations: timeout ALWAYS explicit (never infinite defaults); retries only on
   idempotent operations.
@@ -64,11 +61,9 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   that it is actively maintained. Prefer what is already in the project.
 - Formatting: applied automatically by the pre-commit hook (`make hooks-install`), so
   that drift does not accumulate and formatting-only commits are not needed. The tool
-  in this project: NONE active — the block stays commented out in
-  `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not
-  installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the
-  touched files; project-wide gates: `make check` (`zsh -n` on every script,
-  blocking) and `make test`; `make lint` runs shellcheck as advisory only.
+  (formatter/linter) is the answer **Formatter / linter** in `CLAUDE.md` — see
+  `scripts/hooks-install.sh`.
+  Never commit unformatted code.
 - Testing configuration: do not build configuration objects by hand in tests with
   long lists of positional/`null` values — adding a field would break every call
   site, including the ones that do not use it. Use builders/fixtures or binding from
@@ -90,16 +85,19 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
   That way a future regression breaks the build by itself, instead of waiting for
   someone to remember to update the test.
-- When a suite pins a CONTRACT — a function extracted or moved for parity, or code
-  built on the same contract, down to the exit code the user observes — enumerate the
-  contract's surface BEFORE writing the suite, as a proportional guide, not a ritual
-  for every micro-test: (a) the return value or exit code of EVERY outcome the
-  contract promises — where an outcome reaches the user, asserted at the real edge the
-  user invokes too, not only at the inner unit; (b) every input class, EDGES included
-  (surrounding whitespace, empty tokens, case variants); (c) the MULTIPLICITY of side
-  effects (N events for N causes, not just "at least one"); (d) a MUTATION check:
-  temporarily break the implementation against the contract (e.g. invert a return),
-  watch the suite fail, then restore it — before declaring the suite done.
+- An invariant over a set that carries a KNOWN debt is a BIDIRECTIONAL allow-list, not an
+  assertion that no member violates the property: (a) a member that violates it and is not
+  listed fails, so the debt cannot grow in silence; (b) a listed member that no longer
+  violates it fails, so an exemption cannot outlive its fix; each entry carries its reason.
+  The list is no assertion about the state known today — (b) breaks it the day that state
+  changes, as the anti-vacuity check guards the scanned set. And if declaring the truth
+  breaks the build — a unit that says it lacks the property —, the test measures the
+  declaration, not the behaviour: the test is what to fix.
+- A test of what drives an external tool keeps its hermetic baseline, and adds cases under
+  the configurations the users have — their git configuration, their attributes, their
+  platform: emptying the configuration for hermeticity also removes the defects it causes.
+  Each such case checks that its datum reaches the program under test — in the form the
+  program receives it, the configuration taking hold, the byte arriving — before it counts.
 
 ## Definition of Done for every task
 
@@ -116,16 +114,19 @@ are stack-agnostic principles: the conventions specific to the chosen language g
 5. No new compiler/linter warnings.
 6. A schema migration if the data schema changed.
 7. Project documentation updated if the change touches user features, operational
-   procedures, APIs or deployment *(where the documentation lives — `README.md`)*;
-   if the project documentation does not exist yet, the debt is recorded in
-   `memory/STATE.md`.
-8. Memory updated and the commit made per `04-git-workflow.md` (the `/checkpoint`
+   procedures, APIs or deployment *(where the documentation lives — the answer
+   **Documentation** in `CLAUDE.md`)*; if the project documentation does not exist yet, the
+   debt is recorded in `memory/STATE.md`.
+8. Memory updated and the commit made per `04-git-workflow.md` (the `/fw:checkpoint`
    command covers points 7 and 8 together).
-9. For a completed **deployable** component/app: the production artifact exists (in
-   this project NOT applicable: the repo's scripts ARE the artifact, distributed via
-   `git clone`; the practical equivalent is: the module works from a clean copy of
-   the repo, without depending on local state). This does NOT emerge from tests
-   run in a development environment: it must be verified explicitly.
+9. For a completed **deployable** component/app: the production artifact exists (e.g.
+   a multi-stage container image, non-root runtime, or the equivalent for your
+   platform — the answer **Production artifact** in `CLAUDE.md`). This does NOT emerge from tests run in a
+   development environment: it must be verified explicitly.
+10. The records claim no more than their data: a commit message, a changelog entry, the
+    Verified part of an applied IMP is written after the last measurement it cites, and no
+    wider than it — a list that declares itself complete is held against its source, or
+    narrowed to what was measured.
 
 > The security gate for sensitive components is an ADDITIONAL requirement on top of
 > the Definition of Done: see `03-security-gate.md`.
