@@ -14,18 +14,9 @@ tags: [moc]
 ## Stato
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  10 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
-  dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
-  verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
-  colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
-  vietali dal checkout — BM-10, Destinazione: framework), IMP-007 (smoke moduli =
-  selezione CLI, mai pipe sul prompt né head sull'output — BM-11/BM-12), IMP-008
-  (lente di gate "affermazioni, non solo azioni" — BM-12, Destinazione: framework),
-  IMP-009 (invariante su un debito = allow-list bidirezionale, non insieme vuoto),
-  IMP-010 (fix locale promosso a claim globale allarga l'insieme da verificare) e
-  IMP-011 (gatare un comando esterno: verifica se lo strumento lo riesegue da sé) —
-  le ultime tre `Destinazione: framework`
+- [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
+  023–029, 032–050 (IMP-033…050 sent to the framework's Architect on 2026-11-07); Applied
+  IMP-001–004, 007, 022, 030, 031; Deferred IMP-005; none rejected
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)

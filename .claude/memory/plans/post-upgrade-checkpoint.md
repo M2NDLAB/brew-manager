@@ -24,9 +24,9 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   (decision B; F6, F7); the technical rule **Commit attribution** in CLAUDE.md, the user's
   words. Verify: the parsed diff is those two changes; `make test-scripts` (the wiring)
   — commit: `269cc9c`
-- [ ] 3. The answer **Error format** narrowed to what the code does — text only (U18 d); the
+- [x] 3. The answer **Error format** narrowed to what the code does — text only (U18 d); the
   behaviour stays with tasks 4 and 7 of [[plans/v2-personal-tool]]. Verify: the first
-  commit after task 2 carries `Co-Authored-By` and no `Claude-Session:` — commit: —
+  commit after task 2 carries `Co-Authored-By` and no `Claude-Session:` — commit: `32069dc`
 - [ ] 4. LEARNINGS: IMP-033's and IMP-047's docs/04 quotes in the words docs/04 holds
   (Level 1, found by the 2026-11-07 harvest); IMP-050 (U2), the user's text; nothing marked
   for the harvest (docs/06 prescribes nothing); INDEX's LEARNINGS line — commit: —

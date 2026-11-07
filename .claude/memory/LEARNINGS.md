@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-19
+updated: 2026-11-07
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -454,8 +454,9 @@ tags: [improvement]
 - Observed problem: the project's `allow` held `Bash(zsh -n:*)`, a syntax check.
   `zsh -n +n -c 'print -r -- X'` prints X and exits 0 — a later `+n` cancels `-n` —, so the
   prefix rule auto-approved arbitrary code with no prompt (measured twice, independently).
-  docs/04 asks each rule to be "as narrow as it can be", but says nothing of a check-only
-  flag that the interpreter's own later arguments can undo.
+  docs/04 asks for rules "clean and specific" and warns that a narrow rule can let through
+  "a script path or flag the rule's prefix didn't anticipate", but says nothing of a
+  check-only flag that the interpreter's own later arguments can undo.
 - Proposal: a warning in docs/04, *Permission configuration*: a prefix rule on an
   interpreter's check-only option (`zsh -n`, `bash -n`, a compile-only flag) is not
   read-only — later arguments can turn execution back on; such a check runs through a
@@ -619,9 +620,9 @@ tags: [improvement]
 
 ### IMP-047 — The boundary's permission claims rest on a local settings file nobody checks
 - Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate, finding F2
-- Observed problem: docs/04 states that `git checkout -B` "prompts, or meets auto mode's
-  classifier" because "no allow rule names them", and that `settings.local.json` starts out
-  empty. In this project the untracked local file held wildcard rules (`git checkout *`,
+- Observed problem: docs/04 states that `git switch -C` and `git checkout -B` "prompt, or
+  meet auto mode's classifier" because "no allow rule names them", and that
+  `settings.local.json` starts out empty. In this project the untracked local file held wildcard rules (`git checkout *`,
   `git tag *`, `gh repo *`, `make test *`) that approve discards, tags and forge writes with
   no prompt and, in auto mode, unseen by the classifier: the claims did not hold, and no
   step of the method reads that file.
@@ -659,6 +660,20 @@ tags: [improvement]
   first checkpoint's work list after the merge.
 - Expected benefit / risk: no stale claim about the method survives the next checkpoint.
   Risk: none.
+- Destination: framework
+
+### IMP-050 — Sensitive components named by code path, and how the gate's "not applicable" reads them
+- Date: 2026-11-07 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — emerged during the upgrade to v4.1.0 — a proportional security gate had to be rebuilt inside the core's rule 8 (decided at U2, [[decisions/2026-10-19-framework-upgrade-v4.1.0]]; recorded on 2026-11-07)
+- Observed problem: the project gated only changes to the paths that delete, install or
+  configure, and let the author verify any other edit to the same files. That exemption
+  restricts rule 8 and could not survive the upgrade. Listing whole files in the Sensitive
+  components answer instead sends every edit of those files through the gate, losing the
+  proportionality; and /fw:integrate would stop on each "not applicable" declaration.
+- Proposal: the method states that a sensitive component may be a code path inside a file
+  (named in the answer), that a change outside every named path makes the gate "not
+  applicable" — declared in the gate line —, and how /fw:integrate checks that declaration.
+- Expected benefit / risk: a proportional gate without weakening rule 8. Risk: the judgement
+  "outside the path" rests on whoever declares it; an independent reviewer can confirm it.
 - Destination: framework
 
 <!-- Format of a proposal:
