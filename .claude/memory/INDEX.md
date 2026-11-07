@@ -168,17 +168,21 @@ tags: [moc]
 - [[sessions/2026-10-10-homebrew-developer-mode]] — task 2: module 1 never leaves Homebrew
   in developer mode (`brew ruby` gone, a prevention suite, a read-only detection, a
   confirmed restore); this Mac was already back on stable 7.0.8; the one-lens gate (no
-  C/H/M). Ready for integration.
+  C/H/M). INTEGRATED (merge `8a7e6a2`).
 - [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — framework upgrade v1.2.0 →
   v4.1.0 (fourth upgrade, one jump): FERMATA 1 assessment, the user's U1–U24, 11 task
   commits, 131 answers verified (0 lost), the gate on the boundary (reviewed tip `56d3b1a`,
-  0 C/H/M), the graft date proven by git, IMP-033…049. Ready for integration (no tag).
+  0 C/H/M), the graft date proven by git, IMP-033…049. INTEGRATED (merge `0b127a9`, no
+  tag).
 
 ## Decisioni
-- [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
+- [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
+  protected list is the Makefile's since the v4.1.0 upgrade)
 - [[2026-07-12-componenti-sensibili]] — the "blast radius on the Mac" criterion
   and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
-  PATH-BASED since IMP-030, 2026-10-07)
+  PATH-BASED since IMP-030, 2026-10-07) — superseded in part by U2 of the v4.1.0 upgrade:
+  the list is CLAUDE.md's answer **Sensitive components** (code paths), one independent
+  reviewer
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n — superseded on 2026-11-07 (decision A:
   `make lint` = `make check`'s `zsh -n`)
@@ -189,8 +193,8 @@ tags: [moc]
 - [[2026-07-17-consent-vs-noninteractive]] — BM-08c: NON_INTERACTIVE (anti-blocco)
   separato da YES_MODE (solo --yes); "non c'è tty" ≠ consenso
 - [[2026-09-24-language-rule-prospective]] — rule 9 adopted: English artifacts from
-  the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept, memory
-  headings frozen and mapped in CLAUDE.md
+  the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept; its frozen
+  headings and their map in CLAUDE.md (D1) superseded by the v4.1.0 upgrade
 - [[2026-09-25-debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard:
   categories, order, a new exit code for a failed environment precondition (MINOR →
   v1.5.0), `lib/agents.sh`, bk [4]/las [c] in wet mode, the conditions on #17 and #3b
@@ -228,7 +232,7 @@ tags: [moc]
 - [[plans/v2-personal-tool]] — **brew-manager 2.0.0, a personal terminal tool**: B1 the
   re-plan → B2 Homebrew developer mode → B3 remove bk/las/log/mas and module 10 (MAJOR) →
   B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
-  status: in-progress (task 1 integrated; task 2 ready).
+  status: in-progress (tasks 1–2 integrated; next task 3).
 - [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.
 - [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] — plan of the framework upgrade v1.2.0 →
   v4.1.0 (11 tasks), status: completed.
