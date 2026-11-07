@@ -31,7 +31,7 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   appended to `lib/log.sh` makes `make lint` exit 2; `make test` 333. CLAUDE.md's two lint
   clauses, the CHANGELOG `[Unreleased]` (Changed) and the superseded line of
   [[2026-07-12-shellcheck-advisory]] say the same.
-- Task 2 `269cc9c` — `.claude/settings.json` (decision B; F6, F7): written once from a copy in
+- Task 2 `269cc9c` — `.claude/settings.json` (decision B; the 2026-10-19 gate's F6, F7): written once from a copy in
   the scratchpad, parsed by node and python first; the parsed comparison with the old file
   shows `Bash(shellcheck:*)` removed from `allow`, `"attribution": {"sessionUrl": false}`
   added, `env`, `ask`, `deny` and both hooks identical; the file in place equals the parsed
@@ -96,7 +96,7 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   `8a7e6a2`: the preview changed nothing, the restore was confirmed, Homebrew went from 7.0.8
   to 7.0.9 stable, and a second run did not turn developer mode back on. Two defects → #38
   and #39.
-- The user's local permissions (#35, F2, F3): `.claude/settings.local.json` re-read read-only
+- The user's local permissions (#35, the 2026-10-19 gate's F2, F3): `.claude/settings.local.json` re-read read-only
   on 2026-11-07 — none of `git checkout *`, `git tag *`, `gh repo *`, `git ls-remote *`,
   `make check *`, `make test *` is left; `Bash(make check)` and `Bash(make test)` are there in
   exact form, the user's. The other rules are exact-form or a read of the framework
@@ -246,12 +246,17 @@ installed; the CommonMark rule only).
 
 ## Follow-up
 - The upgrade's working folder T, `/Users/seco/Projects/_upgrade-scratch/brew-manager`: kept
-  until the framework closes its triage, then deleted (decision C) → STATE #40.
+  until the framework closes its triage, then deleted by the user (decision C) → STATE #40.
 - The OPEN IMPs v4.1.0 covers upstream (006, 008, 009, 010, 011, 013, 014, 016, 019, 021;
   026–028 in part): the Architect flags the duplicates after the harvest session; none is
   closed before (decision D) → STATE #41.
-- `attribution.sessionUrl`'s effect is still to measure: the first commit from a cloud or
-  Remote Control session must carry `Co-Authored-By` and no `Claude-Session:` → STATE #42.
+- `attribution.sessionUrl`'s effect is still to measure → STATE #42. At each checkpoint:
+  `n=$(git log --format=%B 269cc9c.. | grep -c 'claude.ai/code/session')`, expected 0; a
+  link means the key did not hold for that commit — a session that did not load the
+  project's settings, most likely —, and is recorded there. The entry closes when a commit
+  known to come from a Remote Control or cloud session carries `Co-Authored-By` and no link.
+  That the 2026-10-19 commits came through Remote Control is inferred (local commits in the
+  reflog; `remoteControlAtStartup` is on today, its value that day unrecorded).
 - `/fw:lint-memory` after this wide rewrite of STATE (the core's table): the user runs it →
   STATE #43. Known for it: `components/mod-00-audit.md` still calls the off-by-one (#2) and
   the dry-run gap (#3) open, an Italian note left as written.
