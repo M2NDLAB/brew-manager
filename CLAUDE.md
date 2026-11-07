@@ -67,7 +67,7 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     incompatible change breaks the agents already installed, so it is MAJOR.
 - **Doc comments** — the language's documentation-comment tool (`docs/02`, *Comments*): a block of `#` comments before the function, as already used in `lib/common.sh` and in the modules — zsh has no native doc comments.
 - **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): in this project the "client" is the terminal: errors ONLY through `_err`/`_warn` of `lib/common.sh`, with an actionable message; the raw output of failed commands goes to the session log, not to the screen.
-- **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): NONE active — the block stays commented out in `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the touched files; project-wide gates: `make check` (`zsh -n` on every script, blocking) and `make test`; `make lint` runs shellcheck as advisory only.
+- **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): NONE active — the block stays commented out in `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the touched files; project-wide gates: `make check` (`zsh -n` on every script, blocking) and `make test`; `make lint` runs the same `zsh -n` as `make check` — a syntax check only: shellcheck does not support zsh (SC1071).
 - **Production artifact** — its format for a deployable component (`docs/02`, DoD point 9): NOT applicable — the repo's scripts ARE the artifact, distributed via `git clone`; the practical equivalent is: the module works from a clean copy of the repo, without depending on local state.
 
 ---
@@ -138,7 +138,8 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   treating them as neutral.
   Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not
   installed; block prepared but commented out in `scripts/hooks-install.sh`);
-  `make lint` runs shellcheck as ADVISORY when installed. Syntax gate: `make check`
+  `make lint` runs `make check`'s `zsh -n`, a syntax check only — shellcheck does not
+  support zsh (SC1071; decision A, 2026-11-07). Syntax gate: `make check`
   (`zsh -n` on every script); zero-cost check on a single file: `zsh -n <file>`.
 - **Tests**: a hand-rolled zsh harness in `tests/`, zero dependencies, run by
   `make test` (a blocking gate); bats remains a future candidate. Minimal

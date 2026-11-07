@@ -44,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Module 1's risk badge is `[W]` instead of `[RO]`: after a confirmation, it can change
   Homebrew's developer-mode setting and run `brew update`. The `[W]` caption now reads
   "Writes metadata, cache or Homebrew's settings — never packages".
+- `make lint` runs the same `zsh -n` syntax check as `make check`, on the same files.
+  shellcheck does not support zsh, so the advisory shellcheck pass is gone.
 
 ## [1.5.0] - 2026-10-07
 

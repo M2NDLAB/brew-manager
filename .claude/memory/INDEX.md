@@ -189,7 +189,8 @@ tags: [moc]
   and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
   PATH-BASED since IMP-030, 2026-10-07)
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
-  dialetto zsh, il gate di sintassi resta zsh -n
+  dialetto zsh, il gate di sintassi resta zsh -n — superseded on 2026-11-07 (decision A:
+  `make lint` = `make check`'s `zsh -n`)
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
   come arricchimento + make version-check anti-drift
 - [[2026-07-17-selection-resolver-contract]] — BM-08a: home lib/selection.sh,

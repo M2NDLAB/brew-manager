@@ -73,14 +73,10 @@ version-check: ## Check that VERSION matches the latest vX.Y.Z tag
 		exit 1; \
 	fi
 
-# shellcheck has no zsh dialect (only sh/bash/dash/ksh): forcing --shell=bash
-# on zsh scripts yields false positives on zsh-only constructs (${(P)var}, read -rA,
-# typeset -A). That is why the target is ADVISORY: it shows the findings but does
-# not fail — it cannot be a gate while the project is zsh. Clean skip if not installed.
-lint: ## Advisory shellcheck if installed (clean skip otherwise; never blocking)
-	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck --shell=bash --severity=warning brew_manager.sh lib/*.sh modules/*.sh \
-			|| echo "  note: ADVISORY findings (shellcheck does not support zsh, false positives expected)"; \
-	else \
-		echo "  skip: shellcheck not installed (optional: brew install shellcheck)"; \
-	fi
+# The project's lint is a syntax check only. shellcheck has no zsh dialect: on a zsh
+# script it stops at SC1071, and --shell=bash yields false positives on zsh-only
+# constructs (${(P)var}, read -rA, typeset -A). So lint runs check's `zsh -n` over the
+# same files and holds no logic of its own that could drift from it (the framework
+# architect's decision A of 2026-11-07,
+# .claude/memory/decisions/2026-11-07-framework-architect-decisions.md).
+lint: check ## Syntax check only: the same zsh -n as check (shellcheck does not support zsh)
