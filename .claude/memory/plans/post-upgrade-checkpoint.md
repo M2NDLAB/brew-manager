@@ -34,10 +34,10 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   [[2026-07-12-componenti-sensibili]] (:38-45, U2), [[2026-09-24-language-rule-prospective]]
   (D1) and [[2026-07-12-trunk-based-su-main]] (:20); the 2.0.0 plan's targets in docs/0N and
   `new-component.md`, "one lens", the command names, task 8's gate; INDEX — commit: `d0acd2d`
-- [ ] 6. Today's session note with appendix A — STATE's *Caution & open issues* at
+- [x] 6. Today's session note with appendix A — STATE's *Caution & open issues* at
   `0b127a9`, verbatim — and appendix B — its *Decisions made* and *Documentation debt*,
   verbatim —, plus the entry-by-entry comparison written BEFORE the rewrite. Verify: each
-  appendix byte-identical to `git show 0b127a9:.claude/memory/STATE.md`'s lines — commit: —
+  appendix byte-identical to `git show 0b127a9:.claude/memory/STATE.md`'s lines — commit: `97c841c`
 - [ ] 7. STATE.md rewritten within 8,000 characters (`scripts/state-inject.sh`): the open
   entries under their numbers, #30 and #34–#37 closed with their declarations, #38–#41 new
   (the two defects of task 2's acceptance run, the working folder, the upstream duplicates),
@@ -45,8 +45,8 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   measurement's three conditions; independent read-only verifiers against the comparison
   — commit: —
 - [ ] 8. After `/fw:security-review` and `/fw:retro`: the checkpoint — the session note's gate
-  line (the reviewed tip), STATE's status line, INDEX's new notes, this plan completed
-  — commit: —
+  line (the reviewed tip), STATE's status line and Active branches, INDEX's new notes and its
+  three stale component lines, this plan completed — commit: —
 
 ## Resumption notes
 - The order is the user's constraint: the archive (task 6) is committed before STATE loses

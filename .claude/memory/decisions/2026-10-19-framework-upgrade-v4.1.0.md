@@ -105,6 +105,9 @@ tags: [decision, framework, upgrade, process, security-gate, language, release]
   (c) docs/02's "Never commit unformatted code." returns with v4.1.0's copy; (d) the **Error
   format** answer is carried verbatim although inaccurate (the raw output goes to fixed /tmp
   files or /dev/null, not the session log): a separate Level-1 correction after the merge.
+  *(Recorded on 2026-11-07: (a)'s STATE #7 left STATE in its condensation, its text verbatim
+  in appendix A of [[sessions/2026-11-07-post-upgrade-checkpoint]], beside its own session
+  note; (d) was corrected as text, `32069dc`.)*
 - **U19 — duplicates**: the technical-rules bullet "Where the project documentation lives"
   leaves (it is the answer **Documentation**); Stack, Run, Deployment and the formatter
   sentence stay.

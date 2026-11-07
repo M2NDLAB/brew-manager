@@ -9,8 +9,9 @@ tags: [decision, framework, lint, attribution, memory, process]
   `0b127a9`, no tag) had four questions left open by the upgrade: the lint target (STATE
   #34), the `Claude-Session:` trailer of the upgrade's commits (STATE #36), the upgrade's
   working folder outside the repository, and the OPEN IMPs v4.1.0 covers upstream. The user
-  sent IMP-033…049 to the framework's Architect on 2026-11-07 and brought back four
-  decisions, plus their own answer to U23 (the form of the anchors code and tests use for
+  sent IMP-033…049 and a new one — recorded here as IMP-050, the lesson U2 decided — to the
+  framework's Architect on 2026-11-07 ("il 2026-11-07 ho mandato IMP-033…049 e questa nuova
+  all'Architetto") and brought back four decisions, plus their own answer to U23 (the form of the anchors code and tests use for
   STATE entries, [[2026-10-19-framework-upgrade-v4.1.0]]). Applied on
   `chore/post-upgrade-checkpoint` ([[plans/post-upgrade-checkpoint]]).
 - **Decision** — the user's words, verbatim:
@@ -40,8 +41,8 @@ tags: [decision, framework, lint, attribution, memory, process]
   (and the allow rule) or keeping shellcheck with `--shell=bash` and directives — the
   second yields false positives on zsh-only constructs (SC1071 without `--shell`);
   for B, rewording the published commits (pushed history is never rewritten); for U23,
-  renumbering the entries or citing a session note from code (17 comment lines in 8 code and
-  test files, and CLAUDE.md, would go stale).
+  renumbering the entries or citing a session note from code (20 comment lines in 8 code and
+  test files and 10 lines of CLAUDE.md would go stale).
 - **Consequences**: `make lint` is a syntax check only, as `make check` is; the session
   link is omitted only where Claude Code adds it — commits and pull requests from a cloud or
   Remote Control session (its settings reference, `attribution.sessionUrl`, read on

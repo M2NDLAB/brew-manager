@@ -69,7 +69,8 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   prescribes nothing for the project's entries (*The bridge to the framework*: the command
   only reads and prints; the framework counts a lesson harvested twice once, by its number
   and date) and `fw/harvest-framework.md` step 5 says not to mark anything: nothing marked on
-  IMP-033…050.
+  IMP-033…050. The user sent IMP-033…049 and IMP-050's text to the Architect on 2026-11-07
+  ("ho mandato IMP-033…049 e questa nuova all'Architetto").
 - Task 5 `d0acd2d` — #37's list of stale claims: one dated "superseded" line in
   [[2026-07-12-componenti-sensibili]] (the list's home, lines 8-40, and the gate's size,
   lines 43-45, both U2), [[2026-09-24-language-rule-prospective]] (D1) and
@@ -78,6 +79,16 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   the `/fw:` commands, task 8 under the gate, #38 in task 7 and #39 in task 5, task 2
   integrated; INDEX's stale lines. Ticked tasks and past notes keep their wording: they
   record what was done then.
+- Task 6 `97c841c` — this note, with the comparison written before the rewrite and the
+  archive: appendices A and B, then C (added in task 7, after the verification asked for the
+  remaining sections) — together the whole of STATE.md at `0b127a9` from its title on, each
+  part compared byte by byte with `git show 0b127a9:.claude/memory/STATE.md` (462 + 56 + 40
+  + 5 + 208 + 88 + 53 lines).
+- Task 7 — STATE.md rewritten: 76,088 → 7,877 characters (`wc -m`; 8,025 bytes). The
+  measurement of `/fw:checkpoint` step 3, `bash scripts/state-inject.sh`, prints the banner on
+  line 1, `## Caution & open issues` on line 2, and no other line opening with `===`. 30 open
+  entries under their numbers (24 kept, #38–#43 new); the closed ones in one pointer line;
+  then the independent verification below, and its fixes.
 - Task 2's acceptance run (#37, item a), on the user's Mac on 2026-10-10, after the merge
   `8a7e6a2`: the preview changed nothing, the restore was confirmed, Homebrew went from 7.0.8
   to 7.0.9 stable, and a second run did not turn developer mode back on. Two defects → #38
@@ -89,8 +100,10 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   repository, outside F2/F3.
 - The anchors (U23): every open entry keeps its number; the new ones take 38–41; no number is
   reused; code and tests are not touched. Measured on 2026-11-07 (`git grep` outside the
-  memory): 17 comment lines in 8 code and test files, and 9 lines of CLAUDE.md, cite #2, #3,
-  #3b, #4b, #11, #14, #21, #23, #26 and #30 (the upgrade counted 21 lines in 9 files).
+  memory): 20 comment lines in 8 code and test files and 10 lines of CLAUDE.md cite #2, #3,
+  #3b, #4b, #11, #14, #21, #23, #26 and #30 — four of them a bare `#N`
+  (`CLAUDE.md:64`, `tests/test_exit_codes.zsh:11/:130/:143`); the upgrade counted 21 lines in
+  9 files.
 - The language of condensed entries (U4): CLAUDE.md's boundary — "new or rewritten text is
   English, while entries carried over as they are stay Italian" — applies; a condensed entry
   is rewritten, so English, and its Italian original stays verbatim in appendix A.
@@ -108,9 +121,9 @@ entry's text as it was.
 |---|---|---|---|
 | 1 | closed (M2, BM-08b/c) | closed — the pointer line | appendix A; [[sessions/2026-07-17-bm08c-agent-selection]] |
 | 2 | closed (zsh 1-based arrays) | closed — the pointer line | appendix A; CLAUDE.md cites "STATE #2" |
-| 3 | open | open, condensed | task 4, with #11 and #14 (#15/#16 in task 3) |
+| 3 | open | open, condensed; module 1's plain `git status` under `--dry-run` added (the verification) | task 4, with #11 and #14 (#15/#16 in task 3) |
 | 3b | open | open, condensed | after 2.0.0 (D10); module 0's three sites → task 5; TRIGGER the v2.0.0 release or new code copying it |
-| 4 | mod_10 resolved; the wider pattern open | open, condensed | task 7, with 4b-1 |
+| 4 | mod_10 resolved; the wider pattern open | open, condensed (modules 0, 2, 4, 5; bk, mas, las, log until task 3) | task 7, with 4b-1 |
 | 4b | open (4b-3 closed) | open, condensed | task 7; Ctrl+C → 130 in task 4 |
 | 5 | closed (a convention in force) | closed — the pointer line; the tags in *What exists now* | appendix A |
 | 5b | closed (moved to the decisions) | closed — the pointer line | appendix A and B |
@@ -139,32 +152,64 @@ entry's text as it was.
 | 26 | open | open | task 5 |
 | 27 | open | open | task 3 |
 | 28 | closed (accepted, 2026-10-07) | closed — the pointer line | appendix A; its hardening is in task 4 of the 2.0.0 plan |
-| IMP bullet 2 | IMP-012…049, OPEN | replaced by the IMP line | appendix A; [[LEARNINGS]] |
 | 29 | open | open | task 3 |
 | 30 | fixed, "closes at its merge" | CLOSED — the merge `8a7e6a2` | appendix A; [[sessions/2026-10-10-homebrew-developer-mode]] |
 | 31 | open | open | task 5 (F1 → task 3) |
 | 32 | open | open | task 4 |
 | 33 | open, pointer to docs/04:143-145 | open, re-pointed to CLAUDE.md's answer **Public contract** | task 7 |
-| 34 | open, the user's three options | CLOSED — decision A, its declaration in the line | [[decisions/2026-11-07-framework-architect-decisions]] |
-| 35 | open, the user narrows or accepts | CLOSED — narrowed by the user, re-read read-only | this note, *Done* |
-| 36 | open, the user decides before the push | CLOSED — decision B, the published commits keep their trailer | the decision; CLAUDE.md, **Commit attribution** |
-| 37 | open, this checkpoint | CLOSED — this deliverable | this note; [[plans/post-upgrade-checkpoint]] |
-| 38 | — | NEW, open: the summary's unmeasured counters | task 7 (#4b) |
+| 34 | open, the user's three options | CLOSED — in the pointer line; its declaration in *Decisions made*, where it outlives the next condensation | [[decisions/2026-11-07-framework-architect-decisions]] |
+| 35 | open, the user narrows or accepts | CLOSED — narrowed by the user, re-read read-only; in the pointer line | this note, *Done* |
+| 36 | open, the user decides before the push | CLOSED — in the pointer line; its declaration (the commits published before 2026-11-07 keep their trailer) in *Decisions made* | the decision; CLAUDE.md, **Commit attribution** |
+| 37 | open, this checkpoint | CLOSED — this deliverable; in the pointer line | this note; [[plans/post-upgrade-checkpoint]] |
+| IMP bullet 2 | IMP-012…049 OPEN, with 022, 030, 031 applied and 002–007's statuses | replaced by the IMP line | appendix A; [[LEARNINGS]] |
+| 38 | — | NEW, open: the run summary's unmeasured counters | task 7 (#4b) |
 | 39 | — | NEW, open: module 1's restore box overflows | task 5 (see below) |
 | 40 | — | NEW, open: the upgrade's working folder | the framework's triage closes (decision C) |
 | 41 | — | NEW, open: the upstream duplicates among the OPEN IMPs | the Architect's report (decision D) |
+| 42 | — | NEW, open: `attribution.sessionUrl`'s effect, still to measure (the verification) | the first commit from a cloud or Remote Control session |
+| 43 | — | NEW, open: `/fw:lint-memory` after a wide STATE rewrite (the core's table; the verification) | the user runs it |
 
 The two blockquotes that opened the section (the 2.0.0 plan's triage of 2026-10-07; the
 upgrade's "not condensed on purpose") go to appendix A; the first survives as the new
-section's one-paragraph header, the second is spent.
+section's one-paragraph header, the second is spent. The entries are written as bullets with
+a literal label (`- **#N**`): an ordered list that starts at 3 right after a blockquote is,
+in CommonMark, part of the quote's paragraph, and a renderer would renumber the rest.
 
 #39 goes to **task 5**, not task 4: `_box` (`lib/common.sh:215-250`) never truncates a line by
 design ("never hide content such as what a destructive action will remove"), so the overflow
 is module 1's own fixed text — "From: Homebrew <version> — to its latest release tag (it can
-be older than a main-branch commit)", wider than the 74-column field of an 80-column
-terminal. Task 5 already rewrites module 1's Homebrew texts and is built and smoked on 7.0.x,
-where the box is seen; task 4 touches module 1 only for its `/tmp` file. Fixing it in
-module 1 keeps the shared `_box`, which renders the consent boxes, out of the change.
+be older than a main-branch commit)", 88–104 columns by the version, and the local-changes
+line, 91 — wider than the box's text field, `TERM_WIDTH - 6`: 74 columns on an 80-column
+terminal. Task 5 already rewrites module 1's Homebrew texts; task 4 touches module 1 only for
+its `/tmp` file. Fixing it in module 1 keeps the shared `_box`, which draws every consent box,
+out of the change. The box appears only on a real run with developer mode on, so task 5
+checks it on the restore run of `tests/test_homebrew_developer.zsh`'s mock brew at 80
+columns (every line within the frame), or the user's own run; its gate reads the rewritten
+details too (every disclosure kept, wrapped, not cut).
+
+## The independent verification of the rewrite
+Before task 7's commit, four delegated read-only agents checked the new STATE against
+`0b127a9`, this note and the repository: three lenses (the open entries; the closed entries,
+numbering and citations; the claims and `/fw:checkpoint`'s rules) and a completeness critic,
+with a fixed budget of four agents and no rerun. The repository's snapshot
+(`scripts/repo-snapshot.sh`) was identical before and after, and the working tree's diff kept
+its hash. Their verdict: no open entry lost, renumbered or left without its trigger, no number
+reused, every number cited by code and tests resolved. Fixed from their findings: #4's scope
+(modules 2 and mas were missing); the IMP line's trigger (the periodic retro or the user's
+request, not only #41); an entry for the measurement still to take (#42) and for
+`/fw:lint-memory` (#43); Active branches no longer ahead of the work; the declarations of #34
+and #36 moved into *Decisions made*, which a later condensation keeps; the labels; and the
+nuances of #9, #12, #14, #15, #16, #17, #23, #31, #38, #39, #40 and the header. Their claim that
+"IMP-033…050 sent" contradicts the decision record is settled by the user's own words — "il
+2026-11-07 ho mandato IMP-033…049 e questa nuova all'Architetto" —: the record was the
+inaccurate one, and is corrected. The critic also found module 1's plain `git status` in
+Homebrew's repository, run before its `--dry-run` return (`mod_01_health.sh:112-113`): git's
+own documentation (git 2.54.0, `GIT_OPTIONAL_LOCKS`) says the optional locks let "git status"
+refresh "the index as a side effect" — a write under `--dry-run`, inferred from the
+documentation and not measured on Homebrew's repository → #3, task 4. Not covered by them:
+the tests and `brew_manager.sh` were not run (forbidden by the brief; this note's runs stand),
+the live remote (no fetch), the user-level settings, and the Markdown rendering (no renderer
+installed; the CommonMark rule only).
 
 ## Security gate
 - Pending: `/fw:security-review` on task 7's tip (task 8 writes the outcome here).
@@ -178,6 +223,14 @@ module 1 keeps the shared `_box`, which renders the consent boxes, out of the ch
 3. commitlint warned "footer must have leading blank line" on task 4's commit → a body line
    began with `it:`, which its parser reads as a footer (docs/04 says so) → the local,
    unpublished commit's message reworded (`git commit --amend`, `d2f5211`).
+4. Saving the working tree's diff for the snapshot, `git diff > <a file in the scratchpad>`,
+   was refused by the guard as "`git diff <path> <path>`" (also in its minimal form) → the
+   guard's implicit no-index check counts the words after `diff`, the redirection among them
+   → the diff kept by its hash (`git diff | shasum`); an IMP at the retro.
+5. A loop re-checking the appendices printed "7 of 7" on empty input → zsh does not split an
+   unquoted `set -- $spec` (docs/04's line on zsh), so every `sed` failed and `cmp` compared
+   two empty streams → redone with explicit ranges and a guard against empty input; the false
+   pass decided nothing.
 
 ## Factual doc corrections (Level 1, docs/06)
 - IMP-033's and IMP-047's quotes of docs/04 (task 4).
@@ -194,6 +247,13 @@ module 1 keeps the shared `_box`, which renders the consent boxes, out of the ch
 - The OPEN IMPs v4.1.0 covers upstream (006, 008, 009, 010, 011, 013, 014, 016, 019, 021;
   026–028 in part): the Architect flags the duplicates after the harvest session; none is
   closed before (decision D) → STATE #41.
+- `attribution.sessionUrl`'s effect is still to measure: the first commit from a cloud or
+  Remote Control session must carry `Co-Authored-By` and no `Claude-Session:` → STATE #42.
+- `/fw:lint-memory` after this wide rewrite of STATE (the core's table): the user runs it →
+  STATE #43. Known for it: `components/mod-00-audit.md` still calls the off-by-one (#2) and
+  the dry-run gap (#3) open, an Italian note left as written.
+- Module 1's plain `git status` in Homebrew's repository under `--dry-run` → STATE #3, task 4:
+  `git --no-optional-locks` keeps it read-only.
 
 ## Appendix A — STATE.md's *Caution & open issues* at `0b127a9`, verbatim
 The section's text from the line after its title to its end (lines 416–877 of
@@ -765,3 +825,370 @@ file).
 - **README and SECURITY.md describe bk, las, the log module and mas** (the scope change,
   2026-09-27): true until they are removed. → TRIGGER: task 3 of [[plans/v2-personal-tool]] (rule 5: the
   removal and its docs in the same branch).
+
+## Appendix C — the rest of STATE.md at `0b127a9`, verbatim
+The status lines (lines 9–13), then *Progress*, *What exists now* and *Active branches*, each
+from the line after its title (lines 16–223, 226–313 and 880–932 of the same file): with
+appendices A and B, the whole file from its title on.
+
+### The status lines
+> Updated: 2026-10-19 | Last: **framework upgrade v1.2.0 → v4.1.0 done** (`chore/framework-upgrade-v1.2.0-to-v4.1.0`, process only): the core rules in `.claude/rules/fw-core.md`, CLAUDE.md = the answers the method reads + the technical rules, commands `/fw:…`, the boundary (guard, state-inject, pre-push), the memory's titles and labels in the method's English form; gate passed (reviewed tip `56d3b1a`: 0 C/H/M); 333 tests. Ready for integration (no tag). STATE not condensed on purpose: the first checkpoint after the merge does it (#37). → [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] | Index: [[INDEX]]
+
+> **Previous**: task 2 of the 2.0.0 plan (`fix/homebrew-developer-mode`) → INTEGRATED (merge `8a7e6a2`). Its status line, kept: **task 2 of the 2.0.0 plan done** (`fix/homebrew-developer-mode`): module 1 no longer runs `brew ruby` (a Homebrew developer command that turned developer mode on at every run since v1.1.0, also under `--dry-run`); a new suite keeps developer commands out of the code; module 1 reports developer mode read-only and offers to restore it (`brew developer off` + `brew update`, previewed under `--dry-run`, confirmed or `--yes`; the environment only reported); `[W]`; the one-lens gate (no C/H/M; 3 LOW + 7 INFO fixed or recorded); 333 tests. #30 FIXED (closes at the merge). Found: this Mac was already back on stable 7.0.8 with developer mode off (since 2026-10-07 18:37, outside the session), so the user's test sequence creates the condition on purpose. Task 1 INTEGRATED (merge `f232f12`). Ready for integration (no tag). → [[sessions/2026-10-10-homebrew-developer-mode]] | Index: [[INDEX]]
+
+> **Previous**: task 1 of the 2.0.0 plan (`chore/replan-v2`: the v1.5.0 reconciliation, the plan and decisions, the triage by decision, IMP-030 and IMP-031) → INTEGRATED (merge `f232f12`) → [[sessions/2026-10-07-replan-v2-assessment]].
+
+### Progress
+- [x] Progetto maturo e rilasciato: v1.1.2 su `main` (TUI zsh per audit/cleanup di
+  Homebrew, 14 moduli standard + 4 speciali, LaunchAgent scheduler, backup Brewfile).
+- [x] Innesto del claude-code-framework v0.2.0 — branch `chore/innesto-framework`
+  (questo checkpoint). Memoria inizializzata dall'assessment, non da template vuoto.
+- [x] Integrazione del branch di innesto in `main` — merge 7893f87 eseguito
+  dall'utente; tag baseline `v1.1.2-baseline` creato.
+- [x] ~~Roadmap v2~~ **SUPERSEDED on 2026-10-07** by the 2.0.0 plan [[plans/v2-personal-tool]] (BM-17 goes with las; BM-15/16/18 are post-2.0.0 candidates). The original entry: Roadmap v2 ([[plans/roadmap-v2]]): BM-01…BM-20 in ordine di dipendenza —
+  M1 copre la bonifica dei difetti in "Attenzione". Un task per volta, ok utente
+  tra un task e il successivo.
+  - [x] BM-01 `make check`/`make lint` — INTEGRATO in main (merge 3d3af76,
+    pushato; branch eliminato). Nota: `check` esisteva già dall'innesto; lint è
+    ADVISORY ([[2026-07-12-shellcheck-advisory]]).
+  - [x] BM-02 fix --dry-run in mod_05_cleanup — INTEGRATO in main (merge 3ae5d41).
+  - [x] Micro-task (fuori roadmap, richiesto dall'utente): parser rifiuta i flag
+    ignoti, inclusi lookalike Unicode — branch `fix/parser-unknown-flags`,
+    commit 0e48373, gate passato, in attesa di integrazione. Chiude Attenzione #9.
+  - [x] Micro-task parser: INTEGRATO in main (merge fafa9da). IMP-001 applicata
+    (commit ae6cfb6 su questo branch).
+  - [x] BM-03: INTEGRATO in main (merge 12dada6).
+  - [x] BM-04: INTEGRATO in main (merge 22e0c52).
+  - [x] BM-05a: INTEGRATO in main (merge 5d51b14).
+  - [x] BM-05b: INTEGRATO in main (merge d555f54).
+  - [x] BM-06: INTEGRATO in main (merge cb234fd).
+  - [x] BM-07 versione a fonte unica + codice morto — INTEGRATO in main
+    (commit 3a35309 in main, verificato 2026-07-18; la voce era stale).
+  - [x] **M1 CHIUSO** (BM-01…BM-07): tutti i difetti dell'assessment sanati.
+  - [x] Decisione utente 2026-07-14: **si rilascia v1.2.0 ORA** (strada A), M2 dopo.
+  - [x] BM-19 RISTRETTO: INTEGRATO in main (merge 3e7b462).
+  - [x] Release v1.2.0 **RILASCIATA** (2026-07-17): merge `c5dc3a5` in main, tag
+    **annotato** `v1.2.0` (→ c5dc3a5) creato e pushato; `origin/main == main`, tag
+    su origin; branch `chore/release-v1.2.0` eliminato; `make version-check` verde.
+    Merge/tag/push eseguiti dall'utente.
+  - [x] Via libera esplicita dell'utente al gate ⛔ pre-M2 (2026-07-17): M2 avviato.
+  - [x] **M2 — resolver di selezione (BM-08a/b/c): CHIUSO.** Chiude Attenzione #1
+    (CLI posizionali + plist scheduler), #8 (consenso) e #9 (grammatica agenti).
+    - [x] **BM-08a** estrazione `_resolve_selection` (parità pura) — INTEGRATO in
+      main (merge `f1e1029`). [[2026-07-17-selection-resolver-contract]].
+    - [x] **BM-08b** dispatch posizionale + `--only`/`--skip` — INTEGRATO in main
+      (merge `3ac3f63`). 2 MEDIUM fail-open del tokenizer fixati.
+      → [[sessions/2026-07-17-bm08b-positional-dispatch]].
+    - [x] **BM-08c** agenti attraverso il resolver + consenso fail-closed — branch
+      `fix/agent-selection`, commit `7f4f218` (NON_INTERACTIVE≠consenso) +
+      `cd110d4` (scheduler refuse) + `d1a5e2b` (bk refuse). 96 test (87 selection +
+      9 guardrails). **Gate + RE-gate PASSATI**: il 1° fix #8 introdusse un
+      **CRITICAL** (auto-conferma di cleanup distruttivo senza --yes) → branch
+      resettato e rifatto col fix corretto (separare NON_INTERACTIVE da YES_MODE,
+      [[2026-07-17-consent-vs-noninteractive]]); re-gate confermò corretto+completo
+      salvo il gemello bk (fixato). INTEGRATO in main (merge `b929a23`,
+      branch eliminato). → [[sessions/2026-07-17-bm08c-agent-selection]].
+  - [x] Upgrade framework v0.2.0 → v0.5.1: INTEGRATO in main (merge `45bf4bc`,
+    branch eliminato). → [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]].
+  - [x] **README ↔ realtà di v1.3.0** (2026-07-18, task 1 pre-release): scheduler
+    per-modulo e invariante fail-closed documentati, 2 claim corretti perché
+    smentiti dalla verifica dal vivo (exit del parent, default `y` di mod_05 sotto
+    `--yes`). INTEGRATO in main (merge `56cf64d`).
+    → [[sessions/2026-07-18-readme-v1.3.0]].
+  - [x] **Micro-task exit-code propagation** (2026-07-18, inserito dall'utente
+    pre-release): il parent propaga l'rc del figlio attraverso script(1)
+    (`_run_rc` prima della strip ANSI) — `99`→2, selezione vuota→1, segnale→
+    numero grezzo; strip fallita = WARNING, rc invariato. Scope deciso
+    dall'utente: SOLO metà parent di #4b (la metà moduli → BM-18). Gate
+    adversariale passato (0 C/H/M; 2 LOW + 4 INFO applicati). Test end-to-end
+    nuovi (102 totali). README: claim non-zero RIPRISTINATO (ora vero). Branch
+    `fix/exit-code-propagation` (4cef18c+a6d1be9+a3a4ad1), in attesa di
+    integrazione. → [[sessions/2026-07-18-exit-code-propagation]].
+  - [x] Micro-task exit-code: INTEGRATO in main (merge `1fa521a`, branch
+    eliminato).
+  - [x] **Release v1.3.0 RILASCIATA** (2026-07-18): merge `c6c80c0` in main,
+    tag **annotato** `v1.3.0` (→ c6c80c0) creato e pushato; `main ==
+    origin/main`; branch `chore/release-v1.3.0` eliminato; `make
+    version-check` verde. Bump MINOR (feat BM-08b nel set); verificata da
+    clone pulito prima del rilascio (version-check + 102 test + `--version`).
+    Merge/tag/push eseguiti dall'utente.
+    → [[sessions/2026-07-18-release-v1.3.0]].
+  - [x] **M3 — TUI bella + funzionale (BM-09…BM-12): COMPLETA e INTEGRATA in main**
+    (BM-12 mergiato in `21c956b`); resta da fare la release v1.4.0, che
+    impacchetterà i quattro task.
+    - [x] **BM-09** fondazione TUI in `lib/common.sh` — branch
+      `feat/tui-foundation` (feat `bab07d0` + fix `b2d7b62` + docs `910d551`).
+      Rendering capability-aware (detection colore/Unicode, handoff parent→child
+      come NON_INTERACTIVE, palette semantica, degradazione a ASCII puro alla
+      fonte, primitivi `_box`/`_repeat`/`_pad`/`_clear`); 0 moduli modificati;
+      escape grezzi → palette (NO_COLOR pulito ovunque). Guard-rail
+      byte-identici. **Gate adversariale PASSATO** (6 lenti + verifica
+      per-finding): 1 LOW fixato (precedenza `LC_ALL` in `_tui_unicode`) + 1
+      hardening (echo-on-data in `_box`, IMP-003), 5 refutati; consent-invariance
+      e correctness-regression puliti. `tests/test_capabilities.zsh` (30 check,
+      e2e "pipato = zero ANSI"); suite 132 verde. **INTEGRATO in main** (merge
+      `5867137`, branch `feat/tui-foundation` eliminato).
+      → [[sessions/2026-07-19-bm09-tui-foundation]].
+    - [x] **BM-10** badge di rischio `[RO]`/`[W]`/`[!]` + cornici di conferma
+      distruttiva — branch `feat/risk-badges` (6 commit: `985ffd4` piano +
+      `bb520a9`+`60a1969`+`03a4f33`+`5b52e02`+`baaf11b`). `MODULE_RISK` (single
+      source of truth, classificazione verificata adversarialmente: raise=0) +
+      `_risk_badge`/`_risk_caption`/`_about_risk` (renderer puri, palette BM-09) +
+      `_ask_danger` (box `C_DANGER` → `_ask` INTATTO, consenso byte-identico). Badge
+      nel menu (+legenda) e nei 18 About; 9 cornici distruttive (00/04/05/10/bk×3/
+      mas×2); `las` escluso (nessun `_ask` — flusso a menu; sarebbe cambio di
+      consenso). `mod_00`=`[!]` (adotta), non `[RO]` del mockup. Presentazione pura,
+      contratto pubblico intatto. **Gate adversariale PASSATO** (5 lenti, 0 finding).
+      33+5 test → 170 verdi. **INTEGRATO in main** (merge `2dd1f7c`, branch
+      eliminato). → [[sessions/2026-07-20-bm10-risk-badges]].
+    - [x] **BM-11** banner + redesign menu — branch `feat/menu-redesign` (3 commit:
+      `597281e` registry `MODULE_NAME`+test, `27acf1e` banner+menu, `6b7df8b`
+      README). Mockup a 2 varianti proposti PRIMA del codice (richiesta utente) →
+      decisione: **flat + footer 3 righe**. Card `badge(4)·id(3)·nome(17)·
+      desc(≤46)` ≤78 col, cap pinnati da `tests/test_menu_registry.zsh` (8 check);
+      `_header_main` rimossa da common.sh (solo-rimozione). Presentazione pura,
+      contratto intatto. **Gate PASSATO** (0 finding). **178 test verdi**.
+      **In attesa di integrazione** (bump MINOR).
+      → [[sessions/2026-07-20-bm11-menu-redesign]].
+    - [x] **BM-12** spinner + summary di sessione — branch `feat/progress-summary`
+      (5 commit: `5968904` spinner+renderer, `7adcc20` cablaggio summary,
+      `d84b651`+`73f905c` README, `13dc359` fix del gate). Mockup prima del codice
+      → decisione utente: **summary variante B (completa) + spinner sui soli 2
+      siti già cablati** (mod_01/mod_02). `_spinner` gata su `TUI_TTY` — era
+      **morto in pratica** su RECORDING (la TUI gira sempre sotto script(1)) —
+      con frame Unicode/ASCII, secondi da `$SECONDS` e rc del figlio propagato;
+      summary con righe di esito per POSIZIONE (ripetizioni ok), stat, riga disco
+      e footer. **Gate adversariale a 2 lenti: comportamento pulito, ma 4 difetti
+      di VERITÀ** (vedi Attenzione #14) tutti FIXATI in `13dc359`; test 42→70
+      (**suite 248** — la vecchia voce «247» era imprecisa di 1, misurato su main
+      il 2026-07-21). **INTEGRATO in main** (merge `21c956b`, branch eliminato).
+      → [[sessions/2026-07-21-bm12-progress-summary]].
+  - [x] **Micro-task `--dry-run` mod_02 + mas** (2026-07-21, fuori roadmap,
+    strada B decisa dall'utente dopo l'integrazione di BM-12): branch
+    `fix/dryrun-mod02-mas`, 8 commit. `brew update` (mod_02) e `brew install mas`
+    ora gatati — il gate precede esecuzione E conferma, quindi `--dry-run` batte
+    `--yes`; preview con tabella repository + età della cache API. **Gate
+    adversariale a 2 lenti: 0 finding sul codice nuovo, ma l'AFFERMAZIONE globale
+    del branch REFUTATA** (4 difetti pre-esistenti che il branch attestava come
+    verificati → Attenzione #3, #14, #15, #16). Via di mezzo decisa dall'utente:
+    `HOMEBREW_NO_AUTO_UPDATE=1` sotto dry-run (una riga, chiude l'HIGH ovunque) +
+    `[bk]`/`[las]` dichiarati 0 + allow-list al posto dell'invariante tautologica
+    + README ristretto al vero. Nuovo `tests/test_dryrun_gates.zsh` (18 check:
+    tripwire su mock brew con controlli "denti" in wet, e2e dell'auto-update
+    attraverso `script(1)`); **suite 268**. **INTEGRATO in main** (merge
+    `dc47ae4`, branch eliminato). → [[sessions/2026-07-21-dryrun-mod02-mas]].
+  - [x] **Release v1.4.0 RILASCIATA** (2026-07-23): merge `ab45323` in main, tag
+    **annotato** `v1.4.0` (oggetto `d4901b3` → commit `ab45323`) creato e pushato;
+    `main == origin/main`; `make version-check` verde; branch
+    `chore/release-v1.4.0` eliminato. Merge/tag/push eseguiti dall'utente. Bump
+    **MINOR** (13 `feat` nel set `v1.3.0..main`): impacchetta tutta M3 (BM-09→12) +
+    il micro-task dry-run. CHANGELOG `[1.4.0]` con **Known limitations** onesta per
+    #15/#16 (**decisione utente: rilascia ORA col debito dichiarato**, scartate le
+    opzioni "chiudi prima"). 268 test verdi. → [[sessions/2026-07-23-release-v1.4.0]].
+- [x] **Upgrade framework v0.5.1 → v1.0.0** (2026-07-19, fuori roadmap, solo
+  processo): procedura SETUP formale, attraversa la 1.0. 4 file riconciliati (docs/04,
+  lint-memory, CLAUDE.md, scripts/README) + retrofit del pin; contratto pubblico di brew
+  compilato in docs/04 (moduli CONGELATI, decisione utente); invariante memoria VUOTA;
+  132 test verdi. **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag").
+  → [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]].
+- [x] **Framework upgrade v1.0.0 → v1.2.0** (2026-09-24, out of roadmap, process only;
+  the THIRD upgrade of the graft, a jump decided mid-way: a v1.1.0 assessment was
+  superseded before any file was touched). FASE 1 read-only multi-agent assessment →
+  user decisions D1–D14 → FASE 2 on `chore/framework-upgrade-v1.0.0-to-v1.2.0`:
+  13 task commits, hooks reinstalled and proven (gitleaks blocks, commitlint rejects),
+  translation fidelity reviewed adversarially. Stale claims corrected in a separate
+  Level-1 commit; security gate not applicable (verdict in the note). 268 tests green.
+  **INTEGRATED into main** (merge `0725ae6`, pushed; no tag). →
+  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
+  [[plans/framework-upgrade-v1.0.0-to-v1.2.0]].
+- [x] **Framework upgrade v1.2.0 → v4.1.0** (2026-10-19, process only; the FOURTH upgrade,
+  one jump): FERMATA 1 read-only assessment → the user's decisions U1–U24 → 11 task
+  commits on `chore/framework-upgrade-v1.2.0-to-v4.1.0`; FERMATA 2: 131 answers verified,
+  0 lost; the gate on the boundary passed (reviewed tip `56d3b1a`). Ready for the user's
+  integration (no tag). → [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] ·
+  [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] · [[decisions/2026-10-19-framework-upgrade-v4.1.0]].
+- [x] **Debt cleanup before the Dashboard** — **CLOSED on 2026-10-07, superseded by [[plans/v2-personal-tool]]** (branches 1–4 and the v1.5.0 release done; tasks 5–15 re-planned there). It was SUSPENDED by the scope change of
+  2026-09-27** (no Dashboard; bk/las/log/mas removed in 2.0.0 →
+  [[decisions/2026-09-27-personal-terminal-tool]]): branches 1–4 done, tasks 5–16
+  re-planned with the user before anything else starts. (From 2026-09-25; decided by the user after
+  a read-only multi-agent inventory → [[sessions/2026-09-24-debt-inventory-pre-dashboard]]):
+  16 branches in order ([[plans/debt-cleanup-pre-dashboard]]; decisions
+  [[decisions/2026-09-25-debt-cleanup-pre-dashboard]]), one at a time, the security
+  gate where marked, a printed /integrate after each; it ends with release **v1.5.0**.
+  - [x] Branch 1 `chore/imp-022-sensitive-selection`: inventory persisted (`6b1e5f6`),
+    plan and decisions (`aa54a51`), IMP-022 applied (`90cb34c`), #7 closed
+    (`5fa7159`), Level-1 memory corrections at the checkpoint (`2ef3c21`).
+    **INTEGRATED** (merge `73bc5ee`; no tag). →
+    [[sessions/2026-09-25-imp-022-and-history-scan]].
+  - [x] Branch 2 `chore/apply-project-imps`: IMP-003 (`a59d5eb`), IMP-004 (`a7f309f`),
+    IMP-007 (`225cadd`), IMP-002 (`53d4827`), the adversarial review's fixes
+    (`36aa1b2`), checkpoint `3d36cf4`; IMP-005 deferred. **INTEGRATED** (merge
+    `9e4f2b4`; no tag). → [[sessions/2026-09-25-apply-project-imps]].
+  - [x] Branch 3 `chore/gitignore-d10`: the three template patterns (`7ef025b`), the
+    IMP-002 hand-over and the reviewed real-launchd verification plan for branch 4
+    (memory), checkpoint. **INTEGRATED** (merge `050ea6d`; no tag). →
+    [[sessions/2026-09-26-gitignore-and-launchd-plan]].
+  - [x] Branch 4 `fix/startup-brew-env` (N1 + 4b-0, #23; [[plans/fix-startup-brew-env]]):
+    the pre-fix run under a REAL launchd job CONFIRMED #23 (2026-09-26); the PATH
+    bootstrap (`c277e20`), exit 69 and the installer only at a terminal (`ae022d9`,
+    `feat` → MINOR), the contract and docs (`df8c0ec`), the CHANGELOG (`b1c78f6`); the
+    docs/03 gate (two runs of five lenses) and three IMP-004 re-gate rounds, each finding
+    challenged by a refuter — no CRITICAL/HIGH, the upheld LOW/INFO fixed with RED first
+    (`b34e719` `1c6105d` `45c5fd2` `3657cc3` `1317307` `b7b56e7` `f68d114` `3c1f76c`
+    `ec6da37`); the post-fix launchd regression DROPPED by the user (scope change); 311
+    tests. **INTEGRATED** (merge `bc114b9`; no tag). → [[sessions/2026-09-26-startup-brew-env]].
+  - [x] **Release v1.5.0 RELEASED** (merge `37b8db5`, annotated tag `v1.5.0` → object
+    `deb8f61`, pushed by the user; `make version-check` green). Task 16 of the old plan, brought forward by the user on
+    2026-10-07, before the re-plan): `chore/release-v1.5.0`, `6815a5c` (VERSION 1.5.0,
+    CHANGELOG `[1.5.0]` with Deprecated and Known limitations); version-check proven in a
+    clone. → [[sessions/2026-10-07-release-v1.5.0]].
+- [ ] **brew-manager 2.0.0, a personal terminal tool** (approved 2026-10-07):
+  [[plans/v2-personal-tool]] — B1 `chore/replan-v2` (INTEGRATED, merge `f232f12`) → B2 `fix/homebrew-developer-mode` (done, ready for integration) → B3 remove
+  bk/las/log/mas and module 10 (MAJOR) → B4 session log → B5 Homebrew 6/7 compatibility →
+  B6 flag values → B7 module outcomes → B8 release v2.0.0. Decisions:
+  [[decisions/2026-10-07-v2-plan]].
+
+### What exists now
+- Albero directory: vedi [[TREE]].
+- `brew_manager.sh` — entry point TUI, stabile; dispatch, parsing flag, recording
+  sessione via script(1). Selezione da CLI (posizionale + `--only`/`--skip`,
+  BM-08b) o dal menu interattivo. Dal **BM-11** banner flat (brand line
+  right-aligned, Unicode-gated) e menu a card allineate con helper LOCALI
+  `_menu_row`/`_menu_section`; summary con `MODULE_NAME`; help del menu compresso
+  in footer 3 righe. Dal **BM-12** il dispatch traccia stato+durata per POSIZIONE
+  (`RUN_STATUS`/`RUN_SECS`) e il summary di fine sessione rende righe di esito,
+  stat, delta disco e footer identità. Dal **micro-task dry-run** (2026-07-21)
+  esporta `HOMEBREW_NO_AUTO_UPDATE=1` SOLO sotto `--dry-run` (riga 160): senza,
+  brew rieseguiva `brew update` da sé prima di `outdated`/`upgrade`/`bundle` e
+  una preview riscriveva comunque l'indice. Since **branch 4** (2026-09-27) it finds
+  Homebrew by itself when PATH lacks it (`_brew_bootstrap_path`: a brew executable on
+  PATH, else `/opt/homebrew`, then `/usr/local`), exits **69** when Homebrew is
+  unavailable (the exit order: `--version` 0 → unknown flag 2 → Homebrew 69 → selection
+  2/1), and offers the installer only to a person at a terminal (`_brew_install`). Vedi [[core-brew-manager]].
+- `lib/common.sh` + `lib/log.sh` — infrastruttura TUI e guard-rail condivisi
+  (`_ask`, `_read_choice`, YES_MODE, DRY_RUN). Dal **BM-09** rendering
+  capability-aware: detection colore/Unicode + handoff `TUI_{LEVEL,UNICODE,TTY}`,
+  palette semantica (degrada a ASCII puro su pipe/NO_COLOR), primitivi
+  `_box`/`_clear`. Dal **BM-10** i renderer di rischio `_risk_badge`/`_risk_caption`
+  (puri) e `_ask_danger` (box `C_DANGER` → `_ask` INTATTO — presentazione, consenso
+  invariato). Dal **BM-11** `_header_main` RIMOSSA (orfana dopo il banner flat del
+  core — igiene codice morto). Dal **BM-12** `_spinner` gata su `TUI_TTY` (era
+  morto-in-pratica su RECORDING) e ritorna l'rc del figlio, più i renderer del
+  summary `_run_glyph`/`_fmt_secs`/`_fmt_kb`/`_fmt_kb_or_na`/`_du_kb` (puri;
+  `_du_kb` valida al bordo e ritorna VUOTO, mai 0). Vedi [[lib-common]].
+- `lib/selection.sh` (BM-08a/b) — registry `MODULE_DESC`/`MODULE_IDS` +
+  `_resolve_selection` (lenient) + `_resolve_cli`/`_collect_module_tokens`
+  (stretto, per la CLI); infrastruttura di dispatch condivisa (sensibile). Dal
+  **BM-10** anche `MODULE_RISK` (id→ro/write/danger, single source of truth del
+  badge, presentazione — NON alimenta il resolver) + `_about_risk`. Dal **BM-11**
+  `MODULE_NAME` (nome breve da menu, presentation-only) e testi `MODULE_DESC` da
+  sottotitolo (≤46 col ASCII; le CHIAVI restano il contratto congelato). Dal
+  **BM-12** `MODULE_DRYRUN` (id→1 se una run `--dry-run` non cambia NULLA
+  eseguendo il modulo): dal micro-task 2026-07-21 `[2]`/`[mas]` sono 1 (gate
+  dimostrato) e `[bk]`/`[las]` 0 (dichiarati onestamente, #15/#16). Vedi
+  [[lib-selection]].
+- 14 moduli standard `mod_00`–`mod_13` (sequenza `go`) + 4 speciali `bk`/`las`/
+  `log`/`mas` (per nome). 8 read-only modules (module 1 is `write` since 2026-10-10: its developer-mode restore); mutating: 00, 01, 02, 04, 05, 10, bk,
+  las, log, mas. Module 1's note: [[mod-01-health]]. Note dei sensibili: [[mod-00-audit]], [[mod-05-cleanup]],
+  [[mod-bk-brewfile]], [[mod-las-scheduler]].
+- The `.claude/` process framework (rules, docs, commands, memory), CLAUDE.md, Makefile,
+  git hooks (gitleaks + commitlint + the pre-push push boundary), CHANGELOG.md. **Method at
+  framework v4.1.0** (from v1.2.0, 2026-10-19, on its branch until the merge): the core in
+  `.claude/rules/fw-core.md` (loaded at every launch), CLAUDE.md = *The answers the method
+  reads* (brew's public contract, sensitive components as code paths, branches, merge …) +
+  the technical rules; commands `/fw:…`; the PreToolUse guard and the SessionStart
+  injection (`scripts/state-inject.sh`) wired in `settings.json`; the memory's titles and
+  labels in the method's English form, the content as written. Provenance pin
+  `.claude/framework-version` at v4.1.0 / `18c04a1…`, grafted 2026-07-12. History:
+  [[sessions/2026-07-11-innesto-note]] (graft v0.2.0),
+  [[sessions/2026-07-17-framework-upgrade-v0.2-to-v0.5.1]] (→v0.5.1),
+  [[sessions/2026-07-19-framework-upgrade-v0.5.1-to-v1.0.0]] (→v1.0.0),
+  [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] (→v1.2.0),
+  [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] (→v4.1.0).
+- Test: `tests/` (zsh puro, zero-dip, `make test`, **333 check** con anti-vacuità — 268
+  before branch 4, which took `test_exit_codes.zsh` from 6 to 49; 311 before task 2 of the
+  2.0.0 plan, which added `test_homebrew_developer.zsh` (22): no Homebrew developer command in
+  the code, and module 1's developer-mode detection and restore against a mock brew):
+  `test_selection.zsh` (87) copre `_resolve_selection`/`_resolve_cli`/
+  `_selection_is_valid`; `test_guardrails.zsh` (9) fissa l'invariante di consenso
+  (`_ask`/`_read_choice` sotto NON_INTERACTIVE vs `--yes`);
+  `test_exit_codes.zsh` (49; 6 before branch 4) fissa l'exit end-to-end del binario reale (sandbox
+  symlink-farm + mock brew con tripwire) — since branch 4 also the launchd-shaped
+  minimal environment, every way out of the Homebrew check (69), the exit order, and
+  `_brew_install` extracted and run against a mock curl (no test answers the installer
+  prompt), through a process-group watchdog (stock `/usr/bin/perl`); `test_capabilities.zsh` (30, BM-09) fissa
+  detection colore/Unicode, ladder di degradazione, purezza ASCII fallback e l'e2e
+  "pipato = zero ANSI" via il vero re-exec `script(1)`; `test_risk_badges.zsh` (38,
+  BM-10) fissa la completezza di `MODULE_RISK` vs `MODULE_DESC`, la classificazione,
+  la degradazione L0/larghezza del badge e l'**invarianza del consenso** di
+  `_ask_danger` (== `_ask` sotto --yes/non-interactive); `test_menu_registry.zsh`
+  (8, BM-11) fissa il layout 80-col del menu come invariante di DATI (lockstep
+  `MODULE_NAME`↔`MODULE_DESC`, cap 17/46 colonne, ASCII-only, chiavi congelate);
+  `test_run_summary.zsh` (72, BM-12 + micro-task dry-run) fissa lo spinner gated su
+  `TUI_TTY` (non-TTY: zero `\r`/ANSI + riga statica) con **rc del figlio
+  preservato**, i formatter/glifi puri, l'**invariante di wiring**
+  `DU_AFTER`↔twin KB sul sorgente di mod_05, e la coerenza di `MODULE_DRYRUN`
+  (grep del gate nel sorgente + **allow-list bidirezionale** `_KNOWN_UNGATED`:
+  un `0` fuori lista fallisce, una voce stantia pure — vedi IMP-009);
+  `test_dryrun_gates.zsh` (18, micro-task 2026-07-21) esegue mod_02 e mas contro
+  un **mock brew con tripwire** e prova che in dry-run i comandi mutanti non sono
+  invocati, con i controlli "denti" in wet (per mas: stesso `y` su stdin,
+  `--dry-run` unica variabile), più l'e2e che `HOMEBREW_NO_AUTO_UPDATE` raggiunge
+  davvero brew **attraverso il re-exec di `script(1)`**.
+  Resto del codice non coperto. Linter/formatter: ASSENTI (shellcheck/shfmt non installati; blocco
+  formattazione predisposto ma commentato nell'hook). CI: assente.
+
+### Active branches
+- **chore/framework-upgrade-v1.2.0-to-v4.1.0** (the framework upgrade, process only) =
+  **READY for the user's integration** (`/fw:integrate`, no tag; the gate's reviewed tip
+  `56d3b1a`).
+- **fix/homebrew-developer-mode** (task 2 of the 2.0.0 plan) = **INTEGRATED into main**
+  (merge `8a7e6a2`; no tag), branch deleted.
+- **main** = integration + stable (trunk-based); HEAD `8a7e6a2` (merge of task 2; below it
+  `f232f12`, task 1, and `37b8db5`, the v1.5.0 release merge), aligned with
+  `origin/main`; tags **`v1.5.0`** (annotated, object `deb8f61` → `37b8db5`) + `v1.4.0`
+  (annotated, object `d4901b3` → `ab45323`) + `v1.3.0` + `v1.2.0` (annotated) +
+  `v1.1.2-baseline` (helper). `CHANGELOG [Unreleased]` on main: empty. `make
+  version-check` green (VERSION 1.5.0).
+- **chore/replan-v2** (task 1 of the 2.0.0 plan) = **INTEGRATED into main** (merge
+  `f232f12`, pushed; no tag), branch deleted.
+- **chore/release-v1.5.0** (the release) = **RELEASED** (merge `37b8db5`, annotated tag
+  `v1.5.0`, both pushed by the user), branch deleted.
+- **fix/startup-brew-env** (branch 4 of the debt cleanup) = **INTEGRATED into main**
+  (merge `bc114b9`, pushed; no tag), branch deleted.
+- **chore/gitignore-d10** (branch 3 of the debt cleanup) = **INTEGRATED into main**
+  (merge `050ea6d`; no tag), branch deleted.
+- **chore/framework-upgrade-v1.0.0-to-v1.2.0** (framework upgrade, process only) =
+  **INTEGRATED into main** (merge `0725ae6`, pushed; no tag), branch deleted. The git
+  hooks installed from it (English marker) are the ones `main` now generates; the two
+  `.bak` of the old Italian hooks have been removed by the user.
+- **chore/apply-project-imps** (branch 2 of the debt cleanup) = **INTEGRATED into main**
+  (merge `9e4f2b4`, pushed; no tag), branch deleted.
+- **chore/imp-022-sensitive-selection** (branch 1 of the debt cleanup) = **INTEGRATED
+  into main** (merge `73bc5ee`, pushed; no tag), branch deleted.
+- **chore/checkpoint-post-fw-v1.2.0** (post-merge memory checkpoint) = **INTEGRATED into
+  main** (merge `8ed9f5c`, pushed; no tag), branch deleted.
+- **chore/checkpoint-post-v1.4.0** (post-release memory checkpoint) = **INTEGRATED into
+  main** (merge `e7c3a56`), branch deleted.
+- **chore/release-v1.4.0** (release) = **INTEGRATO in main** (merge `ab45323`,
+  tag annotato `v1.4.0`), branch eliminato.
+- **fix/dryrun-mod02-mas** (micro-task dry-run) = **INTEGRATO in main** (merge
+  `dc47ae4`), branch eliminato.
+- **feat/progress-summary** (BM-12) = **INTEGRATO in main** (merge `21c956b`),
+  branch eliminato.
+- **feat/menu-redesign** (BM-11) = **INTEGRATO in main** (merge `2e61180`), branch
+  eliminato.
+- **feat/risk-badges** (BM-10) = **INTEGRATO in main** (merge `2dd1f7c`), branch
+  eliminato.
+- **chore/lint-mem-fw-v1.0.0** (riconciliazione memoria post-fw-v1.0.0) = **INTEGRATO
+  in main** (merge `765bad4`), branch eliminato.
+- **chore/framework-upgrade-v1.0.0** (upgrade v0.5.1 → v1.0.0, solo processo) =
+  **INTEGRATO in main** (merge `126bc7d`, pushato; bump "nessun tag"), branch eliminato.
+- **feat/tui-foundation** (BM-09) = **INTEGRATO in main** (merge `5867137`), branch
+  eliminato.
+- **chore/checkpoint-post-v1.3.0**, **docs/readme-v1.3.0**,
+  **fix/exit-code-propagation**, **chore/release-v1.3.0**, **fix/agent-selection**,
+  **feat/positional-dispatch**, **chore/framework-upgrade-v0.2-to-v0.5.1** =
+  MERGIATI in main, branch eliminati.
+- **origin/dev** = remoto dormiente, allineato a main al momento dell'innesto; non
+  usare come integrazione (vedi [[2026-07-12-trunk-based-su-main]]).

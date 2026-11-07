@@ -78,7 +78,8 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
   residue (N-HANG-r), #32 (NEW-L1), R2b, R7, then #3 and #14 (`MODULE_DRYRUN[1]` decided
   honestly). — commit: —
 - [ ] 5. `fix/homebrew-6-7-compat` — on 7.0.x; own task plan; gate: one independent
-  reviewer on D7/D8.
+  reviewer on D7/D8 and on module 1's restore box (#39: every disclosure kept, wrapped, not
+  cut).
   D7 and D8 ONLY after verifying on the installed brew that `HOMEBREW_NO_ASK` and
   `--no-quit` exist and do what is needed (otherwise STOP and propose the alternative);
   N2/#26 fixed in place (`printf '%s'` at mod_03:82); deprecated/disabled read from JSON
@@ -87,7 +88,9 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
   module 1); the "4.x" texts and the D9 constraint (README, CLAUDE.md Stack line, modules
   1 and 2); NEW-a (module 2's tap age); module 0's three #3b sites; F9 (module 3 shows the
   version in its description column — a wrong value today, fixed locally without a shared
-  JSON); module 1's restore box within its frame (#39). User checks: a Tier-1 `go --dry-run`
+  JSON); every line of module 1's restore box within its frame (#39), checked on the restore
+  run of `tests/test_homebrew_developer.zsh`'s mock brew at 80 columns, or the user's run with
+  developer mode on. User checks: a Tier-1 `go --dry-run`
   smoke; Tier-2 one real upgrade and one cleanup. Closes #26, #31, #39. — commit: —
 - [ ] 6. `fix/cli-flag-values` — #9 and #10's residue; gate: one independent reviewer (it
   decides whether modules 4 and 5 act under `--yes`). CLAUDE.md's answer **Public
