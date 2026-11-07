@@ -30,10 +30,10 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
 - [x] 4. LEARNINGS: IMP-033's and IMP-047's docs/04 quotes in the words docs/04 holds
   (Level 1, found by the 2026-11-07 harvest); IMP-050 (U2), the user's text; nothing marked
   for the harvest (docs/06 prescribes nothing); INDEX's LEARNINGS line — commit: `d2f5211`
-- [ ] 5. The claims the upgrade made stale (STATE #37's list): a superseded line in
+- [x] 5. The claims the upgrade made stale (STATE #37's list): a superseded line in
   [[2026-07-12-componenti-sensibili]] (:38-45, U2), [[2026-09-24-language-rule-prospective]]
   (D1) and [[2026-07-12-trunk-based-su-main]] (:20); the 2.0.0 plan's targets in docs/0N and
-  `new-component.md`, "one lens", the command names, task 8's gate; INDEX — commit: —
+  `new-component.md`, "one lens", the command names, task 8's gate; INDEX — commit: `d0acd2d`
 - [ ] 6. Today's session note with appendix A — STATE's *Caution & open issues* at
   `0b127a9`, verbatim — and appendix B — its *Decisions made* and *Documentation debt*,
   verbatim —, plus the entry-by-entry comparison written BEFORE the rewrite. Verify: each
