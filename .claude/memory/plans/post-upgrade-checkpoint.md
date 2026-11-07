@@ -19,11 +19,11 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   two lint clauses; [[2026-07-12-shellcheck-advisory]] superseded; INDEX's line; the
   CHANGELOG `[Unreleased]` line. Verify: `make lint` = `make check`, green; `make test` 333
   — commit: `e9c628f`
-- [ ] 2. `.claude/settings.json` in one write, parsed as JSON before it (U21, IMP-034):
+- [x] 2. `.claude/settings.json` in one write, parsed as JSON before it (U21, IMP-034):
   `"attribution": {"sessionUrl": false}` added, `Bash(shellcheck:*)` dropped, nothing else
   (decision B; F6, F7); the technical rule **Commit attribution** in CLAUDE.md, the user's
   words. Verify: the parsed diff is those two changes; `make test-scripts` (the wiring)
-  — commit: —
+  — commit: `269cc9c`
 - [ ] 3. The answer **Error format** narrowed to what the code does — text only (U18 d); the
   behaviour stays with tasks 4 and 7 of [[plans/v2-personal-tool]]. Verify: the first
   commit after task 2 carries `Co-Authored-By` and no `Claude-Session:` — commit: —
