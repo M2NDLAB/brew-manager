@@ -92,6 +92,10 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   above). The bump reads the answer **Public contract**: breaking it is a MAJOR;
   backward-compatible additions (one more module, appended; a new flag; an optional
   field) are MINOR; fixes that do not touch the contract are PATCH.
+- **Commit attribution**: Commits keep Co-Authored-By; the session link is disabled via
+  attribution.sessionUrl in .claude/settings.json (framework architect's decision,
+  2026-11-07). Commits published before that date keep their Claude-Session trailer and are
+  not rewritten.
 - **Standard structure of a component** (= module, for /fw:new-component): see
   `.claude/commands/fw/new-component.md`. In short: a `modules/mod_NN_slug.sh` file
   (loaded automatically by the `mod_*.sh` glob), a `_module_NN` function (number

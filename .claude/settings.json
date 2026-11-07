@@ -3,6 +3,9 @@
     "AGENT_GIT_BOUNDARY": "1",
     "CLAUDE_CODE_USE_POWERSHELL_TOOL": "0"
   },
+  "attribution": {
+    "sessionUrl": false
+  },
   "permissions": {
     "allow": [
       "Bash(git status)",
@@ -11,7 +14,6 @@
       "Bash(git show:*)",
       "Bash(git tag)",
       "Bash(git describe:*)",
-      "Bash(shellcheck:*)",
       "Bash(brew list:*)",
       "Bash(brew info:*)"
     ],

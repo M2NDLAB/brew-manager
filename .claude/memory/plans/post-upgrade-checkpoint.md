@@ -15,10 +15,10 @@ architect's decisions A–D of 2026-11-07 applied ([[decisions/2026-11-07-framew
 the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 0, no tag.
 
 ## Tasks
-- [ ] 1. `make lint` runs `make check`'s `zsh -n` on the same files (decision A); CLAUDE.md's
+- [x] 1. `make lint` runs `make check`'s `zsh -n` on the same files (decision A); CLAUDE.md's
   two lint clauses; [[2026-07-12-shellcheck-advisory]] superseded; INDEX's line; the
   CHANGELOG `[Unreleased]` line. Verify: `make lint` = `make check`, green; `make test` 333
-  — commit: —
+  — commit: `e9c628f`
 - [ ] 2. `.claude/settings.json` in one write, parsed as JSON before it (U21, IMP-034):
   `"attribution": {"sessionUrl": false}` added, `Bash(shellcheck:*)` dropped, nothing else
   (decision B; F6, F7); the technical rule **Commit attribution** in CLAUDE.md, the user's
