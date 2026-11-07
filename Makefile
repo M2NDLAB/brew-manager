@@ -37,6 +37,12 @@ test-scripts: ## Self-test of the framework scripts (hooks-install, the agent gi
 # brew-manager-specific targets (zsh, no build).
 # ============================================================================
 
+# These targets are commands, not files. Without .PHONY a file named like one — a stray
+# `check` at the root — makes make call the target up to date and exit 0 without its
+# recipe: the blocking syntax gate, and the lint that depends on it, would pass unrun
+# (the security gate of 2026-11-07, finding F6).
+.PHONY: run check test version-check lint
+
 run: ## Start the brew-manager TUI
 	./brew_manager.sh
 
