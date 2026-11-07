@@ -53,7 +53,7 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   session's commit instructions, given at its start, never named a session link, and the key
   acts only on commits from a cloud or Remote Control session. The upgrade's 13 commits
   (`09b7250`…`0d17829`) were made in this clone — the reflog records each — by a session
-  connected through Remote Control (`remoteControlAtStartup` is on in the user's settings),
+  that, it is inferred, was connected through Remote Control (see *Follow-up*),
   and carry `Claude-Session: https://claude.ai/code/session_017D…`; they stay as they are. So
   the two commits agree with the rule without proving the key's effect, and the key holds
   only in a session that loads `.claude/settings.json`, started at the repository's root
@@ -157,7 +157,7 @@ entry's text as it was.
 | 28 | closed (accepted, 2026-10-07) | closed — the pointer line | appendix A; its hardening is in task 4 of the 2.0.0 plan |
 | 29 | open | open | task 3 |
 | 30 | fixed, "closes at its merge" | CLOSED — the merge `8a7e6a2` | appendix A; [[sessions/2026-10-10-homebrew-developer-mode]] |
-| 31 | open | open | task 5 (F1 → task 3) |
+| 31 | open | open | task 5 (appendix D's F1 → task 3) |
 | 32 | open | open | task 4 |
 | 33 | open, pointer to docs/04:143-145 | open, re-pointed to CLAUDE.md's answer **Public contract** | task 7 |
 | 34 | open, the user's three options | CLOSED — in the pointer line; its declaration in *Decisions made*, where it outlives the next condensation | [[decisions/2026-11-07-framework-architect-decisions]] |
@@ -251,12 +251,15 @@ installed; the CommonMark rule only).
   026–028 in part): the Architect flags the duplicates after the harvest session; none is
   closed before (decision D) → STATE #41.
 - `attribution.sessionUrl`'s effect is still to measure → STATE #42. At each checkpoint:
-  `n=$(git log --format=%B 269cc9c.. | grep -c 'claude.ai/code/session')`, expected 0; a
-  link means the key did not hold for that commit — a session that did not load the
-  project's settings, most likely —, and is recorded there. The entry closes when a commit
-  known to come from a Remote Control or cloud session carries `Co-Authored-By` and no link.
-  That the 2026-10-19 commits came through Remote Control is inferred (local commits in the
-  reflog; `remoteControlAtStartup` is on today, its value that day unrecorded).
+  `git log --format=%B 269cc9c.. | grep -cE 'https://claude\.ai/code/session_[0-9A-Za-z]'`,
+  expected the count recorded here — 0 on 2026-11-07. The pattern needs a session id after
+  the path, so a message that quotes the check does not count. A link means the key did not
+  hold for that commit — a session that did not load the project's settings, most likely —:
+  it is recorded here with its sha, and the expected count goes up by one. The entry closes
+  at a commit the user confirms came from a Remote Control or cloud session, carrying
+  `Co-Authored-By` and no link, the user's words quoted in that session's note. That the
+  2026-10-19 commits came through Remote Control is inferred (local commits in the reflog;
+  `remoteControlAtStartup` is on today, its value that day unrecorded).
 - `/fw:lint-memory` after this wide rewrite of STATE (the core's table): the user runs it →
   STATE #43. Known for it: `components/mod-00-audit.md` still calls the off-by-one (#2) and
   the dry-run gap (#3) open, an Italian note left as written.
