@@ -55,4 +55,7 @@ tags: [decision]
   AUTHORISE?"; a refuter where a change widens what a gated path authorises; no "other
   edits verified by the author" — the review covers the branch's diff and the set a widened
   claim names (CLAUDE.md, the technical rule **Security gate**). No multi-hour workflows
-  stays, held by docs/03's stall budget.
+  stays, held by docs/03's stall budget. What puts a branch under the gate is the core's
+  rule 8: these paths, its own categories — the method's enforcement edge (its guard, hooks
+  and settings) among them — and a product that asserts a security property; in doubt,
+  under the gate.

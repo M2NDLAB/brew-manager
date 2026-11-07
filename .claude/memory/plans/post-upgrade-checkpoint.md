@@ -38,15 +38,16 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   `0b127a9`, verbatim — and appendix B — its *Decisions made* and *Documentation debt*,
   verbatim —, plus the entry-by-entry comparison written BEFORE the rewrite. Verify: each
   appendix byte-identical to `git show 0b127a9:.claude/memory/STATE.md`'s lines — commit: `97c841c`
-- [ ] 7. STATE.md rewritten within 8,000 characters (`scripts/state-inject.sh`): the open
-  entries under their numbers, #30 and #34–#37 closed with their declarations, #38–#41 new
-  (the two defects of task 2's acceptance run, the working folder, the upstream duplicates),
-  the status and Active branches reconciled with git (`0b127a9`, no tag). Verify: the
-  measurement's three conditions; independent read-only verifiers against the comparison
-  — commit: —
-- [ ] 8. After `/fw:security-review` and `/fw:retro`: the checkpoint — the session note's gate
-  line (the reviewed tip), STATE's status line and Active branches, INDEX's new notes and its
-  three stale component lines, this plan completed — commit: —
+- [x] 7. STATE.md rewritten within 8,000 characters (`scripts/state-inject.sh`): the open
+  entries under their numbers, #30 and #34–#37 closed with their declarations, #38–#43 new
+  (the two defects of task 2's acceptance run, the working folder, the upstream duplicates,
+  and the verification's two), the status and Active branches reconciled with git
+  (`0b127a9`, no tag). Verify: the measurement's three conditions; independent read-only
+  verifiers against the comparison — commit: `160b109`
+- [ ] 8. After `/fw:security-review` — its fixes in commits of their own, reviewed again on
+  their tip — and `/fw:retro`: the checkpoint — the session note's gate line (the reviewed
+  tip), STATE's status line and Active branches, INDEX's new notes and its three stale
+  component lines, this plan completed — commit: —
 
 ## Resumption notes
 - The order is the user's constraint: the archive (task 6) is committed before STATE loses

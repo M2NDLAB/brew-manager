@@ -50,11 +50,14 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
 - The trailer check (the user's point 5): `269cc9c`, the commit that carries the change, and
   `32069dc`, the first commit after it, each end with `Co-Authored-By: Claude Opus 5.5
   <noreply@anthropic.com>` and hold no `Claude-Session:` line. The limit of that proof: this
-  is a local session, whose commit instructions never named a session link, and the key acts
-  only on cloud and Remote Control sessions, so the two commits agree with the rule without
-  proving the key's effect; the first commit from such a session will. The upgrade's commits
-  (`09b7250`…`0d17829`) carry `Claude-Session: https://claude.ai/code/session_017D…` and stay
-  as they are.
+  session's commit instructions, given at its start, never named a session link, and the key
+  acts only on commits from a cloud or Remote Control session. The upgrade's 13 commits
+  (`09b7250`…`0d17829`) were made in this clone — the reflog records each — by a session
+  connected through Remote Control (`remoteControlAtStartup` is on in the user's settings),
+  and carry `Claude-Session: https://claude.ai/code/session_017D…`; they stay as they are. So
+  the two commits agree with the rule without proving the key's effect, and the key holds
+  only in a session that loads `.claude/settings.json`, started at the repository's root
+  (docs/04): the check repeats at each checkpoint (#42).
 - Task 3 `32069dc` — the answer **Error format** (U18 d), text only. Read in the code: modules
   4 and 5 show a failed command's output on screen (so in the session log `script(1)`
   records); modules 0, 1 and 2 first write it to fixed `/tmp/brew_*.log` files

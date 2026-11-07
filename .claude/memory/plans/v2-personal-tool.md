@@ -23,7 +23,9 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
 > [[decisions/2026-10-19-framework-upgrade-v4.1.0]]): `/fw:security-review` by one independent
 > reviewer on a branch that touches a code path of CLAUDE.md's answer **Sensitive components**
 > (delete, install, modify Homebrew's configuration, decide what runs) or whose product
-> asserts a security property; a refuter only where a change widens what such a path
+> asserts a security property, besides the core's rule 8 categories — the method's
+> enforcement edge (its guard, hooks and settings) among them; in doubt, under the gate;
+> a refuter only where a change widens what such a path
 > authorises; no multi-hour workflows. Where a task below once named docs/0N or
 > `new-component.md`, brew's text now lives in CLAUDE.md's answers and `fw/new-component.md`.
 

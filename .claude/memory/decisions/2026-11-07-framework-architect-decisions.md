@@ -46,7 +46,8 @@ tags: [decision, framework, lint, attribution, memory, process]
 - **Consequences**: `make lint` is a syntax check only, as `make check` is; the session
   link is omitted only where Claude Code adds it — commits and pull requests from a cloud or
   Remote Control session (its settings reference, `attribution.sessionUrl`, read on
-  2026-11-07) —, so a local session's commits prove nothing either way; the commits
+  2026-11-07) —, so the commits of a session that adds no link prove nothing either way,
+  and the key holds only in a session that loads the project's settings; the commits
   published before 2026-11-07 keep their `Claude-Session:` trailer. Supersedes
   [[2026-07-12-shellcheck-advisory]].
   Links: [[sessions/2026-11-07-post-upgrade-checkpoint]] · [[STATE]] · [[LEARNINGS]]

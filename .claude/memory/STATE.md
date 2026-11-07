@@ -9,12 +9,12 @@ tags: [state]
 > Updated: 2026-11-07 | Last: **the post-upgrade checkpoint** (`chore/post-upgrade-checkpoint`): STATE condensed; `make lint` = `zsh -n`; the session link off. Gate: pending. → [[sessions/2026-11-07-post-upgrade-checkpoint]] | Index: [[INDEX]]
 
 ## Progress
-- [x] v1.1.2 → v1.5.0 (graft 2026-07-12, M1–M3, debt-cleanup branches 1–4); four framework upgrades, the last to v4.1.0 (merge `0b127a9`, no tag) — notes in [[INDEX]].
+- [x] v1.1.2 → v1.5.0 and four framework upgrades, the last to v4.1.0 (merge `0b127a9`, no tag): the notes in [[INDEX]].
 - [ ] **2.0.0** ([[plans/v2-personal-tool]]): tasks 1–2 INTEGRATED (`f232f12`, `8a7e6a2`; task 2 accepted on this Mac 2026-10-10) → **task 3** (MAJOR) → 4 → … → 8 the release.
 
 ## What exists now
 - `brew_manager.sh`, `lib/`, modules 0–13 (`go`), bk/las/log/mas → [[TREE]] and the component notes ([[INDEX]]).
-- `make test` 333 checks (9 zsh suites); `make check` = `make lint` = `zsh -n`; no CI; history scanned once by gitleaks, 0 findings (#7). Tags: `v1.2.0`–`v1.5.0` annotated, `v1.1.x` lightweight, `v1.1.2-baseline` a helper the tool's `git describe` skips.
+- `make test` 333 checks (9 zsh suites); `make check` = `make lint` = `zsh -n`; no CI; gitleaks found 0 in the 155 commits of 2026-09-25 (#7; later ones: the pre-commit hook). Tags annotated from `v1.2.0` (`v1.1.2-baseline` a helper the tool's `git describe` skips).
 - Method: framework v4.1.0 (pin `.claude/framework-version`).
 
 ## Decisions made (not obvious from the code)
@@ -37,7 +37,7 @@ tags: [state]
 - **#6** Multi-day schedules skipped, not round-tripped (bk, las) → task 3.
 - **#6b** bk's agents-restore preview does not mirror the restore (LOW/MEDIUM) → task 3.
 - **#9** Flag values not validated (`--upgrade=yes` declines; `--upgrade=y` alone answers nothing; `go --only=` runs all; non-TTY without a selection runs `go`), #10's `[auto: …]` residue → task 6.
-- **#11** Fixed `/tmp/brew_*.log` paths, modules 0, 1 (`--dry-run` too), 2 (LOW: symlink, leaks, concurrent runs; 2 dead in `brew_manager.sh:645-646`) → task 4, a per-run dir.
+- **#11** Fixed `/tmp/brew_*.log` paths, modules 0, 1 (`--dry-run` too), 2 (LOW: symlink, leaks, concurrent runs; 2 dead in the final `rm`) → task 4, a per-run dir.
 - **#12** las re-register/repair widen a scoped agent to `go --yes` (LOW → MEDIUM proposed) → task 3.
 - **#13** Agent labels from untrusted data (LOW/MEDIUM; `../` lets Remove `rm` a `*.plist`) → task 3.
 - **#14** `MODULE_DRYRUN` = the modules ignoring `--dry-run` (`[bk]`/`[las]`=0; never flip a 0 without the fix; `_KNOWN_UNGATED` bidirectional) → task 3 (`[1]=0`, `_KNOWN_UNGATED=(1)` if module 1 still writes; today `[1]=1`), closes in task 4 with #3.
@@ -58,7 +58,7 @@ tags: [state]
 - **#39** Module 1's restore box overflows: "From: …" and the local-changes line exceed the 74-column field of an 80-column terminal; `_box` never truncates → task 5 (module 1's texts).
 - **#40** `/Users/seco/Projects/_upgrade-scratch/brew-manager`: keep until the framework's triage closes, then the user deletes it (decision C) → TRIGGER: the triage closes.
 - **#41** Upstream duplicates among the OPEN IMPs: the Architect flags them after their harvest session; none closed as a duplicate before (decision D) → TRIGGER: the Architect's report.
-- **#42** `attribution.sessionUrl` unproven (local commits never had the link) → TRIGGER: the first commit from a cloud or Remote Control session: `Co-Authored-By`, no `Claude-Session:`.
+- **#42** `attribution.sessionUrl` unproven here (the 2026-10-19 commits came through Remote Control; the key needs a session that loads the project's settings) → TRIGGER: each checkpoint, `git log --format='%(trailers:key=Claude-Session)' 269cc9c.. | grep .` prints nothing.
 - **#43** `/fw:lint-memory` after this wide rewrite (the core) → TRIGGER: the user runs it.
 - Closed, text in appendix A: #1, #2, #5, #5b, #7, #8, #10, #17 (reopen: a caller sets the variables), #19, #20, #23 (reopen: no Homebrew outside a login shell), #28, #30 (merge `8a7e6a2`), #34 and #36 (decisions A, B: *Decisions made*), #35 (the user's local rules narrowed, re-read 2026-11-07), #37 (closed by `chore/post-upgrade-checkpoint`).
 - [[LEARNINGS]]: OPEN 006, 008–021, 023–029, 032–050 (033…050 sent to the Architect 2026-11-07) → TRIGGER: the periodic retro or the user's request; the ones v4.1.0 covers upstream after #41. Applied 001–004, 007, 022, 030, 031; Deferred 005 (its own trigger).
