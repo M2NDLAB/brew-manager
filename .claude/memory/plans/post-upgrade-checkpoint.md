@@ -3,7 +3,7 @@ type: plan
 prompt: post-upgrade-checkpoint
 branch: chore/post-upgrade-checkpoint
 created: 2026-11-07
-status: in-progress
+status: completed
 tags: [plan, memory, process, lint, attribution]
 ---
 # Plan: the first checkpoint after the framework upgrade to v4.1.0
@@ -44,10 +44,12 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   and the verification's two), the status and Active branches reconciled with git
   (`0b127a9`, no tag). Verify: the measurement's three conditions; independent read-only
   verifiers against the comparison — commit: `160b109`
-- [ ] 8. After `/fw:security-review` — its fixes in commits of their own, reviewed again on
+- [x] 8. After `/fw:security-review` — its fixes in commits of their own, reviewed again on
   their tip — and `/fw:retro`: the checkpoint — the session note's gate line (the reviewed
   tip), STATE's status line and Active branches, INDEX's new notes and its three stale
-  component lines, this plan completed — commit: —
+  component lines, this plan completed — commit: this checkpoint, the branch's last commit.
+  The gate's fixes: `80cb567`, `bef57f3`, `de8e017`, `25da1ad`, `e79f80d`, `36b0cdd`,
+  `4e8149d`; four review rounds, the last on `4e8149d`.
 
 ## Resumption notes
 - The order is the user's constraint: the archive (task 6) is committed before STATE loses

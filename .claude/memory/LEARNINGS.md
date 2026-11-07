@@ -676,6 +676,94 @@ tags: [improvement]
   "outside the path" rests on whoever declares it; an independent reviewer can confirm it.
 - Destination: framework
 
+### IMP-051 — The guard reads a redirection after `git diff` as its two operands
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — a plain diff saved to a file was refused in the main session
+- Observed problem: `git diff > <a file outside the work tree>` is refused in every session,
+  the main one included, as "`git diff <path> <path>` compares two files as `--no-index`
+  does": `implicitNoIndexReason` (`scripts/agent-git-guard.mjs`) counts the words after the
+  subcommand, and `>` with its target are two of them; redirections are skipped only before
+  the command's name (`:350`). The command is an ordinary diff with no operand; the session
+  snapshotted the diff by its hash instead (measured with v4.1.0's guard, 2026-11-07, also in
+  its minimal form).
+- Proposal: the guard drops each redirection — an operator word, with the word a bare
+  operator takes — from the words after the subcommand before any operand-reading check;
+  cases in `scripts/test-agent-git-guard.sh`: `git diff > /outside/x` and `git diff
+  2>/dev/null` pass, `git diff a /outside/b` stays refused.
+- Expected benefit / risk: the usual way to keep a diff works in every session. Risk: none for
+  the refusals kept, if the operator words are read as the shell reads them.
+- Destination: framework
+
+### IMP-052 — commitlint only warns when a body line cuts the body: make it an error
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the second deliverable in a row with a body cut by a `word:` line
+- Observed problem: docs/04 warns that a body line opening with `word:` or `word #` is read as
+  the footer's first line and that the hook "only warns" ("footer must have leading blank
+  line"). It happened in the upgrade (`Plan:`, 2026-10-19) and again here (`it:`), each time
+  caught only because the agent read the hook's output, and repaired by amending a local
+  commit.
+- Proposal: `commitlint.config.cjs` sets `footer-leading-blank` to an error, so the
+  commit-msg hook refuses the message and it is reworded before any commit exists.
+- Expected benefit / risk: no cut body reaches the history, and no amend is needed. Risk: a
+  message the rule misreads is refused, and is reworded as docs/04 already asks.
+- Destination: framework
+
+### IMP-053 — A read-only command's findings about the project's own records live only in the chat
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the harvest's two Level 1 corrections had to be recovered from a transcript
+- Observed problem: the 2026-11-07 `/fw:harvest-framework` found two quotes of docs/04 in
+  IMP-033 and IMP-047 that docs/04 does not hold, and could not correct them (the command
+  does not modify LEARNINGS.md). The corrections and their exact words lived only in that
+  session's chat; the next writing session found them by searching its transcript.
+- Proposal: `/fw:harvest-framework` step 5: a claim of an entry found false is listed apart,
+  with its replacement text, as a Level 1 correction for the next writing session, and the
+  user is told to hand it over — the command still writes nothing.
+- Expected benefit / risk: a correction found read-only is not lost between sessions. Risk:
+  none.
+- Destination: framework
+
+### IMP-054 — The framework's Makefile targets are not phony
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the security gate's F6 and its twins (second round, N2)
+- Observed problem: the Makefile declared no `.PHONY`. A file named like a target at the root
+  makes make call it up to date and exit 0 without its recipe: shown in a throwaway copy for
+  `make check` and `make lint`, which this project then declared phony in its own part. The
+  framework's part has the same class — `help`, `hooks-install`, `reset-task`,
+  `test-scripts` —, two of them on the boundary: the hooks' install and the boundary's own
+  self-test would report success without running. The project does not edit the framework's
+  part.
+- Proposal: the framework's Makefile declares its targets `.PHONY`, with the reason in a
+  comment; `make test-scripts` can check that a stray file named like a target changes
+  nothing.
+- Expected benefit / risk: the boundary's install and proof cannot pass unrun. Risk: none.
+- Destination: framework
+
+### IMP-055 — A delegated reviewer wrote a file outside the repository, and only its own report showed it
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the first round of the security gate
+- Observed problem: the brief said to create no file anywhere. The reviewer wrote a helper
+  script into the main session's scratch folder, never ran it, and disclosed it. The
+  repository's snapshot (`scripts/repo-snapshot.sh`) was identical before and after, as it
+  must be: it reads the repository only, so a write elsewhere is seen only if the agent says
+  so.
+- Proposal: docs/04, *Delegated agents and the shared working tree*: the main session gives a
+  delegated agent a scratch folder of its own, named in the brief, and lists the folders an
+  agent could write to — that one and its own scratch area — before and after the run, beside
+  the snapshot.
+- Expected benefit / risk: an agent's writes outside the repository are seen without relying
+  on its report. Risk: one more listing per run.
+- Destination: framework
+
+### IMP-056 — A gate finding about a claim's list is closed by scoping the claim, not by extending the list
+- Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — four review rounds on one sentence of CLAUDE.md
+- Observed problem: the answer **Error format** claimed "errors ONLY through `_err`/`_warn`"
+  with an exhaustive list of exceptions. Each review round found one more site the list
+  missed, and each fix — a shipped file changed after the reviewed tip — needed a new round
+  (`/fw:integrate`'s check): four rounds before the claim was rewritten as a rule scoped to
+  where it was verified (`lib/` and the modules), with open-ended examples ("among them").
+- Proposal: docs/03, *The lenses of the gate*: when a finding shows a claim's list
+  incomplete, the first fix narrows the claim's scope to what was verified and makes its
+  lists examples, rather than adding the one site found; the review of that fix reads the
+  claim's whole set once.
+- Expected benefit / risk: one round instead of several on a claim that enumerates. Risk: a
+  claim scoped too narrowly says less than the code does; the reviewer checks the scope.
+- Destination: framework
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>

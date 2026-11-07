@@ -2,7 +2,7 @@
 date: 2026-11-07
 task: the first checkpoint after the framework upgrade to v4.1.0 — STATE condensed, the architect's decisions A–D applied
 branch: chore/post-upgrade-checkpoint
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 1
 tags: [session, memory, checkpoint, lint, attribution, security-gate]
@@ -87,6 +87,11 @@ verbatim in [[decisions/2026-11-07-framework-architect-decisions]]. Plan:
   remaining sections) — together the whole of STATE.md at `0b127a9` from its title on, each
   part compared byte by byte with `git show 0b127a9:.claude/memory/STATE.md` (462 + 56 + 40
   + 5 + 208 + 88 + 53 lines).
+- The gate's fixes, each in a commit of its own: `80cb567` (the project's targets phony),
+  `bef57f3`, `25da1ad` and `36b0cdd` (the answer Error format, narrowed, then scoped),
+  `de8e017`, `e79f80d` and `4e8149d` (memory). Task 8: this checkpoint — STATE 7,950
+  characters (`wc -m`; 8,094 bytes), the measurement passed again, the archive re-compared
+  (7 parts identical).
 - Task 7 — STATE.md rewritten: 76,088 → 7,877 characters (`wc -m`; 8,025 bytes). The
   measurement of `/fw:checkpoint` step 3, `bash scripts/state-inject.sh`, prints the banner on
   line 1, `## Caution & open issues` on line 2, and no other line opening with `===`. 30 open
@@ -157,7 +162,7 @@ entry's text as it was.
 | 28 | closed (accepted, 2026-10-07) | closed — the pointer line | appendix A; its hardening is in task 4 of the 2.0.0 plan |
 | 29 | open | open | task 3 |
 | 30 | fixed, "closes at its merge" | CLOSED — the merge `8a7e6a2` | appendix A; [[sessions/2026-10-10-homebrew-developer-mode]] |
-| 31 | open | open | task 5 (appendix D's F1 → task 3) |
+| 31 | open | open | task 5 (F1 of the assessment's appendix D → task 3) |
 | 32 | open | open | task 4 |
 | 33 | open, pointer to docs/04:143-145 | open, re-pointed to CLAUDE.md's answer **Public contract** | task 7 |
 | 34 | open, the user's three options | CLOSED — in the pointer line; its declaration in *Decisions made*, where it outlives the next condensation | [[decisions/2026-11-07-framework-architect-decisions]] |
@@ -215,7 +220,49 @@ the live remote (no fetch), the user-level settings, and the Markdown rendering 
 installed; the CommonMark rule only).
 
 ## Security gate
-- Pending: `/fw:security-review` on task 7's tip (task 8 writes the outcome here).
+- `/fw:security-review`, **Reviewed: `0b127a9283169f02067738130d2ae8b765e04879..4e8149d1cba456761d959205a1901a13072b94e6`**
+  (reviewed tip `4e8149d`) — **under the gate**: the branch changes `.claude/settings.json`,
+  the method's boundary (the core's rule 8, "the enforcement edge (this method's guard, hooks
+  and settings included)"; `/fw:integrate` names the file). The Makefile, CLAUDE.md, the
+  CHANGELOG and the memory touch no code path of the answer **Sensitive components**; they were
+  reviewed as part of the branch's diff and as claims. Per the technical rule **Security
+  gate**: one independent, delegated, read-only reviewer per round, "what does this now
+  AUTHORISE?" asked of every file — nothing authorises more: one allow rule fewer, an
+  attribution key that grants no permission, a lint that runs `make check` — and one refuter
+  per finding of LOW or above. Each round's repository snapshot was identical before and
+  after. **Outcome: 0 CRITICAL, 0 HIGH, 0 MEDIUM** over four rounds, the later three on the
+  fixes committed after the round before (a shipped file changed after a reviewed tip):
+  - Round 1, `0b127a9..160b109`: F1 LOW → INFO by its refuter (CLAUDE.md's Error format kept
+    "errors ONLY through `_err`/`_warn`"), **closed** by `bef57f3` and then `36b0cdd`; F2 LOW,
+    upheld (STATE #42's "local commits never had the link"), **closed** in `de8e017`, the
+    limit **declared** in #42 and the decision record; F3 INFO (the gate-scope restatements)
+    **closed** `de8e017`; F4 INFO (#7's range) **closed** `de8e017`; F5 INFO (task 7's tick)
+    **closed** `de8e017`; F6 INFO (no `.PHONY`: a stray `check` file passes the gate unrun,
+    shown RED then GREEN) **closed** `80cb567`.
+  - Round 2, `160b109..de8e017`, all INFO: N1 (the exception list) **closed** `25da1ad`, then
+    `36b0cdd`; N2 (the framework part's targets, same class) **declared** as IMP-054 — the
+    project does not edit the framework's part; N3 (the Commit attribution rule reads
+    unconditional) **declared** in the decision record the rule cites — the rule's words are
+    the user's, asked of them below; N4 (#42's trigger) **closed** `e79f80d`; N5 (F labels of
+    two gates) **closed** `e79f80d`.
+  - Round 3, `de8e017..e79f80d`, all INFO: Q1 (#42's count) **closed** `4e8149d`; Q2 (the
+    dry-run notice, the relaying modules) **closed** `36b0cdd`, the rule scoped to where it
+    holds; Q3, Q4 **closed** `4e8149d`.
+  - Round 4, `e79f80d..4e8149d`: Q1–Q4 confirmed closed. N1 **LOW, pre-existing** (since
+    v1.1.0, outside the diff): the run header's "no changes will be made" under `--dry-run`
+    and "all prompts use built-in defaults" under `--yes` (`brew_manager.sh:496`, `:500`)
+    are false while the recorded debts #3, #14–#16 and #21–#22 hold — **declared** as STATE
+    #44, closing with tasks 3–4; a fix of its own would touch `brew_manager.sh` and go
+    through the gate. N2–N4 INFO (#42 names its note; a quoted link counts; row 31's label)
+    **closed** in this checkpoint's commit, memory only.
+  - After the reviewed tip only `.claude/memory/` changes (this checkpoint).
+  - Not covered by the reviews: no tests, `make` or `brew_manager.sh` run by the reviewers
+    (the author's runs stand); the live remote (no fetch); the user-level and managed settings
+    beyond the keys named; how Markdown renders; `attribution.sessionUrl`'s effect, which no
+    session here could show (#42).
+  - A brief breached: round 1's reviewer wrote one helper script into this session's scratch
+    folder, outside the repository, never ran it and reported it; left in place for the user
+    (IMP-055).
 
 ## Problems encountered → cause → solution
 1. A verification command that cleared a scratch folder with `rm -rf` was refused → the
@@ -243,6 +290,11 @@ installed; the CommonMark rule only).
 
 ## Proposals
 - IMP-050 (the user's text, decided at U2), `Destination: framework`.
+- From `/fw:retro`, all `Destination: framework`, OPEN: IMP-051 (the guard reads a redirection
+  after `git diff` as its operands), IMP-052 (commitlint's footer rule as an error), IMP-053
+  (a read-only command's Level 1 findings handed over), IMP-054 (the framework's Makefile
+  targets phony), IMP-055 (a delegated agent's writes outside the repository), IMP-056 (close
+  a list-claim finding by scoping the claim).
 
 ## Follow-up
 - The upgrade's working folder T, `/Users/seco/Projects/_upgrade-scratch/brew-manager`: kept
@@ -255,7 +307,9 @@ installed; the CommonMark rule only).
   expected the count recorded here — 0 on 2026-11-07. The pattern needs a session id after
   the path, so a message that quotes the check does not count. A link means the key did not
   hold for that commit — a session that did not load the project's settings, most likely —:
-  it is recorded here with its sha, and the expected count goes up by one. The entry closes
+  it is recorded here with its sha, and the expected count goes up by one — once git's
+  trailer parser shows it as a trailer (`git log -1 --format='%(trailers:key=Claude-Session,valueonly)'
+  <sha>`); a link only quoted in a message is recorded as a quote, not as the key failing. The entry closes
   at a commit the user confirms came from a Remote Control or cloud session, carrying
   `Co-Authored-By` and no link, the user's words quoted in that session's note. That the
   2026-10-19 commits came through Remote Control is inferred (local commits in the reflog;
@@ -265,6 +319,12 @@ installed; the CommonMark rule only).
   the dry-run gap (#3) open, an Italian note left as written.
 - Module 1's plain `git status` in Homebrew's repository under `--dry-run` → STATE #3, task 4:
   `git --no-optional-locks` keeps it read-only.
+- The run header's two claims (`brew_manager.sh:496`, `:500`), found by the gate's last round
+  → STATE #44, tasks 3–4, or a fix branch of their own through the gate.
+- For the user: whether the technical rule **Commit attribution** — their words — should name
+  its limit (the key holds only in a session that loads the project's settings) → STATE #42;
+  `/fw:lint-memory` → STATE #43. Session-local, reported in the session and not tracked:
+  round 1's reviewer's helper file in this session's scratch folder.
 
 ## Appendix A — STATE.md's *Caution & open issues* at `0b127a9`, verbatim
 The section's text from the line after its title to its end (lines 416–877 of

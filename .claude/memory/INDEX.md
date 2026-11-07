@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-10-07
+updated: 2026-11-07
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,7 +15,7 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
-  023–029, 032–050 (IMP-033…050 sent to the framework's Architect on 2026-11-07); Applied
+  023–029, 032–056 (IMP-033…050 sent to the framework's Architect on 2026-11-07); Applied
   IMP-001–004, 007, 022, 030, 031; Deferred IMP-005; none rejected
 
 ## Per componente
@@ -25,11 +25,14 @@ tags: [moc]
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-01-health]] — the health check; since 2026-10-10 Homebrew's developer mode:
   read-only detection and a confirmed restore (a gated path, IMP-030)
-- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
+- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; the off-by-one fixed in BM-04,
+  STATE #2; the note itself is stale there, for `/fw:lint-memory`)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
   `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
-- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; bug weekday)
-- [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; dipende dal bug CLI)
+- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; the weekday bug fixed in
+  BM-05a; removed in 2.0.0, task 3)
+- [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; its CLI dependency closed in M2;
+  removed in 2.0.0, task 3)
 - Gli altri 12 moduli (read-only o a rischio basso/medio) non hanno ancora una
   nota: si crea alla prima modifica sostanziale (vedi components/README).
 
@@ -174,6 +177,11 @@ tags: [moc]
   commits, 131 answers verified (0 lost), the gate on the boundary (reviewed tip `56d3b1a`,
   0 C/H/M), the graft date proven by git, IMP-033…049. INTEGRATED (merge `0b127a9`, no
   tag).
+- [[sessions/2026-11-07-post-upgrade-checkpoint]] — the first checkpoint after the upgrade:
+  STATE condensed from 76,088 to 7,950 characters, every open entry under its number (#38–#44
+  new), the whole old STATE verbatim in its appendices A–C; the architect's decisions A–D
+  (`make lint` = `zsh -n`, the session link off); the stale claims marked; IMP-050…056; the
+  gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
@@ -210,6 +218,10 @@ tags: [moc]
   Releases rule; the allow list; `grafted` = 2026-07-12), the divergences from the v1.2.0
   method, the IMPs the retro must record; supersedes D1 of
   [[2026-09-24-language-rule-prospective]] in part
+- [[decisions/2026-11-07-framework-architect-decisions]] — the framework architect's decisions
+  A–D of 2026-11-07 (lint = `zsh -n`; Co-Authored-By kept, the session link off; the upgrade's
+  folder kept until the triage closes; no IMP closed as a duplicate) and the user's answer on
+  the anchors (U23: numbers kept, never reused); supersedes [[2026-07-12-shellcheck-advisory]]
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -236,3 +248,5 @@ tags: [moc]
 - [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.
 - [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] — plan of the framework upgrade v1.2.0 →
   v4.1.0 (11 tasks), status: completed.
+- [[plans/post-upgrade-checkpoint]] — plan of the first checkpoint after the upgrade (8 tasks
+  and the gate's fixes), status: completed.
