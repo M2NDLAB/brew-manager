@@ -713,7 +713,7 @@ tags: [improvement]
 
 ### IMP-053 — A read-only command's findings about the project's own records live only in the chat
 - Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the harvest's two Level 1 corrections had to be recovered from a transcript
-- Observed problem: the 2026-11-07 `/fw:harvest-framework` found two quotes of docs/04 in
+- Observed problem: the 2026-10-31 `/fw:harvest-framework` found two quotes of docs/04 in
   IMP-033 and IMP-047 that docs/04 does not hold, and could not correct them (the command
   does not modify LEARNINGS.md). The corrections and their exact words lived only in that
   session's chat; the next writing session found them by searching its transcript.

@@ -381,6 +381,14 @@ adding a character to STATE (the user's bounds): `3409469`, `20b3657` and this r
 - Left for task 3's branch: nothing from the lint; the user's two items above.
 - STATE: #43 closed, its trigger run; 7,911 characters after this record, all shown.
 
+## Correction of 2026-11-08 — the first harvest's date
+- Task 4's line under *Done* says IMP-033's and IMP-047's quotes were corrected "as the
+  2026-11-07 harvest found them". The harvest ran on 2026-10-31: its session's transcript
+  prints the block that day, at 17:28 UTC; on 2026-11-07 the user sent it to the Architect.
+  The line stays as written, and so does `d2f5211`'s message, already published. The second
+  harvest (2026-11-08) found the date; [[sessions/2026-11-08-framework-triage-imp-033-050]]
+  corrects it here, in IMP-053 and in [[plans/post-upgrade-checkpoint]]'s task 4.
+
 ## Appendix A — STATE.md's *Caution & open issues* at `0b127a9`, verbatim
 The section's text from the line after its title to its end (lines 416–877 of
 `git show 0b127a9:.claude/memory/STATE.md`), Italian where it was written in Italian.
