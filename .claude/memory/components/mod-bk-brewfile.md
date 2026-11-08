@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-bk-brewfile
-updated: 2026-09-25
+updated: 2026-11-08
 tags: [component]
 ---
 # mod-bk-brewfile (modules/mod_bk_brewfile.sh)
@@ -32,7 +32,9 @@ Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
   `read`s → STATE #21/#22); the agents-restore preview and restore diverge and the
   restore degrades silently, zero-padded minutes included (#6b); no label prefix
   enforcement (#13); wet previews trigger Homebrew's auto-update (#29); "success
-  printed anyway" (#4b) → branches 6, 9 and 11 of [[plans/debt-cleanup-pre-dashboard]].
+  printed anyway" (#4b) → ~~branches 6, 9 and 11 of [[plans/debt-cleanup-pre-dashboard]]~~
+  task 3 of [[plans/v2-personal-tool]], which removes bk, and #4b task 7 — the cleanup plan
+  closed on 2026-10-07 (corrected on 2026-11-08).
 - **`[4] Check` esegue il Brewfile come DSL Ruby anche in `--dry-run`**
   (Attenzione #15, MEDIUM, trovato dal gate del micro-task dry-run 2026-07-21):
   `brew bundle check` (`:499`/`:503`) valuta il contenuto del file, mentre
@@ -51,5 +53,10 @@ Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-13-bm03-dryrun-bk-restore]] (`--dry-run` in the restores: the
+  Brewfile read statically)
+- [[sessions/2026-07-13-bm05a-weekday-migration]] (the weekday mapping, the agents-restore
+  preview)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (restore agenti valida + skip invalidi)
+- [[sessions/2026-07-20-bm10-risk-badges]] (the `_ask_danger` frames)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (gate: `[4] Check` non gatato → `MODULE_DRYRUN[bk]=0`)

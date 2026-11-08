@@ -25,16 +25,17 @@ tags: [moc]
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-01-health]] — the health check; since 2026-10-10 Homebrew's developer mode:
   read-only detection and a confirmed restore (a gated path, IMP-030)
-- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; the off-by-one fixed in BM-04,
-  STATE #2; the note itself is stale there, for `/fw:lint-memory`)
+- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; the off-by-one and the
+  dry-run gap fixed in BM-04, STATE #2 — the note corrected on 2026-11-08)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
   `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
 - [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; the weekday bug fixed in
   BM-05a; removed in 2.0.0, task 3)
 - [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; its CLI dependency closed in M2;
   removed in 2.0.0, task 3)
-- Gli altri 12 moduli (read-only o a rischio basso/medio) non hanno ancora una
-  nota: si crea alla prima modifica sostanziale (vedi components/README).
+- The other 13 modules have no note yet, four of them on the gate's list (modules 4 and
+  10, mas and log: CLAUDE.md, **Sensitive components**); a note is written at the first
+  substantial change (components/README).
 
 ## Per fase (sessioni — append-only)
 - [[sessions/2026-07-11-innesto-note]] — innesto del framework v0.2.0: assessment

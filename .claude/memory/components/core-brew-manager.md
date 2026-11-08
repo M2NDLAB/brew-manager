@@ -1,7 +1,7 @@
 ---
 type: component
 component: core-brew-manager
-updated: 2026-09-27
+updated: 2026-11-08
 tags: [component]
 ---
 # core-brew-manager (brew_manager.sh)
@@ -10,12 +10,17 @@ Entry point TUI: parsing flag, caricamento lib+moduli, dispatch, recording della
 sessione, summary finale.
 
 ## Stato attuale
-Stabile, v1.3.0 rilasciata. Versione da file `VERSION` (BM-07, non più costante
-hardcoded). Dal BM-08a la selezione moduli è delegata a `_resolve_selection`
+Stabile, ~~v1.3.0 rilasciata~~ — the latest release is v1.5.0 (2026-10-07; stale,
+corrected on 2026-11-08, `/fw:lint-memory`). Versione da file `VERSION` (BM-07, non più
+costante hardcoded). Dal BM-08a la selezione moduli è delegata a `_resolve_selection`
 ([[lib-selection]]) — coperta da `tests/test_selection.zsh`. Dal fix exit-code
 (2026-07-18) il PARENT propaga l'exit del figlio attraverso il wrapper
 script(1) — contratto end-to-end coperto da `tests/test_exit_codes.zsh`
-(sandbox a symlink farm + mock brew). Il resto del core resta senza test.
+(sandbox a symlink farm + mock brew). ~~Il resto del core resta senza test.~~ — stale
+since July (corrected on 2026-11-08): other suites pin parts of it too —
+`tests/test_dryrun_gates.zsh` and `tests/test_capabilities.zsh` run it end to end in a
+farm, `tests/test_run_summary.zsh` checks the summary's wiring, and
+`tests/test_menu_registry.zsh` the menu's column caps.
 
 **Startup without Homebrew on PATH (branch `fix/startup-brew-env`, 2026-09-27; STATE
 #23).** Before anything else runs, `_brew_bootstrap_path` looks for a brew EXECUTABLE on
@@ -36,7 +41,9 @@ then the probe; it only RETURNS, and only a full success re-execs). The exit ord
 curl — no test ever answers the installer prompt.
 
 ## Cosa espone / responsabilità
-- Flag CLI: `--dry-run`, `--yes|-y` (auto-attivo se stdin non è TTY),
+- Flag CLI: `--dry-run`, `--yes|-y` ~~(auto-attivo se stdin non è TTY)~~ (false since
+  BM-08c, corrected on 2026-11-08: a stdin that is not a TTY sets `NON_INTERACTIVE`, never
+  `YES_MODE` — see *Consenso vs non-interattivo* below),
   `--adopt=n|all|1,2`, `--upgrade=y|n`, `--only=ids`, `--skip=ids`, `--version|-V`
   — esportati come env `BREW_MANAGER_*`. Flag ignoti/lookalike Unicode → errore +
   exit 2 (micro-task).
@@ -112,10 +119,18 @@ curl — no test ever answers the installer prompt.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-13-microtask-parser-flags]] (unknown flags and Unicode dash lookalikes
+  refused, exit 2)
+- [[sessions/2026-07-13-bm04-adopt-off-by-one]] (`--adopt`/`--upgrade` exported raw, so an
+  unset flag no longer overrides the prompt)
+- [[sessions/2026-07-14-bm07-version-deadcode]] (`VERSION`, `--version`, the file map)
+- [[sessions/2026-07-14-bm19-readme-reality]] (the CLI comments aligned with v1.2.0)
 - [[sessions/2026-07-17-bm08a-selection-resolver]] (registry/parser usciti in lib/selection.sh)
 - [[sessions/2026-07-17-bm08b-positional-dispatch]] (cattura posizionali + branch CLI)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (NON_INTERACTIVE vs YES_MODE)
 - [[sessions/2026-07-18-exit-code-propagation]] (rc del figlio propagato dal parent)
+- [[sessions/2026-07-19-bm09-tui-foundation]] (`_clear` and the palette in the banner)
+- [[sessions/2026-07-20-bm10-risk-badges]] (the risk badge on each menu row)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (banner flat + menu a card allineate)
 - [[sessions/2026-07-21-bm12-progress-summary]] (tracking per-posizione + summary di sessione)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (HOMEBREW_NO_AUTO_UPDATE sotto --dry-run)

@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-05-cleanup
-updated: 2026-07-21
+updated: 2026-11-08
 tags: [component]
 ---
 # mod-05-cleanup (modules/mod_05_cleanup.sh)
@@ -37,5 +37,8 @@ cambiato solo COME si misura la cache. Nessun test unitario proprio (il consenso
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-13-bm02-dryrun-cleanup]] (the `--dry-run` preview and the
+  confirmation)
+- [[sessions/2026-07-20-bm10-risk-badges]] (the confirmation becomes `_ask_danger`)
 - [[sessions/2026-07-21-bm12-progress-summary]] (misura cache in KB per il delta disco;
   correzione della voce stale su conferma/dry-run)
