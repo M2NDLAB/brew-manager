@@ -757,10 +757,11 @@ tags: [improvement]
 ### IMP-056 — A gate finding about a claim's list is closed by scoping the claim, not by extending the list
 - Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — four review rounds on one sentence of CLAUDE.md
 - Observed problem: the answer **Error format** claimed "errors ONLY through `_err`/`_warn`"
-  with an exhaustive list of exceptions. Each review round found one more site the list
-  missed, and each fix — a shipped file changed after the reviewed tip — needed a new round
-  (`/fw:integrate`'s check): four rounds before the claim was rewritten as a rule scoped to
-  where it was verified (`lib/` and the modules), with open-ended examples ("among them").
+  with an exhaustive list of exceptions. Each of the first three review rounds found one more
+  site the list missed, and each fix — a shipped file changed after the reviewed tip — needed
+  a new round (`/fw:integrate`'s check). After the third, the claim was rewritten as a rule
+  scoped to where it was verified (`lib/` and the modules), with open-ended examples
+  ("among them"); the fourth round found nothing more on it.
 - Proposal: docs/03, *The lenses of the gate*: when a finding shows a claim's list
   incomplete, the first fix narrows the claim's scope to what was verified and makes its
   lists examples, rather than adding the one site found; the review of that fix reads the
