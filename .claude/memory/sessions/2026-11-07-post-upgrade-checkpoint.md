@@ -4,7 +4,7 @@ task: the first checkpoint after the framework upgrade to v4.1.0 — STATE conde
 branch: chore/post-upgrade-checkpoint
 status: completed
 model: 'claude-opus-5-5'
-turns: 1
+turns: 2
 tags: [session, memory, checkpoint, lint, attribution, security-gate]
 ---
 # Session 2026-11-07 — the first checkpoint after the framework upgrade
@@ -325,6 +325,30 @@ installed; the CommonMark rule only).
   its limit (the key holds only in a session that loads the project's settings) → STATE #42;
   `/fw:lint-memory` → STATE #43. Session-local, reported in the session and not tracked:
   round 1's reviewer's helper file in this session's scratch folder.
+
+## Follow-up of 2026-11-08 — the user's answers and the memory lint
+
+The user's answers to the five points the report left open (2026-11-08):
+- **Commit attribution** (point 1): the rule gets its limit — "vale solo per le sessioni
+  cloud e Remote Control", the user's words — in task 3's branch, not here, so CLAUDE.md is
+  not reviewed again on this branch; in STATE, #42 stays as it is.
+- **#34 and #36** (point 2): their declarations stay in STATE's *Decisions made*.
+- **#44** (point 3): it waits for tasks 3–4.
+- **`/fw:lint-memory`** (point 4): run read-only; what touches only the memory and adds no
+  character to STATE is fixed on this branch, the rest goes to task 3's branch.
+- **Round 1's helper file** in this session's scratch folder (point 5): the user deletes it.
+- **STATE's size**, in the user's words: «a ogni checkpoint STATE va condensato, non solo
+  esteso; obiettivo ≤ 7.000 caratteri per lasciare margine» — at every checkpoint STATE is
+  condensed, not only extended, to 7,000 characters at most, a margin under the 8,000 the
+  hook shows. Recorded here and not in STATE, as the user decided; STATE stands at 7,950.
+
+### Work for task 3's branch
+- CLAUDE.md's technical rule **Commit attribution** names its limit: the key acts only in
+  cloud and Remote Control sessions (the user's words above). The decision record
+  ([[decisions/2026-11-07-framework-architect-decisions]]) names a second one: only a
+  session that loads the project's settings applies the key (STATE #42). Under task 3's
+  gate.
+- Task 3's checkpoint condenses STATE to 7,000 characters at most (the target above).
 
 ## Appendix A — STATE.md's *Caution & open issues* at `0b127a9`, verbatim
 The section's text from the line after its title to its end (lines 416–877 of
