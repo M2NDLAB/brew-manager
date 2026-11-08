@@ -549,8 +549,8 @@ tags: [improvement]
   records it, as an entry of its own or as evidence on one it holds, the project no longer
   decides it, gets the change only through an upgrade and cannot reject it: none of the four
   fits. Here 18 entries (IMP-033…050) went under Deferred, forced, the delivery written in
-  each title and the trigger "the framework release that contains the upstream entry,
-  checked at the next upgrade"; and `/fw:harvest-framework`'s default perimeter, every
+  each title and the trigger "the framework release that contains IMP-<n>, checked at the
+  next upgrade"; and `/fw:harvest-framework`'s default perimeter, every
   marked entry in every section, would print them again.
 - Proposal: docs/06, *The bridge to the framework*, and LEARNINGS' format comment name a
   status for a lesson the framework has recorded — the upstream number and the date, closed
@@ -1054,7 +1054,8 @@ line on; older entries are not backfilled.
 - Deferred: the change is the framework's. Since the Architect's triage of 2026-11-08 the
   `path` part is its IMP-165, extending its IMP-136; the `:s` and `=word` part duplicates its
   IMP-112, which the framework had rejected: it recorded that the problem recurs, and its
-  triage decides whether to reopen it. Either reaches this project through an upgrade.
+  triage decides whether to reopen it. The `path` part reaches this project through an
+  upgrade.
 - Resumption trigger: the framework release that contains IMP-165, checked at the next
   upgrade; for the `:s` and `=word` part, the triage's decision on IMP-112 (STATE #40).
 - Destination: framework
