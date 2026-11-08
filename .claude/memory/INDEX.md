@@ -15,8 +15,9 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
-  023–029, 032–056 (IMP-033…050 sent to the framework's Architect on 2026-11-07); Applied
-  IMP-001–004, 007, 022, 030, 031; Deferred IMP-005; none rejected
+  023–029, 032, 051–057 (IMP-051…056 sent to the framework's Architect on 2026-11-08);
+  Applied IMP-001–004, 007, 022, 030, 031; Deferred IMP-005 and IMP-033…050 (delivered to the
+  framework on 2026-11-08); none rejected
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -183,7 +184,14 @@ tags: [moc]
   new), the whole old STATE verbatim in its appendices A–C; the architect's decisions A–D
   (`make lint` = `zsh -n`, the session link off); the stale claims marked; IMP-050…056; the
   gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). On 2026-11-08 the user's answers
-  and `/fw:lint-memory`, its fixes memory only. Ready for integration (no tag).
+  and `/fw:lint-memory`, its fixes memory only. INTEGRATED (merge `71e2be9`, no tag).
+- [[sessions/2026-11-08-framework-triage-imp-033-050]] — the framework's triage of
+  IMP-033…050: 17 delivered as its IMP-153…169, IMP-037 as evidence on its IMP-139, all under
+  Deferred until the release that contains each; #41 closed, the old IMPs' thread kept; the
+  second harvest's Level 1 corrections (IMP-053, IMP-056) and evidence (IMP-055); from the
+  triage, IMP-046 corrected and IMP-033 extended, both measured here; IMP-057; STATE condensed
+  to 6,996 characters; an independent read-only review, its fixes applied. Memory only, gate
+  not applicable. Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the

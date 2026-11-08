@@ -449,233 +449,6 @@ tags: [improvement]
   is written. Risk: one more read-only command per verification.
 - Destination: framework
 
-### IMP-033 — A prefix permission on an interpreter's check-only option runs code
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an allow rule meant for a syntax check auto-approved code
-- Observed problem: the project's `allow` held `Bash(zsh -n:*)`, a syntax check.
-  `zsh -n +n -c 'print -r -- X'` prints X and exits 0 — a later `+n` cancels `-n` —, so the
-  prefix rule auto-approved arbitrary code with no prompt (measured twice, independently).
-  docs/04 asks for rules "clean and specific" and warns that a narrow rule can let through
-  "a script path or flag the rule's prefix didn't anticipate", but says nothing of a
-  check-only flag that the interpreter's own later arguments can undo.
-- Proposal: a warning in docs/04, *Permission configuration*: a prefix rule on an
-  interpreter's check-only option (`zsh -n`, `bash -n`, a compile-only flag) is not
-  read-only — later arguments can turn execution back on; such a check runs through a
-  Makefile target, or stays out of `allow`.
-- Expected benefit / risk: closes a class of silent auto-approvals that read as harmless.
-  Risk: one more prompt for a syntax check.
-- Destination: framework
-
-### IMP-034 — SETUP Step 3: merge `settings.json` out of place, check it, write it at once
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an in-place 3-way leaves invalid JSON in a file Claude Code reloads at once
-- Observed problem: Step 3 merges the hybrids in place, `.claude/settings.json` included.
-  With conflicts (two, here) the file holds conflict markers — invalid JSON — while they are
-  resolved, and Claude Code reloads it at once: what its deny and ask rules and its hooks do
-  meanwhile is not stated (not measured).
-- Proposal: in SETUP Step 3, for `settings.json`: the 3-way on a copy in `T`, the conflicts
-  resolved there, the result parsed (`node -e 'JSON.parse(…)'`), then one copy into place.
-- Expected benefit / risk: the boundary's configuration is never invalid on disk during an
-  upgrade. Risk: none.
-- Destination: framework
-
-### IMP-035 — `scripts/state-inject.sh` points a client project at a guide it does not hold
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a pruning the project made by hand comes back in a METHOD script
-- Observed problem: when STATE.md is missing, `scripts/state-inject.sh:50` prints "(the
-  framework setup guide copies it at step 1 and fills it at step 4)". A client project has
-  no setup guide; it had pruned the same kind of pointer from its old SessionStart fallback,
-  and a METHOD script cannot be edited to prune it again.
-- Proposal: the message names "the framework's `SETUP.md` (in the framework repository)",
-  the labelled form the framework's own IMP-049 gave the docs, or drops the pointer.
-- Expected benefit / risk: no dead pointer in what a client project prints. Risk: none.
-- Destination: framework
-
-### IMP-036 — The guard refuses a framework read on a literal path to a bare clone
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a false positive of the implicit no-index check
-- Observed problem: `git -C <literal path of a bare clone> diff vX vY` — and `cd <bare> &&
-  git diff vX vY`, `git --git-dir=<bare> diff vX vY` — is refused in every session, the main
-  one included, as a `--no-index` comparison: `rev-parse --show-toplevel` fails in a bare
-  repository and the two revisions are read as paths (measured with v4.1.0's guard). SETUP
-  recommends a bare clone as FW; the procedure's `"${FW:?}"` form passes only because the
-  location stays unknown to the guard.
-- Proposal: the guard recognises a bare repository (`rev-parse --is-bare-repository`) and
-  reads its operands as revisions; a case in `test-agent-git-guard.sh`.
-- Expected benefit / risk: the documented FW reads work in every spelling. Risk: none for
-  the refusal it keeps (a path outside any repository).
-- Destination: framework
-
-### IMP-037 — The inventory's edge-case-8 list missed an answered slot of docs/00 (evidence for the framework's IMP-139)
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an answer outside the list of moved answers
-- Observed problem: `inventory` listed the moved answers of docs/02–04 and of CLAUDE.md's
-  rules 5 and 8, but not docs/00's step-2 slot ("the concrete list is" a setup marker),
-  which the project had answered; it flagged docs/00 only as a customised METHOD file (edge
-  case 7). Nothing was lost — the same content reached the answer through rule 8 —, but a
-  docs/00 answer of its own would have been lost without a line.
-- Proposal: the inventory's edge-case-8 scan covers every METHOD file whose slot moved to
-  an answer line, docs/00 included — evidence for the framework's IMP-139.
-- Expected benefit / risk: no answer leaves the inventory's list. Risk: none.
-- Destination: framework
-
-### IMP-038 — The release policy as an answer `/fw:integrate` reads
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a tag-free integration rests on a rule the command does not read
-- Observed problem: on a trunk-based project `fw/integrate.md` puts the tag on the one
-  branch in both regimes, and its step 2 weighs content (a new rule or command in a shipped
-  file is a MINOR even under `chore`). A project that tags only from release branches can
-  say so only in its technical rules, which `/fw:integrate` does not read: a tag-free block 1
-  depends on the agent applying a rule the command never names.
-- Proposal: an answer line **Releases** in *The answers the method reads* — whether every
-  integration with a bump is tagged, or only a release branch's — read by `/fw:integrate`'s
-  step 2.
-- Expected benefit / risk: the tag decision follows the project's recorded policy, checked
-  by the command. Risk: one more answer line.
-- Destination: framework
-
-### IMP-039 — `grafted`: preflight asks `n/a`, Step 6 says not to touch it — complete both
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two instructions on the same pin field disagree
-- Observed problem: preflight's CHECK reads "'n/d' is the placeholder of the Italian
-  releases — write 'n/a' at Step 6", while SETUP Step 6 says "`grafted` is not touched (it is
-  the date of the original graft)". A project that knows its real graft date, provable from
-  its own history, has no stated way to write it.
-- Proposal: complete both texts: `grafted` is touched only to bring it to its canonical
-  form, or to write the real date of the graft proven by git — the graft commit's date, the
-  command and its output in the upgrade's session note.
-- Expected benefit / risk: one rule for the field, and a real date where one exists. Risk:
-  none.
-- Destination: framework
-
-### IMP-040 — `reset-task.sh`'s fallback ignores the Makefile's list
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a project's protected branch unprotected on one path
-- Observed problem: since v1.3.2 the protected branches are the Makefile's
-  `PROTECTED_BRANCHES`. Run directly and interactively without the variable,
-  `scripts/reset-task.sh` warns and falls back to `main develop`: a project's own list —
-  here a dormant `dev` — is unprotected on that path (no effect here today: no local `dev`).
-- Proposal: without the variable, the script reads the `PROTECTED_BRANCHES =` line of the
-  Makefile at the repository's root before any fallback, or refuses to run.
-- Expected benefit / risk: one list, honoured on every path. Risk: none.
-- Destination: framework
-
-### IMP-041 — The inventory's measures of the LEARNINGS header and format comment differ from Step 3's
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the counts announced did not match the merge run
-- Observed problem: `inventory` blanks `updated:` before measuring the LEARNINGS header (1
-  conflict); Step 3's literal commands keep it (2 conflicts: the date too). The format
-  comment's own 3-way (1 conflict) is not measured by `inventory` at all.
-- Proposal: `inventory` measures with Step 3's own commands, or names the date conflict as
-  expected; and it measures the format comment too.
-- Expected benefit / risk: the user is told what the merge will show. Risk: none.
-- Destination: framework
-
-### IMP-042 — A self-test copies a file the upgrade's order may not have brought yet
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — `test-check-prerequisites.sh` failed on a missing `.gitattributes`
-- Observed problem: `scripts/test-check-prerequisites.sh` copies the project's
-  `.gitattributes`; run before `.gitattributes` was brought (v1.5.0 adds it, v2.0.0 the
-  self-test, and no note orders them) it failed with "cp: …/.gitattributes: No such file or
-  directory" — a failure about the fixture, not the script.
-- Proposal: SETUP Step 3 orders `.gitattributes` before `make test-scripts`, or the
-  self-test names the missing fixture and its cause.
-- Expected benefit / risk: no false red during an upgrade. Risk: none.
-- Destination: framework
-
-### IMP-043 — STATE's numbered entries are no stable anchor through a condensing checkpoint
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — code and tests cite open issues by number
-- Observed problem: the project's code comments and tests cite STATE entries by number
-  ("STATE #11"); the v4 checkpoint condenses *Caution & open issues* to one line per entry,
-  and nothing in the method says an entry keeps its number, nor how code should cite an open
-  issue. Edge case 3 (b) covers code citing a title, not an entry.
-- Proposal: `fw/checkpoint.md` (or docs/06): an entry keeps its number as a label and a
-  number is never reused — or the method recommends citing a durable target (a session
-  note, a plan's task) instead of an entry.
-- Expected benefit / risk: citations that survive the rewrite of the dashboard. Risk: none.
-- Destination: framework
-
-### IMP-044 — The upgrade's checkpoint: "the framework version and no more" against "every open thread has its entry"
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two rules for the same STATE rewrite
-- Observed problem: SETUP Step 6 has the upgrade's checkpoint update STATE "with the updated
-  framework version and no more"; the core (*Memory and resumption*) and `fw/checkpoint.md`
-  step 3 require every open thread of the note it writes — a question awaiting the user —
-  to have its entry in *Caution & open issues*, and docs/03 puts a gate's accepted debt
-  there. An upgrade leaves such threads (here: the anchors' form, the lint target, the
-  user's local permissions), so the texts cannot all be followed literally.
-- Proposal: Step 6 allows, besides the framework version, the entries of the upgrade's own
-  open threads and of its gate's accepted debt.
-- Expected benefit / risk: no open thread of an upgrade lives only in a note. Risk: none.
-- Destination: framework
-
-### IMP-045 — Step 0's pin fix and `/fw:plan`'s first commit: name the order
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two "first" commits
-- Observed problem: Step 0 makes the pin's correction "the upgrade branch's first commit";
-  `/fw:plan` commits the plan "at once", before any task. A heavy upgrade needs both.
-- Proposal: SETUP says it: branch, hooks photograph, the pin's correction, preflight again,
-  then the plan.
-- Expected benefit / risk: no judgement call at the start of every heavy upgrade. Risk: none.
-- Destination: framework
-
-### IMP-046 — zsh traps beyond word splitting in the agent's command lines
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — three zsh-only failures in one upgrade
-- Observed problem: docs/04 warns that zsh does not split an unquoted variable. Three other
-  zsh behaviours broke command lines here: `"$tag:scripts/x"` reads `:s` as a history
-  modifier ("bad substitution"); `echo =====` expands `=word` (`==== not found`); `path` and
-  `status` are special parameters a loop variable silently clobbers.
-- Proposal: add them to docs/04's line on command lines for zsh: `${var}` before a colon, a
-  word starting with `=` quoted, never `path`/`status` as a variable name.
-- Expected benefit / risk: fewer broken blocks for the user and the agent. Risk: none.
-- Destination: framework
-
-### IMP-047 — The boundary's permission claims rest on a local settings file nobody checks
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate, finding F2
-- Observed problem: docs/04 states that `git switch -C` and `git checkout -B` "prompt, or
-  meet auto mode's classifier" because "no allow rule names them", and that
-  `settings.local.json` starts out empty. In this project the untracked local file held wildcard rules (`git checkout *`,
-  `git tag *`, `gh repo *`, `make test *`) that approve discards, tags and forge writes with
-  no prompt and, in auto mode, unseen by the classifier: the claims did not hold, and no
-  step of the method reads that file.
-- Proposal: `/fw:security-review` (or `/fw:lint-memory`, with the rules' globs) reads the
-  local and the user-level settings against docs/04's *Permission configuration* and lists
-  every allow rule that names a form docs/04 says prompts — a discard, a tag, a forge write,
-  an exec option.
-- Expected benefit / risk: the boundary's claims are checked where they can fail. Risk:
-  none; the file stays the user's.
-- Destination: framework
-
-### IMP-048 — Attribution trailers a harness adds against "no external name in shared history"
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate, finding F6
-- Observed problem: the harness running the agent asks for a trailer with a session URL in
-  every commit message; the core says "never a name external to the project in shared
-  history". The upgrade's commits carry it, the first in the repository's history; nothing
-  in the method says which instruction prevails, so the choice surfaced only at the gate,
-  before the push.
-- Proposal: docs/04, *Commit format*, says how a harness's attribution trailer is treated —
-  kept and declared, or left out — and that the user's choice is recorded once (a technical
-  rule) and applied from then on.
-- Expected benefit / risk: no surprise in public history at push time. Risk: none.
-- Destination: framework
-
-### IMP-049 — The memory claims an upgrade makes stale have no step of their own
-- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate (F4) and its memory lint
-- Observed problem: the upgrade moved the gate's rule, the sensitive list and the public
-  contract out of the docs into CLAUDE.md's answers and renamed the memory's titles; STATE's
-  decisions, decision notes and the open plan still describe the old homes ("the paths in
-  docs/03", "headings frozen, mapped in CLAUDE.md", "one lens"). The memory may not be
-  touched during the upgrade, and the first checkpoint after the merge condenses STATE but
-  has no list of what the upgrade made stale.
-- Proposal: Step 6 writes in the upgrade's session note the memory claims the upgrade made
-  stale — a grep of the moved homes and renamed titles over the living memory —, as the
-  first checkpoint's work list after the merge.
-- Expected benefit / risk: no stale claim about the method survives the next checkpoint.
-  Risk: none.
-- Destination: framework
-
-### IMP-050 — Sensitive components named by code path, and how the gate's "not applicable" reads them
-- Date: 2026-11-07 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — emerged during the upgrade to v4.1.0 — a proportional security gate had to be rebuilt inside the core's rule 8 (decided at U2, [[decisions/2026-10-19-framework-upgrade-v4.1.0]]; recorded on 2026-11-07)
-- Observed problem: the project gated only changes to the paths that delete, install or
-  configure, and let the author verify any other edit to the same files. That exemption
-  restricts rule 8 and could not survive the upgrade. Listing whole files in the Sensitive
-  components answer instead sends every edit of those files through the gate, losing the
-  proportionality; and /fw:integrate would stop on each "not applicable" declaration.
-- Proposal: the method states that a sensitive component may be a code path inside a file
-  (named in the answer), that a change outside every named path makes the gate "not
-  applicable" — declared in the gate line —, and how /fw:integrate checks that declaration.
-- Expected benefit / risk: a proportional gate without weakening rule 8. Risk: the judgement
-  "outside the path" rests on whoever declares it; an independent reviewer can confirm it.
-- Destination: framework
-
 ### IMP-051 — The guard reads a redirection after `git diff` as its two operands
 - Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — a plain diff saved to a file was refused in the main session
 - Observed problem: `git diff > <a file outside the work tree>` is refused in every session,
@@ -708,7 +481,7 @@ tags: [improvement]
 
 ### IMP-053 — A read-only command's findings about the project's own records live only in the chat
 - Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — the harvest's two Level 1 corrections had to be recovered from a transcript
-- Observed problem: the 2026-11-07 `/fw:harvest-framework` found two quotes of docs/04 in
+- Observed problem: the 2026-10-31 `/fw:harvest-framework` found two quotes of docs/04 in
   IMP-033 and IMP-047 that docs/04 does not hold, and could not correct them (the command
   does not modify LEARNINGS.md). The corrections and their exact words lived only in that
   session's chat; the next writing session found them by searching its transcript.
@@ -740,7 +513,10 @@ tags: [improvement]
   script into the main session's scratch folder, never ran it, and disclosed it. The
   repository's snapshot (`scripts/repo-snapshot.sh`) was identical before and after, as it
   must be: it reads the repository only, so a write elsewhere is seen only if the agent says
-  so.
+  so. The upgrade's gate had the same case: its reviewer wrote the guard's stderr to
+  `/tmp/claude-501/gd.err`, outside its scratch folder, and removed it with `rm -f`, known
+  again only from its own report (`gate/result.json:205` in the upgrade's working folder,
+  STATE #40). The user sent this evidence upstream with the entry on 2026-11-08.
 - Proposal: docs/04, *Delegated agents and the shared working tree*: the main session gives a
   delegated agent a scratch folder of its own, named in the brief, and lists the folders an
   agent could write to — that one and its own scratch area — before and after the run, beside
@@ -752,16 +528,37 @@ tags: [improvement]
 ### IMP-056 — A gate finding about a claim's list is closed by scoping the claim, not by extending the list
 - Date: 2026-11-07 | Origin: [[sessions/2026-11-07-post-upgrade-checkpoint]] — four review rounds on one sentence of CLAUDE.md
 - Observed problem: the answer **Error format** claimed "errors ONLY through `_err`/`_warn`"
-  with an exhaustive list of exceptions. Each review round found one more site the list
-  missed, and each fix — a shipped file changed after the reviewed tip — needed a new round
-  (`/fw:integrate`'s check): four rounds before the claim was rewritten as a rule scoped to
-  where it was verified (`lib/` and the modules), with open-ended examples ("among them").
+  with an exhaustive list of exceptions. Each of the first three review rounds found one more
+  site the list missed, and each fix — a shipped file changed after the reviewed tip — needed
+  a new round (`/fw:integrate`'s check). After the third, the claim was rewritten as a rule
+  scoped to where it was verified (`lib/` and the modules), with open-ended examples
+  ("among them"); the fourth round found nothing more on it.
 - Proposal: docs/03, *The lenses of the gate*: when a finding shows a claim's list
   incomplete, the first fix narrows the claim's scope to what was verified and makes its
   lists examples, rather than adding the one site found; the review of that fix reads the
   claim's whole set once.
 - Expected benefit / risk: one round instead of several on a claim that enumerates. Risk: a
   claim scoped too narrowly says less than the code does; the reviewer checks the scope.
+- Destination: framework
+
+### IMP-057 — An IMP delivered to the framework has no status of its own
+- Date: 2026-11-08 | Origin: [[sessions/2026-11-08-framework-triage-imp-033-050]] — 18 entries the framework recorded had to be filed under Deferred
+- Observed problem: docs/06 names four sections for the backlog — OPEN, Applied, Deferred,
+  Rejected —, the ones LEARNINGS holds, and its bridge to the framework says a
+  framework-bound lesson "follows its normal cycle IN the project". Once the framework
+  records it, as an entry of its own or as evidence on one it holds, the project no longer
+  decides it, gets the change only through an upgrade and cannot reject it: none of the four
+  fits. Here 18 entries (IMP-033…050) went under Deferred, forced, the delivery written in
+  each title and the trigger "the framework release that contains IMP-<n>, checked at the
+  next upgrade"; and `/fw:harvest-framework`'s default perimeter, every
+  marked entry in every section, would print them again.
+- Proposal: docs/06, *The bridge to the framework*, and LEARNINGS' format comment name a
+  status for a lesson the framework has recorded — the upstream number and the date, closed
+  in the project —, and say that the upgrade which brings the change moves it to Applied, or
+  records the framework's rejection; `/fw:harvest-framework` leaves such entries out by
+  default.
+- Expected benefit / risk: the backlog says where each framework-bound lesson stands, and a
+  harvest does not resend what the framework holds. Risk: one more status in the format.
 - Destination: framework
 
 <!-- Format of a proposal:
@@ -1027,6 +824,316 @@ line on; older entries are not backfilled.
   progress; also any review that finds such an emission ungated. (M4 was roadmap-v2's
   milestone, superseded on 2026-10-07; of its items only BM-15, BM-16 and BM-18 remain,
   as post-2.0.0 candidates — recorded on 2026-11-08 by `/fw:lint-memory`.)
+
+### IMP-033 — A prefix permission on an interpreter's check-only option runs code → deferred on 2026-11-08: delivered to the framework as its IMP-153 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an allow rule meant for a syntax check auto-approved code
+- Observed problem: the project's `allow` held `Bash(zsh -n:*)`, a syntax check.
+  `zsh -n +n -c 'print -r -- X'` prints X and exits 0 — a later `+n` cancels `-n` —, so the
+  prefix rule auto-approved arbitrary code with no prompt (measured twice, independently).
+  bash behaves the same: `bash -n +n -c 'echo X'` prints X and exits 0 (measured on bash
+  3.2.57, 2026-11-08).
+  docs/04 asks for rules "clean and specific" and warns that a narrow rule can let through
+  "a script path or flag the rule's prefix didn't anticipate", but says nothing of a
+  check-only flag that the interpreter's own later arguments can undo.
+- Proposal: a warning in docs/04, *Permission configuration*: a prefix rule on an
+  interpreter's check-only option (`zsh -n`, `bash -n`, a compile-only flag) is not
+  read-only — later arguments can turn execution back on; such a check runs through a
+  Makefile target, or stays out of `allow`.
+- Expected benefit / risk: closes a class of silent auto-approvals that read as harmless.
+  Risk: one more prompt for a syntax check.
+- Deferred: the change is the framework's — its IMP-153 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-153, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-034 — SETUP Step 3: merge `settings.json` out of place, check it, write it at once → deferred on 2026-11-08: delivered to the framework as its IMP-154 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an in-place 3-way leaves invalid JSON in a file Claude Code reloads at once
+- Observed problem: Step 3 merges the hybrids in place, `.claude/settings.json` included.
+  With conflicts (two, here) the file holds conflict markers — invalid JSON — while they are
+  resolved, and Claude Code reloads it at once: what its deny and ask rules and its hooks do
+  meanwhile is not stated (not measured).
+- Proposal: in SETUP Step 3, for `settings.json`: the 3-way on a copy in `T`, the conflicts
+  resolved there, the result parsed (`node -e 'JSON.parse(…)'`), then one copy into place.
+- Expected benefit / risk: the boundary's configuration is never invalid on disk during an
+  upgrade. Risk: none.
+- Deferred: the change is the framework's — its IMP-154 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-154, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-035 — `scripts/state-inject.sh` points a client project at a guide it does not hold → deferred on 2026-11-08: delivered to the framework as its IMP-155 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a pruning the project made by hand comes back in a METHOD script
+- Observed problem: when STATE.md is missing, `scripts/state-inject.sh:50` prints "(the
+  framework setup guide copies it at step 1 and fills it at step 4)". A client project has
+  no setup guide; it had pruned the same kind of pointer from its old SessionStart fallback,
+  and a METHOD script cannot be edited to prune it again.
+- Proposal: the message names "the framework's `SETUP.md` (in the framework repository)",
+  the labelled form the framework's own IMP-049 gave the docs, or drops the pointer.
+- Expected benefit / risk: no dead pointer in what a client project prints. Risk: none.
+- Deferred: the change is the framework's — its IMP-155 since the Architect's triage of
+  2026-11-08, extending its IMP-049, applied there — and reaches this project through an
+  upgrade.
+- Resumption trigger: the framework release that contains IMP-155, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-036 — The guard refuses a framework read on a literal path to a bare clone → deferred on 2026-11-08: delivered to the framework as its IMP-156 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a false positive of the implicit no-index check
+- Observed problem: `git -C <literal path of a bare clone> diff vX vY` — and `cd <bare> &&
+  git diff vX vY`, `git --git-dir=<bare> diff vX vY` — is refused in every session, the main
+  one included, as a `--no-index` comparison: `rev-parse --show-toplevel` fails in a bare
+  repository and the two revisions are read as paths (measured with v4.1.0's guard). SETUP
+  recommends a bare clone as FW; the procedure's `"${FW:?}"` form passes only because the
+  location stays unknown to the guard.
+- Proposal: the guard recognises a bare repository (`rev-parse --is-bare-repository`) and
+  reads its operands as revisions; a case in `test-agent-git-guard.sh`.
+- Expected benefit / risk: the documented FW reads work in every spelling. Risk: none for
+  the refusal it keeps (a path outside any repository).
+- Deferred: the change is the framework's — its IMP-156 since the Architect's triage of
+  2026-11-08, a false positive of the no-index refusal of its IMP-123 — and reaches this
+  project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-156, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-037 — The inventory's edge-case-8 list missed an answered slot of docs/00 (evidence for the framework's IMP-139) → deferred on 2026-11-08: delivered to the framework as evidence on its IMP-139 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — an answer outside the list of moved answers
+- Observed problem: `inventory` listed the moved answers of docs/02–04 and of CLAUDE.md's
+  rules 5 and 8, but not docs/00's step-2 slot ("the concrete list is" a setup marker),
+  which the project had answered; it flagged docs/00 only as a customised METHOD file (edge
+  case 7). Nothing was lost — the same content reached the answer through rule 8 —, but a
+  docs/00 answer of its own would have been lost without a line.
+- Proposal: the inventory's edge-case-8 scan covers every METHOD file whose slot moved to
+  an answer line, docs/00 included — evidence for the framework's IMP-139.
+- Expected benefit / risk: no answer leaves the inventory's list. Risk: none.
+- Deferred: the change is the framework's — evidence on its IMP-139, no entry of its own,
+  since the Architect's triage of 2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-139, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-038 — The release policy as an answer `/fw:integrate` reads → deferred on 2026-11-08: delivered to the framework as its IMP-157 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a tag-free integration rests on a rule the command does not read
+- Observed problem: on a trunk-based project `fw/integrate.md` puts the tag on the one
+  branch in both regimes, and its step 2 weighs content (a new rule or command in a shipped
+  file is a MINOR even under `chore`). A project that tags only from release branches can
+  say so only in its technical rules, which `/fw:integrate` does not read: a tag-free block 1
+  depends on the agent applying a rule the command never names.
+- Proposal: an answer line **Releases** in *The answers the method reads* — whether every
+  integration with a bump is tagged, or only a release branch's — read by `/fw:integrate`'s
+  step 2.
+- Expected benefit / risk: the tag decision follows the project's recorded policy, checked
+  by the command. Risk: one more answer line.
+- Deferred: the change is the framework's — its IMP-157 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-157, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-039 — `grafted`: preflight asks `n/a`, Step 6 says not to touch it — complete both → deferred on 2026-11-08: delivered to the framework as its IMP-158 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two instructions on the same pin field disagree
+- Observed problem: preflight's CHECK reads "'n/d' is the placeholder of the Italian
+  releases — write 'n/a' at Step 6", while SETUP Step 6 says "`grafted` is not touched (it is
+  the date of the original graft)". A project that knows its real graft date, provable from
+  its own history, has no stated way to write it.
+- Proposal: complete both texts: `grafted` is touched only to bring it to its canonical
+  form, or to write the real date of the graft proven by git — the graft commit's date, the
+  command and its output in the upgrade's session note.
+- Expected benefit / risk: one rule for the field, and a real date where one exists. Risk:
+  none.
+- Deferred: the change is the framework's — its IMP-158 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-158, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-040 — `reset-task.sh`'s fallback ignores the Makefile's list → deferred on 2026-11-08: delivered to the framework as its IMP-159 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — a project's protected branch unprotected on one path
+- Observed problem: since v1.3.2 the protected branches are the Makefile's
+  `PROTECTED_BRANCHES`. Run directly and interactively without the variable,
+  `scripts/reset-task.sh` warns and falls back to `main develop`: a project's own list —
+  here a dormant `dev` — is unprotected on that path (no effect here today: no local `dev`).
+- Proposal: without the variable, the script reads the `PROTECTED_BRANCHES =` line of the
+  Makefile at the repository's root before any fallback, or refuses to run.
+- Expected benefit / risk: one list, honoured on every path. Risk: none.
+- Deferred: the change is the framework's — its IMP-159 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-159, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-041 — The inventory's measures of the LEARNINGS header and format comment differ from Step 3's → deferred on 2026-11-08: delivered to the framework as its IMP-160 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the counts announced did not match the merge run
+- Observed problem: `inventory` blanks `updated:` before measuring the LEARNINGS header (1
+  conflict); Step 3's literal commands keep it (2 conflicts: the date too). The format
+  comment's own 3-way (1 conflict) is not measured by `inventory` at all.
+- Proposal: `inventory` measures with Step 3's own commands, or names the date conflict as
+  expected; and it measures the format comment too.
+- Expected benefit / risk: the user is told what the merge will show. Risk: none.
+- Deferred: the change is the framework's — its IMP-160 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-160, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-042 — A self-test copies a file the upgrade's order may not have brought yet → deferred on 2026-11-08: delivered to the framework as its IMP-161 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — `test-check-prerequisites.sh` failed on a missing `.gitattributes`
+- Observed problem: `scripts/test-check-prerequisites.sh` copies the project's
+  `.gitattributes`; run before `.gitattributes` was brought (v1.5.0 adds it, v2.0.0 the
+  self-test, and no note orders them) it failed with "cp: …/.gitattributes: No such file or
+  directory" — a failure about the fixture, not the script.
+- Proposal: SETUP Step 3 orders `.gitattributes` before `make test-scripts`, or the
+  self-test names the missing fixture and its cause.
+- Expected benefit / risk: no false red during an upgrade. Risk: none.
+- Deferred: the change is the framework's — its IMP-161 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-161, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-043 — STATE's numbered entries are no stable anchor through a condensing checkpoint → deferred on 2026-11-08: delivered to the framework as its IMP-162 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — code and tests cite open issues by number
+- Observed problem: the project's code comments and tests cite STATE entries by number
+  ("STATE #11"); the v4 checkpoint condenses *Caution & open issues* to one line per entry,
+  and nothing in the method says an entry keeps its number, nor how code should cite an open
+  issue. Edge case 3 (b) covers code citing a title, not an entry.
+- Proposal: `fw/checkpoint.md` (or docs/06): an entry keeps its number as a label and a
+  number is never reused — or the method recommends citing a durable target (a session
+  note, a plan's task) instead of an entry.
+- Expected benefit / risk: citations that survive the rewrite of the dashboard. Risk: none.
+- Deferred: the change is the framework's — its IMP-162 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-162, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-044 — The upgrade's checkpoint: "the framework version and no more" against "every open thread has its entry" → deferred on 2026-11-08: delivered to the framework as its IMP-163 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two rules for the same STATE rewrite
+- Observed problem: SETUP Step 6 has the upgrade's checkpoint update STATE "with the updated
+  framework version and no more"; the core (*Memory and resumption*) and `fw/checkpoint.md`
+  step 3 require every open thread of the note it writes — a question awaiting the user —
+  to have its entry in *Caution & open issues*, and docs/03 puts a gate's accepted debt
+  there. An upgrade leaves such threads (here: the anchors' form, the lint target, the
+  user's local permissions), so the texts cannot all be followed literally.
+- Proposal: Step 6 allows, besides the framework version, the entries of the upgrade's own
+  open threads and of its gate's accepted debt.
+- Expected benefit / risk: no open thread of an upgrade lives only in a note. Risk: none.
+- Deferred: the change is the framework's — its IMP-163 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-163, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-045 — Step 0's pin fix and `/fw:plan`'s first commit: name the order → deferred on 2026-11-08: delivered to the framework as its IMP-164 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — two "first" commits
+- Observed problem: Step 0 makes the pin's correction "the upgrade branch's first commit";
+  `/fw:plan` commits the plan "at once", before any task. A heavy upgrade needs both.
+- Proposal: SETUP says it: branch, hooks photograph, the pin's correction, preflight again,
+  then the plan.
+- Expected benefit / risk: no judgement call at the start of every heavy upgrade. Risk: none.
+- Deferred: the change is the framework's — its IMP-164 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-164, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-046 — zsh traps beyond word splitting in the agent's command lines → deferred on 2026-11-08: delivered to the framework, the `path` part as its IMP-165 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — three zsh-only failures in one upgrade
+- Observed problem: docs/04 warns that zsh does not split an unquoted variable. Three other
+  zsh behaviours broke command lines here: `"$tag:scripts/x"` reads `:s` as a history
+  modifier ("bad substitution"); `echo =====` expands `=word` (`==== not found`); `path` is a
+  special parameter tied to `PATH`, which a loop variable of that name silently clobbers
+  (`for path in /nowhere` leaves `PATH=/nowhere`, exit 0), while `status` is read-only, so a
+  loop on it fails at once with "read-only variable: status" (exit 1; both measured on zsh
+  5.9, 2026-11-08).
+- Proposal: add them to docs/04's line on command lines for zsh: `${var}` before a colon, a
+  word starting with `=` quoted, never `path`/`status` as a variable name.
+- Expected benefit / risk: fewer broken blocks for the user and the agent. Risk: none.
+- Deferred: the change is the framework's. Since the Architect's triage of 2026-11-08 the
+  `path` part is its IMP-165, extending its IMP-136; the `:s` and `=word` part duplicates its
+  IMP-112, which the framework had rejected: it recorded that the problem recurs, and its
+  triage decides whether to reopen it. The `path` part reaches this project through an
+  upgrade.
+- Resumption trigger: the framework release that contains IMP-165, checked at the next
+  upgrade; for the `:s` and `=word` part, the triage's decision on IMP-112 (STATE #40).
+- Destination: framework
+
+### IMP-047 — The boundary's permission claims rest on a local settings file nobody checks → deferred on 2026-11-08: delivered to the framework as its IMP-166 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate, finding F2
+- Observed problem: docs/04 states that `git switch -C` and `git checkout -B` "prompt, or
+  meet auto mode's classifier" because "no allow rule names them", and that
+  `settings.local.json` starts out empty. In this project the untracked local file held wildcard rules (`git checkout *`,
+  `git tag *`, `gh repo *`, `make test *`) that approve discards, tags and forge writes with
+  no prompt and, in auto mode, unseen by the classifier: the claims did not hold, and no
+  step of the method reads that file.
+- Proposal: `/fw:security-review` (or `/fw:lint-memory`, with the rules' globs) reads the
+  local and the user-level settings against docs/04's *Permission configuration* and lists
+  every allow rule that names a form docs/04 says prompts — a discard, a tag, a forge write,
+  an exec option.
+- Expected benefit / risk: the boundary's claims are checked where they can fail. Risk:
+  none; the file stays the user's.
+- Deferred: the change is the framework's — its IMP-166 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-166, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-048 — Attribution trailers a harness adds against "no external name in shared history" → deferred on 2026-11-08: delivered to the framework as its IMP-167 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate, finding F6
+- Observed problem: the harness running the agent asks for a trailer with a session URL in
+  every commit message; the core says "never a name external to the project in shared
+  history". The upgrade's commits carry it, the first in the repository's history; nothing
+  in the method says which instruction prevails, so the choice surfaced only at the gate,
+  before the push.
+- Proposal: docs/04, *Commit format*, says how a harness's attribution trailer is treated —
+  kept and declared, or left out — and that the user's choice is recorded once (a technical
+  rule) and applied from then on.
+- Expected benefit / risk: no surprise in public history at push time. Risk: none.
+- Deferred: the change is the framework's — its IMP-167 since the Architect's triage of
+  2026-11-08, where the project's `attribution.sessionUrl` key counts as evidence, not as
+  proof (STATE #42) — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-167, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-049 — The memory claims an upgrade makes stale have no step of their own → deferred on 2026-11-08: delivered to the framework as its IMP-168 (user decision)
+- Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — the upgrade's gate (F4) and its memory lint
+- Observed problem: the upgrade moved the gate's rule, the sensitive list and the public
+  contract out of the docs into CLAUDE.md's answers and renamed the memory's titles; STATE's
+  decisions, decision notes and the open plan still describe the old homes ("the paths in
+  docs/03", "headings frozen, mapped in CLAUDE.md", "one lens"). The memory may not be
+  touched during the upgrade, and the first checkpoint after the merge condenses STATE but
+  has no list of what the upgrade made stale.
+- Proposal: Step 6 writes in the upgrade's session note the memory claims the upgrade made
+  stale — a grep of the moved homes and renamed titles over the living memory —, as the
+  first checkpoint's work list after the merge.
+- Expected benefit / risk: no stale claim about the method survives the next checkpoint.
+  Risk: none.
+- Deferred: the change is the framework's — its IMP-168 since the Architect's triage of
+  2026-11-08 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-168, checked at the next
+  upgrade.
+- Destination: framework
+
+### IMP-050 — Sensitive components named by code path, and how the gate's "not applicable" reads them → deferred on 2026-11-08: delivered to the framework as its IMP-169 (user decision)
+- Date: 2026-11-07 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — emerged during the upgrade to v4.1.0 — a proportional security gate had to be rebuilt inside the core's rule 8 (decided at U2, [[decisions/2026-10-19-framework-upgrade-v4.1.0]]; recorded on 2026-11-07)
+- Observed problem: the project gated only changes to the paths that delete, install or
+  configure, and let the author verify any other edit to the same files. That exemption
+  restricts rule 8 and could not survive the upgrade. Listing whole files in the Sensitive
+  components answer instead sends every edit of those files through the gate, losing the
+  proportionality; and /fw:integrate would stop on each "not applicable" declaration.
+- Proposal: the method states that a sensitive component may be a code path inside a file
+  (named in the answer), that a change outside every named path makes the gate "not
+  applicable" — declared in the gate line —, and how /fw:integrate checks that declaration.
+- Expected benefit / risk: a proportional gate without weakening rule 8. Risk: the judgement
+  "outside the path" rests on whoever declares it; an independent reviewer can confirm it.
+- Deferred: the change is the framework's — its IMP-169 since the Architect's triage of
+  2026-11-08, extending its IMP-141 — and reaches this project through an upgrade.
+- Resumption trigger: the framework release that contains IMP-169, checked at the next
+  upgrade.
+- Destination: framework
 
 ## Rejected (with the reason — so they are not re-proposed)
 _(nessuna)_

@@ -57,6 +57,9 @@ the claims the upgrade made stale marked; the branch at `/fw:integrate`'s block 
   claims (#34–#36) too; task 8 touches only `.claude/memory/`.
 - After task 8: `/fw:integrate` up to block 0 — the gate line and the base checked, the bump
   computed (no tag: the technical rule **Releases**) — then STOP for the user.
+- Correction of 2026-11-08: task 4's "found by the 2026-11-07 harvest" — the harvest ran on
+  2026-10-31, and the user sent it to the Architect on 2026-11-07
+  ([[sessions/2026-11-08-framework-triage-imp-033-050]]). The task's line stays as written.
 
 ## Links
 [[STATE]] · [[decisions/2026-11-07-framework-architect-decisions]] ·
