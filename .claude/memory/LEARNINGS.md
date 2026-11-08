@@ -454,6 +454,8 @@ tags: [improvement]
 - Observed problem: the project's `allow` held `Bash(zsh -n:*)`, a syntax check.
   `zsh -n +n -c 'print -r -- X'` prints X and exits 0 — a later `+n` cancels `-n` —, so the
   prefix rule auto-approved arbitrary code with no prompt (measured twice, independently).
+  bash behaves the same: `bash -n +n -c 'echo X'` prints X and exits 0 (measured on bash
+  3.2.57, 2026-11-08).
   docs/04 asks for rules "clean and specific" and warns that a narrow rule can let through
   "a script path or flag the rule's prefix didn't anticipate", but says nothing of a
   check-only flag that the interpreter's own later arguments can undo.
