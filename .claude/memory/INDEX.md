@@ -15,7 +15,7 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
-  023–029, 032, 051–056 (IMP-051…056 sent to the framework's Architect on 2026-11-08);
+  023–029, 032, 051–057 (IMP-051…056 sent to the framework's Architect on 2026-11-08);
   Applied IMP-001–004, 007, 022, 030, 031; Deferred IMP-005 and IMP-033…050 (delivered to the
   framework on 2026-11-08); none rejected
 

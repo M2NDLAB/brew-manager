@@ -541,6 +541,26 @@ tags: [improvement]
   claim scoped too narrowly says less than the code does; the reviewer checks the scope.
 - Destination: framework
 
+### IMP-057 — An IMP delivered to the framework has no status of its own
+- Date: 2026-11-08 | Origin: [[sessions/2026-11-08-framework-triage-imp-033-050]] — 18 entries the framework recorded had to be filed under Deferred
+- Observed problem: docs/06 names four sections for the backlog — OPEN, Applied, Deferred,
+  Rejected —, the ones LEARNINGS holds, and its bridge to the framework says a
+  framework-bound lesson "follows its normal cycle IN the project". Once the framework
+  records it, as an entry of its own or as evidence on one it holds, the project no longer
+  decides it, gets the change only through an upgrade and cannot reject it: none of the four
+  fits. Here 18 entries (IMP-033…050) went under Deferred, forced, the delivery written in
+  each title and the trigger "the framework release that contains the upstream entry,
+  checked at the next upgrade"; and `/fw:harvest-framework`'s default perimeter, every
+  marked entry in every section, would print them again.
+- Proposal: docs/06, *The bridge to the framework*, and LEARNINGS' format comment name a
+  status for a lesson the framework has recorded — the upstream number and the date, closed
+  in the project —, and say that the upgrade which brings the change moves it to Applied, or
+  records the framework's rejection; `/fw:harvest-framework` leaves such entries out by
+  default.
+- Expected benefit / risk: the backlog says where each framework-bound lesson stands, and a
+  harvest does not resend what the framework holds. Risk: one more status in the format.
+- Destination: framework
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
