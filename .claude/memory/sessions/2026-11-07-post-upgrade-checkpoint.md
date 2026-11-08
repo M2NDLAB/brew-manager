@@ -350,6 +350,37 @@ The user's answers to the five points the report left open (2026-11-08):
   gate.
 - Task 3's checkpoint condenses STATE to 7,000 characters at most (the target above).
 
+### `/fw:lint-memory`, read-only (2026-11-08)
+The whole memory, the command's thirteen checks; then the fixes, memory only and none
+adding a character to STATE (the user's bounds): `3409469`, `20b3657` and this record.
+- Clean: 1 (STATE against git: the two local branches, `main` = `origin/main` = `0b127a9`,
+  `v1.5.0` = VERSION, `origin/dev` merged), 8 (TREE.md = `tree`'s output, its non-breaking
+  spaces aside), 9 (OPEN, Applied and Deferred agree in LEARNINGS, STATE and INDEX; the
+  gate's accepted debt carries its reason, every entry its trigger), 10 (no setup marker),
+  11 (commands, process targets, scripts), 12 (7,950 characters, all shown: the banner,
+  then `## Caution & open issues`), 13 (every glob matches a tracked file; no `@` import).
+- Not findings: the two `[[<session note>]]` (check 7) are placeholders in LEARNINGS'
+  format comment; the four folder READMEs (check 4) are the template's guides, which
+  `/fw:checkpoint` and `/fw:integrate` read.
+- Fixed, stale claims and one contradiction (checks 2–3, `3409469`), the component notes
+  read against the code: mod-00-audit's two defects still open (fixed in BM-04,
+  `430f322`); core-brew-manager's `--yes` "on without a TTY" (false since BM-08c, and
+  against its own section further down), "v1.3.0 released", "the rest of the core
+  untested"; lib-selection's return codes "not load-bearing" and BM-08b's move of the
+  source; lib-common's six wired modules (seven), its mod_02 example (gated since
+  2026-07-21), "branch 6" (task 4) and "until BM-18" (task 7); mod-bk-brewfile's closed
+  plan's branches (task 3); mod-01-health's writes without the `git status` index refresh
+  (#3); INDEX's "12 modules, read-only or low/medium risk" (13, four on the gate's list).
+- Fixed, missing links (checks 3 and 6, `3409469`, `20b3657`): 22 sessions that changed a
+  component's code, absent from its note; INDEX without the v0.2.0 → v0.5.1 upgrade's plan;
+  the decision of 2026-09-25 without its superseded line; IMP-005's trigger naming M4,
+  without the fact that M4 went with roadmap-v2.
+- A page to write (check 5): module 4 (`danger`, on the gate's list; #4 and #4b → task 7)
+  has no note — components/README writes one at its first substantial change, task 7.
+  Modules 10, mas and log go in task 3.
+- Left for task 3's branch: nothing from the lint; the user's two items above.
+- STATE: #43 closed, its trigger run; 7,911 characters after this record, all shown.
+
 ## Appendix A — STATE.md's *Caution & open issues* at `0b127a9`, verbatim
 The section's text from the line after its title to its end (lines 416–877 of
 `git show 0b127a9:.claude/memory/STATE.md`), Italian where it was written in Italian.

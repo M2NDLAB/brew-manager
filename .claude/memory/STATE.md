@@ -1,12 +1,12 @@
 ---
 type: state
-updated: 2026-11-07
+updated: 2026-11-08
 branch: main
 tags: [state]
 ---
 # STATE — brew-manager
 
-> Updated: 2026-11-07 | Last: **the post-upgrade checkpoint** (`chore/post-upgrade-checkpoint`): STATE condensed; `make lint` = `zsh -n`; gate 0 C/H/M at `4e8149d`. → [[sessions/2026-11-07-post-upgrade-checkpoint]] | Index: [[INDEX]]
+> Updated: 2026-11-08 | Last: **the post-upgrade checkpoint** (`chore/post-upgrade-checkpoint`): STATE condensed; `make lint` = `zsh -n`; gate 0 C/H/M at `4e8149d`. → [[sessions/2026-11-07-post-upgrade-checkpoint]] | Index: [[INDEX]]
 
 ## Progress
 - [x] v1.1.2 → v1.5.0 and four framework upgrades, the last to v4.1.0 (merge `0b127a9`, no tag): the notes in [[INDEX]].
@@ -59,9 +59,8 @@ tags: [state]
 - **#40** `/Users/seco/Projects/_upgrade-scratch/brew-manager`: keep until the framework's triage closes, then the user deletes it (decision C) → TRIGGER: the triage closes.
 - **#41** Upstream duplicates among the OPEN IMPs: the Architect flags them after their harvest session; none closed as a duplicate before (decision D) → TRIGGER: the Architect's report.
 - **#42** `attribution.sessionUrl` unproven (it needs the project's settings loaded) → TRIGGER: each checkpoint, the link count of [[sessions/2026-11-07-post-upgrade-checkpoint]] (Follow-up); closes at a commit the user confirms came from Remote Control or the cloud. The user decides if CLAUDE.md's rule names the limit.
-- **#43** `/fw:lint-memory` after this wide rewrite (the core) → TRIGGER: the user runs it.
 - **#44** The run header's "no changes" (`--dry-run`, `brew_manager.sh:496`) and "built-in defaults" (`--yes`, `:500`) are false while #3, #14–#16, #21–#22 hold (LOW) → tasks 3–4.
-- Closed, text in appendix A: #1, #2, #5, #5b, #7, #8, #10, #17 (reopen: a caller sets the variables), #19, #20, #23 (reopen: no Homebrew outside a login shell), #28, #30 (merge `8a7e6a2`), #34 and #36 (decisions A, B: *Decisions made*), #35 (the user's local rules narrowed, re-read 2026-11-07), #37 (closed by `chore/post-upgrade-checkpoint`).
+- Closed, text in appendix A: #1, #2, #5, #5b, #7, #8, #10, #17 (reopen: a caller sets the variables), #19, #20, #23 (reopen: no Homebrew outside a login shell), #28, #30 (merge `8a7e6a2`), #34 and #36 (decisions A, B: *Decisions made*), #35 (the user's local rules narrowed, re-read 2026-11-07), #37 (closed by `chore/post-upgrade-checkpoint`), #43 (the lint ran 2026-11-08: the note's Follow-up).
 - [[LEARNINGS]]: OPEN 006, 008–021, 023–029, 032–056 (033…050 sent to the Architect 2026-11-07) → TRIGGER: the periodic retro or the user's request; the ones v4.1.0 covers upstream after #41. Applied 001–004, 007, 022, 030, 031; Deferred 005 (its own trigger).
 
 ## Active branches

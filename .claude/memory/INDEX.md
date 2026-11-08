@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-11-07
+updated: 2026-11-08
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -182,7 +182,8 @@ tags: [moc]
   STATE condensed from 76,088 to 7,950 characters, every open entry under its number (#38–#44
   new), the whole old STATE verbatim in its appendices A–C; the architect's decisions A–D
   (`make lint` = `zsh -n`, the session link off); the stale claims marked; IMP-050…056; the
-  gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). Ready for integration (no tag).
+  gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). On 2026-11-08 the user's answers
+  and `/fw:lint-memory`, its fixes memory only. Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
