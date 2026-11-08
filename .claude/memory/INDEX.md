@@ -184,7 +184,13 @@ tags: [moc]
   new), the whole old STATE verbatim in its appendices A–C; the architect's decisions A–D
   (`make lint` = `zsh -n`, the session link off); the stale claims marked; IMP-050…056; the
   gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). On 2026-11-08 the user's answers
-  and `/fw:lint-memory`, its fixes memory only. Ready for integration (no tag).
+  and `/fw:lint-memory`, its fixes memory only. INTEGRATED (merge `71e2be9`, no tag).
+- [[sessions/2026-11-08-framework-triage-imp-033-050]] — the framework's triage of
+  IMP-033…050: 17 delivered as its IMP-153…169, IMP-037 as evidence on its IMP-139, all under
+  Deferred until the release that contains each; #41 closed, the old IMPs' thread kept; the
+  second harvest's Level 1 corrections (IMP-046, IMP-053, IMP-056) and additions (IMP-033,
+  IMP-055); IMP-057; STATE condensed to 6,997 characters. Memory only, gate not applicable.
+  Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
