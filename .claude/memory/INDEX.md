@@ -234,6 +234,8 @@ tags: [moc]
   and → v1.2.0 (merge `0725ae6`). Next: the debt cleanup before the Dashboard
   ([[plans/debt-cleanup-pre-dashboard]]), which closes #15/#16 and the `_module_14`
   collision (STATE #18) before M4. **SUPERSEDED on 2026-10-07** by [[plans/v2-personal-tool]].
+- [[plans/framework-upgrade-v0.2-to-v0.5.1]] — plan of the framework upgrade v0.2.0 →
+  v0.5.1 (7 tasks, process only), status: completed.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.

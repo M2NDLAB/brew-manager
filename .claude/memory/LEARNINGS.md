@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-11-07
+updated: 2026-11-08
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -1024,7 +1024,9 @@ line on; older entries are not backfilled.
   raw clear/tput/`\r` in the modules); only the convention line is missing.
 - Resumption trigger: new code that emits terminal control output (clear, cursor
   moves, `\r`) outside `_clear`/`_spinner`, or the first M4 module that draws
-  progress; also any review that finds such an emission ungated.
+  progress; also any review that finds such an emission ungated. (M4 was roadmap-v2's
+  milestone, superseded on 2026-10-07; of its items only BM-15, BM-16 and BM-18 remain,
+  as post-2.0.0 candidates — recorded on 2026-11-08 by `/fw:lint-memory`.)
 
 ## Rejected (with the reason — so they are not re-proposed)
 _(nessuna)_
