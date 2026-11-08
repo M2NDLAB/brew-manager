@@ -745,7 +745,10 @@ tags: [improvement]
   script into the main session's scratch folder, never ran it, and disclosed it. The
   repository's snapshot (`scripts/repo-snapshot.sh`) was identical before and after, as it
   must be: it reads the repository only, so a write elsewhere is seen only if the agent says
-  so.
+  so. The upgrade's gate had the same case: its reviewer wrote the guard's stderr to
+  `/tmp/claude-501/gd.err`, outside its scratch folder, and removed it with `rm -f`, known
+  again only from its own report (`gate/result.json:205` in the upgrade's working folder,
+  STATE #40). The user sent this evidence upstream with the entry on 2026-11-08.
 - Proposal: docs/04, *Delegated agents and the shared working tree*: the main session gives a
   delegated agent a scratch folder of its own, named in the brief, and lists the folders an
   agent could write to — that one and its own scratch area — before and after the run, beside
