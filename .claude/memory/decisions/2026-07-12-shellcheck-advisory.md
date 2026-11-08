@@ -20,3 +20,7 @@ tags: [decision]
   installato" NON è applicabile letteralmente su zsh: va letta come "finding
   advisory esaminati, non zero finding". Se il progetto mai migrasse a bash, il
   target può diventare bloccante rimuovendo il fallback `|| echo`.
+- **Superseded on 2026-11-07** by the framework architect's decision A
+  ([[2026-11-07-framework-architect-decisions]]): `make lint` runs `make check`'s `zsh -n`
+  on the same files, a syntax check only — shellcheck does not support zsh (SC1071) —, and
+  `Bash(shellcheck:*)` leaves `.claude/settings.json`'s allow; it closes STATE #34.

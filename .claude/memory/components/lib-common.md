@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-common
-updated: 2026-09-25
+updated: 2026-11-08
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
@@ -50,15 +50,16 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   guard-rail BM-08c/BM-09 preservato). Va chiamato solo sul path REALE (il dry-run
   per-modulo ha la sua preview e non conferma). Dettagli in ASCII puro (no em-dash
   multibyte: sballerebbe il border-math di `_box` in locale C). Pinnato da
-  `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei 6
-  moduli cablati).
+  `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei ~~6~~ 7
+  moduli cablati — mod_01 since 2026-10-10; corrected on 2026-11-08).
 
 ## Renderer del summary (BM-12) — presentazione del risultato
 - `_run_glyph <done|preview|failed>`: glifo di esito a **larghezza visibile fissa
   (4 col)**, `✓`/`↷`/`✗` → `[OK]`/`[--]`/`[!!]` in ASCII (stessa disciplina di
   `_risk_badge`). **`failed` è DEFINITO ma nessuno lo assegna**: i return dei
-  moduli sono rumore finché BM-18 non dà loro un contratto (STATE #4b) — un ✗
-  falso sarebbe peggio di nessun ✗.
+  moduli sono rumore finché ~~BM-18~~ non dà loro un contratto (STATE #4b) — un ✗
+  falso sarebbe peggio di nessun ✗. The contract is task 7 of [[plans/v2-personal-tool]]
+  now; the code's comments still name BM-18 (STATE #33) — corrected on 2026-11-08.
 - `_fmt_secs` / `_fmt_kb` / `_fmt_kb_or_na` / `_du_kb`: formatter puri ASCII per
   durate e dimensioni. `_du_kb` è il BORDO di validazione (`[[ $kb == <-> ]]`):
   ritorna **stringa vuota, mai 0**, quando la misura fallisce — uno 0 renderebbe
@@ -98,15 +99,18 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   un'azione automatica su tutti i Mac che schedulano il tool. Mai farlo senza
   passare dal security gate.
 - Un modulo che muta SENZA passare per `_ask` NON è coperto dalla guard-rail
-  (deve gate da `--dry-run` o da un prompt) — vedi `mod_02` `brew update`
-  (Attenzione #3 in STATE).
+  (deve gate da `--dry-run` o da un prompt) — ~~vedi `mod_02` `brew update`
+  (Attenzione #3 in STATE)~~: mod_02 skips `brew update` under `--dry-run` since the
+  dry-run micro-task (2026-07-21); today's case is module 1's writes under `--dry-run`
+  (STATE #3, task 4) — corrected on 2026-11-08.
 - `_read_choice` usa l'espansione indirendo `${(P)...}`: zsh-only, non portabile
   a bash.
 - `_handle_log` (lib/log.sh) ALWAYS reads stdin with a bare `read` (no YES or
   NONINTERACTIVE bypass). The cause recorded here was false (debt inventory
   2026-09-24): in non-TTY the read does not fail, it WAITS — it gets the default only
   while `script(1)`'s single EOF is still unread; after another bare read has consumed
-  it, the run hangs forever (STATE #21, branch 6).
+  it, the run hangs forever (STATE #21, ~~branch 6~~ task 4 of [[plans/v2-personal-tool]]
+  since the re-plan — corrected on 2026-11-08).
 - I colori NON sono più hardcoded fissi (BM-09): si risolvono per capacità
   (`TUI_COLOR_LEVEL`). Ogni output DEVE passare per le costanti `${C_*}`/`${SYM_*}`
   e le utility — mai `\033` propri (l'invariante è: zero `\033` grezzi fuori da
@@ -122,8 +126,13 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-13-bm04-adopt-off-by-one]] (`_read_choice` prints its notices on
+  stderr: the callers capture its value)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (guard-rail consenso vs non-interattivo)
 - [[sessions/2026-07-19-bm09-tui-foundation]] (rendering capability-aware: detection,
   handoff, palette semantica, primitivi box/clear; gate passato)
+- [[sessions/2026-07-20-bm10-risk-badges]] (`_risk_badge`, `_risk_caption`, `_ask_danger`)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (rimozione `_header_main`, solo-rimozione)
 - [[sessions/2026-07-21-bm12-progress-summary]] (`_spinner` su TUI_TTY + renderer del summary)
+- [[sessions/2026-10-10-homebrew-developer-mode]] (the `write` caption names Homebrew's
+  settings)

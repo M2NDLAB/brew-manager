@@ -69,3 +69,8 @@ tags: [decision, debt, dashboard, contract, release]
   items become the improvement's first task (the outcome contract 4b-1/4b-2 designed
   with the JSON schema, the invocation contract, headless consent, stable keys for
   `--adopt`, per-action entry points, the JSON layer into the sensitive lists).
+- **Superseded in part on 2026-09-27** (recorded on 2026-11-08) by
+  [[2026-09-27-personal-terminal-tool]]: no Dashboard, so what was bound to it lapses —
+  that note's *Consequences* lists it, `lib/agents.sh` and the conditions on #17 and #3b
+  among them —; the plan, [[plans/debt-cleanup-pre-dashboard]], closed on 2026-10-07
+  ([[2026-10-07-v2-plan]]). Branches 1–4 and the v1.5.0 release ran under this decision.

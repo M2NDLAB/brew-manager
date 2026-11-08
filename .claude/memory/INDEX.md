@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-10-07
+updated: 2026-11-08
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -14,18 +14,9 @@ tags: [moc]
 ## Stato
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): IMP-001 APPLICATA;
-  10 proposte APERTE — IMP-002 (checklist test di estrazione), IMP-003 (mai echo su
-  dati, rafforzata da BM-09), IMP-004 (chiudi la CLASSE: grep tutti i siti +
-  verifica adversariale), IMP-005 (controllo terminale gata su TUI_TTY, non solo
-  colore — BM-09), IMP-006 (review-workflow su un git-range: isola gli agenti o
-  vietali dal checkout — BM-10, Destinazione: framework), IMP-007 (smoke moduli =
-  selezione CLI, mai pipe sul prompt né head sull'output — BM-11/BM-12), IMP-008
-  (lente di gate "affermazioni, non solo azioni" — BM-12, Destinazione: framework),
-  IMP-009 (invariante su un debito = allow-list bidirezionale, non insieme vuoto),
-  IMP-010 (fix locale promosso a claim globale allarga l'insieme da verificare) e
-  IMP-011 (gatare un comando esterno: verifica se lo strumento lo riesegue da sé) —
-  le ultime tre `Destinazione: framework`
+- [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
+  023–029, 032–056 (IMP-033…050 sent to the framework's Architect on 2026-11-07); Applied
+  IMP-001–004, 007, 022, 030, 031; Deferred IMP-005; none rejected
 
 ## Per componente
 - [[core-brew-manager]] — entry point TUI, dispatch, recording (sensibile)
@@ -34,13 +25,17 @@ tags: [moc]
 - [[lib-selection]] — registry moduli + `_resolve_selection` (sensibile; dal BM-08a)
 - [[mod-01-health]] — the health check; since 2026-10-10 Homebrew's developer mode:
   read-only detection and a confirmed restore (a gated path, IMP-030)
-- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; bug off-by-one noto)
+- [[mod-00-audit]] — audit/adozione app non gestite (sensibile; the off-by-one and the
+  dry-run gap fixed in BM-04, STATE #2 — the note corrected on 2026-11-08)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
   `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
-- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; bug weekday)
-- [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; dipende dal bug CLI)
-- Gli altri 12 moduli (read-only o a rischio basso/medio) non hanno ancora una
-  nota: si crea alla prima modifica sostanziale (vedi components/README).
+- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; the weekday bug fixed in
+  BM-05a; removed in 2.0.0, task 3)
+- [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; its CLI dependency closed in M2;
+  removed in 2.0.0, task 3)
+- The other 13 modules have no note yet, four of them on the gate's list (modules 4 and
+  10, mas and log: CLAUDE.md, **Sensitive components**); a note is written at the first
+  substantial change (components/README).
 
 ## Per fase (sessioni — append-only)
 - [[sessions/2026-07-11-innesto-note]] — innesto del framework v0.2.0: assessment
@@ -177,19 +172,30 @@ tags: [moc]
 - [[sessions/2026-10-10-homebrew-developer-mode]] — task 2: module 1 never leaves Homebrew
   in developer mode (`brew ruby` gone, a prevention suite, a read-only detection, a
   confirmed restore); this Mac was already back on stable 7.0.8; the one-lens gate (no
-  C/H/M). Ready for integration.
+  C/H/M). INTEGRATED (merge `8a7e6a2`).
 - [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — framework upgrade v1.2.0 →
   v4.1.0 (fourth upgrade, one jump): FERMATA 1 assessment, the user's U1–U24, 11 task
   commits, 131 answers verified (0 lost), the gate on the boundary (reviewed tip `56d3b1a`,
-  0 C/H/M), the graft date proven by git, IMP-033…049. Ready for integration (no tag).
+  0 C/H/M), the graft date proven by git, IMP-033…049. INTEGRATED (merge `0b127a9`, no
+  tag).
+- [[sessions/2026-11-07-post-upgrade-checkpoint]] — the first checkpoint after the upgrade:
+  STATE condensed from 76,088 to 7,950 characters, every open entry under its number (#38–#44
+  new), the whole old STATE verbatim in its appendices A–C; the architect's decisions A–D
+  (`make lint` = `zsh -n`, the session link off); the stale claims marked; IMP-050…056; the
+  gate in four rounds (reviewed tip `4e8149d`, 0 C/H/M). On 2026-11-08 the user's answers
+  and `/fw:lint-memory`, its fixes memory only. Ready for integration (no tag).
 
 ## Decisioni
-- [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente
+- [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
+  protected list is the Makefile's since the v4.1.0 upgrade)
 - [[2026-07-12-componenti-sensibili]] — the "blast radius on the Mac" criterion
   and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
-  PATH-BASED since IMP-030, 2026-10-07)
+  PATH-BASED since IMP-030, 2026-10-07) — superseded in part by U2 of the v4.1.0 upgrade:
+  the list is CLAUDE.md's answer **Sensitive components** (code paths), one independent
+  reviewer
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
-  dialetto zsh, il gate di sintassi resta zsh -n
+  dialetto zsh, il gate di sintassi resta zsh -n — superseded on 2026-11-07 (decision A:
+  `make lint` = `make check`'s `zsh -n`)
 - [[2026-07-14-versione-fonte-unica]] — file VERSION autorevole + git describe
   come arricchimento + make version-check anti-drift
 - [[2026-07-17-selection-resolver-contract]] — BM-08a: home lib/selection.sh,
@@ -197,8 +203,8 @@ tags: [moc]
 - [[2026-07-17-consent-vs-noninteractive]] — BM-08c: NON_INTERACTIVE (anti-blocco)
   separato da YES_MODE (solo --yes); "non c'è tty" ≠ consenso
 - [[2026-09-24-language-rule-prospective]] — rule 9 adopted: English artifacts from
-  the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept, memory
-  headings frozen and mapped in CLAUDE.md
+  the v1.2.0 upgrade on, interaction Italian, existing Italian memory kept; its frozen
+  headings and their map in CLAUDE.md (D1) superseded by the v4.1.0 upgrade
 - [[2026-09-25-debt-cleanup-pre-dashboard]] — the debt cleanup before the Dashboard:
   categories, order, a new exit code for a failed environment precondition (MINOR →
   v1.5.0), `lib/agents.sh`, bk [4]/las [c] in wet mode, the conditions on #17 and #3b
@@ -214,6 +220,10 @@ tags: [moc]
   Releases rule; the allow list; `grafted` = 2026-07-12), the divergences from the v1.2.0
   method, the IMPs the retro must record; supersedes D1 of
   [[2026-09-24-language-rule-prospective]] in part
+- [[decisions/2026-11-07-framework-architect-decisions]] — the framework architect's decisions
+  A–D of 2026-11-07 (lint = `zsh -n`; Co-Authored-By kept, the session link off; the upgrade's
+  folder kept until the triage closes; no IMP closed as a duplicate) and the user's answer on
+  the anchors (U23: numbers kept, never reused); supersedes [[2026-07-12-shellcheck-advisory]]
 
 ## Piani
 - [[plans/roadmap-v2]] — the atomised post-graft backlog (BM-01…BM-20: M1 security
@@ -225,6 +235,8 @@ tags: [moc]
   and → v1.2.0 (merge `0725ae6`). Next: the debt cleanup before the Dashboard
   ([[plans/debt-cleanup-pre-dashboard]]), which closes #15/#16 and the `_module_14`
   collision (STATE #18) before M4. **SUPERSEDED on 2026-10-07** by [[plans/v2-personal-tool]].
+- [[plans/framework-upgrade-v0.2-to-v0.5.1]] — plan of the framework upgrade v0.2.0 →
+  v0.5.1 (7 tasks, process only), status: completed.
 - [[plans/bm10-risk-badges]] — piano di BM-10 (5 task), status: completed.
 - [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] — plan of the framework upgrade
   v1.0.0 → v1.2.0 (13 tasks + closing), status: completed.
@@ -236,7 +248,9 @@ tags: [moc]
 - [[plans/v2-personal-tool]] — **brew-manager 2.0.0, a personal terminal tool**: B1 the
   re-plan → B2 Homebrew developer mode → B3 remove bk/las/log/mas and module 10 (MAJOR) →
   B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
-  status: in-progress (task 1 integrated; task 2 ready).
+  status: in-progress (tasks 1–2 integrated; next task 3).
 - [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.
 - [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] — plan of the framework upgrade v1.2.0 →
   v4.1.0 (11 tasks), status: completed.
+- [[plans/post-upgrade-checkpoint]] — plan of the first checkpoint after the upgrade (8 tasks
+  and the gate's fixes), status: completed.

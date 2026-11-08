@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-las-scheduler
-updated: 2026-09-25
+updated: 2026-11-08
 tags: [component]
 ---
 # mod-las-scheduler (modules/mod_las_scheduler.sh)
@@ -56,5 +56,9 @@ Funzionante con riserve importanti (sotto). Nessun test.
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
+- [[sessions/2026-07-13-bm05a-weekday-migration]] (the weekday mapping, the legacy plists'
+  migration)
+- [[sessions/2026-07-14-bm07-version-deadcode]] (`_install_agent_multi` removed, dead code)
 - [[sessions/2026-07-17-bm08c-agent-selection]] (agenti via resolver, _install_agent rifiuta invalidi)
+- [[sessions/2026-07-20-bm10-risk-badges]] (the risk badge in its About block)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (gate: `[c]` + `mkdir` non gatati → `MODULE_DRYRUN[las]=0`)

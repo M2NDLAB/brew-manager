@@ -20,3 +20,7 @@ tags: [decision]
   `reset-task.sh` protegge `main` e `dev`; il regime di versioning è post-1.0
   (tag annotati su main alla release). Se dev tornasse in uso, questa decisione
   va rivista esplicitamente.
+- **Superseded in part** (recorded on 2026-11-07): the branches `reset-task` protects are
+  the Makefile's `PROTECTED_BRANCHES = main dev`, passed to `scripts/reset-task.sh` (U10 of
+  [[2026-10-19-framework-upgrade-v4.1.0]]), and the merge block is `/fw:integrate`; the model
+  stands as decided, in CLAUDE.md's answers **Branches** and **Merge**.

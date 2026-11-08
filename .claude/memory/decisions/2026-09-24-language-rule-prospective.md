@@ -38,3 +38,10 @@ tags: [decision, language, framework, memory]
   language record in [[sessions/2026-07-11-innesto-note]] stays as history.
   Links: [[sessions/2026-09-24-framework-upgrade-v1.0.0-to-v1.2.0]] ·
   [[plans/framework-upgrade-v1.0.0-to-v1.2.0]] · [[STATE]]
+- **Superseded in part on 2026-10-19** by [[2026-10-19-framework-upgrade-v4.1.0]]
+  (recorded on 2026-11-07): D1 — the *Section titles* bullet above, the Italian headings
+  frozen as identifiers and their map in the technical rules, with the map's consequence —
+  no longer holds. The v4 core's rule 9 makes the memory's FORMAT method: the titles and
+  field labels took the method's English form and the map left CLAUDE.md; the entries'
+  numbers stay the anchors code and tests cite ([[2026-11-07-framework-architect-decisions]],
+  U23). The rest stands: rule 9, Italian interaction, the prospective boundary.

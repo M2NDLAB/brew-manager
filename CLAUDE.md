@@ -66,8 +66,8 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     `~/Library/LaunchAgents` and the `modules=` field read by the restore: an
     incompatible change breaks the agents already installed, so it is MAJOR.
 - **Doc comments** — the language's documentation-comment tool (`docs/02`, *Comments*): a block of `#` comments before the function, as already used in `lib/common.sh` and in the modules — zsh has no native doc comments.
-- **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): in this project the "client" is the terminal: errors ONLY through `_err`/`_warn` of `lib/common.sh`, with an actionable message; the raw output of failed commands goes to the session log, not to the screen.
-- **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): NONE active — the block stays commented out in `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the touched files; project-wide gates: `make check` (`zsh -n` on every script, blocking) and `make test`; `make lint` runs shellcheck as advisory only.
+- **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): in this project the "client" is the terminal: in `lib/` and the modules, errors ONLY through `_err`/`_warn` of `lib/common.sh`, with an actionable message — a module's findings, its ✗/⚠ table rows (module 1's system checks, for one), are report rows, not error messages; `brew_manager.sh`'s own messages stand outside that rule, its startup lines, the run header's dry-run notice, the Homebrew-not-found screen and the warning after `script(1)` returns among them, some drawn by hand. A failed command's raw output has no single home yet: a module that relays it — modules 4 and 5, module 1's restore, module 10, bk and mas among them — shows it on screen, and so in the session log `script(1)` records; modules 0, 1 and 2 first write it to a fixed `/tmp/brew_*.log` file (STATE #11), which module 1 then prints, module 0 shows the last line of, and module 2 only greps; many queries discard their stderr (`2>/dev/null`). The raw output on failure into the session log is task 7 of the 2.0.0 plan, the per-run files task 4 (STATE #4b, #11).
+- **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): NONE active — the block stays commented out in `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the touched files; project-wide gates: `make check` (`zsh -n` on every script, blocking) and `make test`; `make lint` runs the same `zsh -n` as `make check` — a syntax check only: shellcheck does not support zsh (SC1071).
 - **Production artifact** — its format for a deployable component (`docs/02`, DoD point 9): NOT applicable — the repo's scripts ARE the artifact, distributed via `git clone`; the practical equivalent is: the module works from a clean copy of the repo, without depending on local state.
 
 ---
@@ -92,6 +92,10 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   above). The bump reads the answer **Public contract**: breaking it is a MAJOR;
   backward-compatible additions (one more module, appended; a new flag; an optional
   field) are MINOR; fixes that do not touch the contract are PATCH.
+- **Commit attribution**: Commits keep Co-Authored-By; the session link is disabled via
+  attribution.sessionUrl in .claude/settings.json (framework architect's decision,
+  2026-11-07). Commits published before that date keep their Claude-Session trailer and are
+  not rewritten.
 - **Standard structure of a component** (= module, for /fw:new-component): see
   `.claude/commands/fw/new-component.md`. In short: a `modules/mod_NN_slug.sh` file
   (loaded automatically by the `mod_*.sh` glob), a `_module_NN` function (number
@@ -138,7 +142,8 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   treating them as neutral.
   Formatter/linter: none active in the hook (candidates: `shfmt`/`shellcheck`, not
   installed; block prepared but commented out in `scripts/hooks-install.sh`);
-  `make lint` runs shellcheck as ADVISORY when installed. Syntax gate: `make check`
+  `make lint` runs `make check`'s `zsh -n`, a syntax check only — shellcheck does not
+  support zsh (SC1071; decision A, 2026-11-07). Syntax gate: `make check`
   (`zsh -n` on every script); zero-cost check on a single file: `zsh -n <file>`.
 - **Tests**: a hand-rolled zsh harness in `tests/`, zero dependencies, run by
   `make test` (a blocking gate); bats remains a future candidate. Minimal

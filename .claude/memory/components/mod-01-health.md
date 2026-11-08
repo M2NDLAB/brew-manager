@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-01-health
-updated: 2026-10-10
+updated: 2026-11-08
 tags: [component]
 ---
 # mod-01-health (modules/mod_01_health.sh)
@@ -15,7 +15,10 @@ confirmation. Its restore is a GATED path (IMP-030: it modifies Homebrew's confi
 - Created as a note on 2026-10-10 (task 2 of [[plans/v2-personal-tool]]).
 - It reads, never writes, except two things: brew doctor's output to the fixed
   `/tmp/brew_doctor.log` — also under `--dry-run` (STATE #11, task 4) — and the
-  developer-mode restore below.
+  developer-mode restore below. A third, found on 2026-11-07 by the verification of
+  STATE's rewrite ([[sessions/2026-11-07-post-upgrade-checkpoint]]): the plain
+  `git status` in Homebrew's repository (the local-changes check) may refresh its index,
+  `--dry-run` too (STATE #3, task 4).
 
 ## What it exposes / responsibilities
 - `_m01_dev_mode_state` — prints off | setting | pinned | env | unknown, READ-ONLY:
@@ -45,5 +48,6 @@ confirmation. Its restore is a GATED path (IMP-030: it modifies Homebrew's confi
   for the module (STATE #4b, task 7).
 
 ## Sessions that touched it
+- [[sessions/2026-07-20-bm10-risk-badges]] (the risk badge in its About block)
 - [[sessions/2026-10-10-homebrew-developer-mode]] (developer mode: prevention, detection,
   restore)

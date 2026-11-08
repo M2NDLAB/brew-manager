@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-selection
-updated: 2026-09-25
+updated: 2026-11-08
 tags: [component]
 ---
 # lib-selection (lib/selection.sh)
@@ -67,8 +67,9 @@ del tokenizer trovati e fixati).
 - **Dipendenze al CALL time**: usa `_warn` (common.sh) e legge `MODULE_DESC`/`IDS`.
   Va sourcato dopo common.sh. In `brew_manager.sh` è sourcato subito dopo common/log,
   così il registry è pronto per menu/dispatch/summary.
-- **Sourcabile senza side effect**: definisce solo dati e una funzione → i test lo
-  sourcano in isolamento (con common.sh per `_warn`) contro il registry REALE.
+- **Sourcabile senza side effect**: definisce solo dati e ~~una funzione~~ functions (five
+  today; corrected on 2026-11-08) → i test lo sourcano in isolamento (con common.sh per
+  `_warn`) contro il registry REALE.
 - **Parità con quirk preservati di proposito**: `Log` mixed-case non matcha, `go`
   in lista scartato, special in lista case-sensitive. Fissati in
   [[2026-07-17-selection-resolver-contract]].
@@ -78,13 +79,18 @@ del tokenizer trovati e fixati).
   modulo reale (fail-open, eseguiva mod_05); `read -rA` tronca al primo newline.
   Regola generale → [[LEARNINGS]] IMP-003. I token VUOTI (virgole adiacenti/finali)
   sono ignorati, non "invalidi": `0,4,` risolve a {0,4} su entrambi i path.
-- **Return-code NON load-bearing oggi**: il path interattivo (`brew_manager.sh`)
+- ~~**Return-code NON load-bearing oggi**: il path interattivo (`brew_manager.sh`)
   legge la LUNGHEZZA di `MODULES_TO_RUN`, non `$?`. Lo diventa quando BM-08b/c
   cablano la rc nel dispatch CLI/schedulato — per questo il contratto 0/1 è già
-  testato (`assert_rc`).
+  testato (`assert_rc`).~~ — **stale since BM-08b/c** (corrected on 2026-11-08): the CLI
+  path reads `_resolve_cli`'s 2 (exit 2), and `_selection_is_valid` returns its status
+  for the agents (0 = valid); on both of `brew_manager.sh`'s paths an empty selection is
+  still read from the length of `MODULES_TO_RUN` (exit 1), not from the 1.
 - **Contratto stabile per BM-08b/c**: entrambi PUNTANO al resolver, non re-parsano.
-  BM-08b dovrà però anticipare il source/la chiamata (il parsing CLI precede la
-  definizione di `MODULE_DESC` nel flusso attuale).
+  ~~BM-08b dovrà però anticipare il source/la chiamata (il parsing CLI precede la
+  definizione di `MODULE_DESC` nel flusso attuale).~~ — done the other way in BM-08b
+  (corrected on 2026-11-08): the flag loop only captures the tokens, and the resolution
+  runs after the source ([[core-brew-manager]]).
 - **Il registro si tiene onesto con una ALLOW-LIST, non con "zero debito"**
   (micro-task dry-run, IMP-009): `tests/test_run_summary.zsh` pinna
   `_KNOWN_UNGATED=(bk las)` in DUE direzioni — un modulo dichiarato 0 fuori lista
@@ -100,4 +106,7 @@ del tokenizer trovati e fixati).
 - [[sessions/2026-07-17-bm08c-agent-selection]] (`_selection_is_valid` per gli agenti)
 - [[sessions/2026-07-20-bm10-risk-badges]] (`MODULE_RISK` + `_about_risk`, presentazione)
 - [[sessions/2026-07-20-bm11-menu-redesign]] (`MODULE_NAME` + testi MODULE_DESC da menu)
+- [[sessions/2026-07-21-bm12-progress-summary]] (`MODULE_DRYRUN` born)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (`MODULE_DRYRUN` onesto: bk/las a 0, allow-list)
+- [[sessions/2026-10-10-homebrew-developer-mode]] (module 1 `write`: the level covers
+  Homebrew's own settings)
