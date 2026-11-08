@@ -611,8 +611,11 @@ tags: [improvement]
 - Date: 2026-10-19 | Origin: [[sessions/2026-10-19-framework-upgrade-v1.2.0-to-v4.1.0]] — three zsh-only failures in one upgrade
 - Observed problem: docs/04 warns that zsh does not split an unquoted variable. Three other
   zsh behaviours broke command lines here: `"$tag:scripts/x"` reads `:s` as a history
-  modifier ("bad substitution"); `echo =====` expands `=word` (`==== not found`); `path` and
-  `status` are special parameters a loop variable silently clobbers.
+  modifier ("bad substitution"); `echo =====` expands `=word` (`==== not found`); `path` is a
+  special parameter tied to `PATH`, which a loop variable of that name silently clobbers
+  (`for path in /nowhere` leaves `PATH=/nowhere`, exit 0), while `status` is read-only, so a
+  loop on it fails at once with "read-only variable: status" (exit 1; both measured on zsh
+  5.9, 2026-11-08).
 - Proposal: add them to docs/04's line on command lines for zsh: `${var}` before a colon, a
   word starting with `=` quoted, never `path`/`status` as a variable name.
 - Expected benefit / risk: fewer broken blocks for the user and the agent. Risk: none.
