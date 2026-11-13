@@ -127,8 +127,9 @@ assert_exit() {
     fi
 }
 
-# ── failures must be visible to the caller (the #4b parent-side fix). The two
-#    checks below go THROUGH the script(1) wrapper (the propagation itself) ──
+# ── failures must be visible to the caller (the #4b parent-side fix). The
+#    checks below, up to the flag parser's, go THROUGH the script(1) wrapper
+#    (the propagation itself) ──
 assert_exit 2 "unknown module token (99)"        99
 assert_exit 1 "selection resolves empty (8 --skip=8)" 8 --skip=8
 # a retired module is an unknown token like any other (decision D3): the whole
@@ -389,7 +390,8 @@ _run_no_brew_tty() {
 _no_prompt() { ! grep -q -e 'Install Homebrew now' -e 'Choice:' "$1"; }
 
 if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; then
-    # (1) no terminal at all — the LaunchAgent shape, with and without --yes
+    # (1) no terminal at all — what launchd gives a job (a LaunchAgent left by
+    #     1.x, say), with and without --yes
     _run_no_brew "$_SANDBOX/nb_plain" 8
     _rc=$?
     _check "no Homebrew, no terminal: rc=69 (got ${_rc})" [ "$_rc" = 69 ]
@@ -397,7 +399,7 @@ if _farm_with_candidates "$_SANDBOX/farm_missing" "$_SANDBOX/nowhere/bin/brew"; 
         eval 'grep -q "Homebrew was not found" "$_SANDBOX/nb_plain" && grep -q "No terminal" "$_SANDBOX/nb_plain" && _no_prompt "$_SANDBOX/nb_plain" && ! grep -q "Running modules" "$_SANDBOX/nb_plain"'
     _run_no_brew "$_SANDBOX/nb_yes" 8 --yes
     _rc=$?
-    _check "no Homebrew, an agent's argv (8 --yes), no terminal: rc=69, no prompt (got ${_rc})" \
+    _check "no Homebrew, a launchd job's argv (8 --yes), no terminal: rc=69, no prompt (got ${_rc})" \
         eval '[ "$_rc" = 69 ] && grep -q "No terminal" "$_SANDBOX/nb_yes" && _no_prompt "$_SANDBOX/nb_yes"'
 
     # (2) --dry-run, without and WITH a terminal: the DRY_RUN gate alone must

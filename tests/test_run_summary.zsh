@@ -150,6 +150,15 @@ done
                                || _fail "dryrun: registry too small"
 (( ${#_dr_missing[@]} == 0 )) && _pass "dryrun: every module declares dry-run capability" \
                               || _fail "dryrun: undeclared: ${_dr_missing[*]}"
+# ...and nothing more: an entry left behind by a removed module (a [bk]=0 once
+# bk is gone) would otherwise pass every check above, which all start from
+# MODULE_DESC — the lockstep MODULE_NAME and MODULE_RISK already have.
+typeset -a _dr_phantom=()
+for _k in "${(k)MODULE_DRYRUN[@]}"; do
+    [[ -n "${MODULE_DESC[$_k]}" ]] || _dr_phantom+=("$_k")
+done
+(( ${#_dr_phantom[@]} == 0 )) && _pass "dryrun: no MODULE_DRYRUN id absent from MODULE_DESC" \
+                              || _fail "dryrun: phantom dry-run id(s): ${_dr_phantom[*]}"
 (( ${#_dr_bad[@]} == 0 ))     && _pass "dryrun: every value is 0 or 1" \
                               || _fail "dryrun: invalid values: ${_dr_bad[*]}"
 # A MUTATING module marked gated must reference BREW_MANAGER_DRY_RUN in its file

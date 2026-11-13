@@ -10,8 +10,9 @@ tags: [plan, v2, removal, selection, contract, gate]
 
 ## Goal
 bk, las, log and mas gone from the code, the registries, the resolver, the dispatch and the
-menu; module 10 retired; the five ids rejected with exit 2 everywhere (lone, any case, in a
-list, in `--only`/`--skip`, in the menu) and announced by one constant hint; module 1
+menu; module 10 retired; the five ids refused everywhere — exit 2 on the command line (lone,
+any case, in a list, in `--only`/`--skip`), warned about and skipped in the menu, which ends
+with 1 when nothing is left — and announced by one constant hint; module 1
 declared honestly under `--dry-run`; README, SECURITY.md, CHANGELOG, CLAUDE.md and
 `fw/new-component.md` true; the gate passed; the STATE entries the removal moots closed after
 a grep proves their code gone.
@@ -83,7 +84,11 @@ a grep proves their code gone.
   `3,mas`, `go --skip=log` → 2 with nothing run, `8 --dry-run` → 0. — commit: `cf1ef60`
   (RED: 68 selection checks; end to end `bk` hit the 60 s watchdog — #21's hang — and
   `LAS`, `8,mas`, `go --skip=log` exited 0; a mutant accepting `log` in the filters failed
-  exactly the three `--only`/`--skip` checks; 412 checks)
+  exactly the three `--only`/`--skip` checks; 412 checks); and a second commit after
+  task 5's, from the read-only sweep's findings (*Resumption notes*): the wiring invariant
+  (every registered id has its file and `_module_<id>`, every `go` id is registered, every
+  module file is registered), the `MODULE_DRYRUN` phantom check, and the test comments the
+  removal made inexact — commit: see task 5's line
 - [ ] 5. The hint (D5): `RETIRED_MODULE_IDS=(10 bk las log mas)` and `_retired_in` in
   `lib/selection.sh`; the CLI error and the menu warning print the constant line. Tests: the
   helper, the reservation (no retired id in `MODULE_DESC`), the resolver never reads the list,
@@ -117,6 +122,12 @@ a grep proves their code gone.
 ## Resumption notes
 - Base: `main` at `d91b0dd` (the triage's merge), which this branch's first checkpoint
   reconciles in STATE.
+- A read-only sweep ran alongside tasks 2–5 (a workflow at `d91b0dd`: four finders, then a
+  critic, under a 30-minute stall budget). The findings of the code and tests finders,
+  beyond tasks 3–5, went into task 4's second commit (above); the rest feed tasks 6–8 —
+  CLAUDE.md's module-structure rule still says a
+  module joins `MODULE_IDS` "only if it must run in the go sequence", now the only way to
+  reach the menu; `fw/new-component.md`'s "lockstep" held only one way for `MODULE_DRYRUN`.
 - `mod_03:39`'s "[A] … brew upgrade skips it (use --greedy)" is F5 (Homebrew 6.0), not module
   10: task 5 of the 2.0.0 plan.
 

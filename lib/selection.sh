@@ -4,7 +4,7 @@
 #
 # Sourced by brew_manager.sh (right after lib/common.sh, which provides _warn)
 # and sourceable in isolation by tests/ — it has NO side effects at source time
-# (it only defines data and a function), so a test can pull it in without
+# (it only defines data and functions), so a test can pull it in without
 # starting the TUI.
 #
 # Owns the "selection" concern, kept in one place so the SAME resolver backs

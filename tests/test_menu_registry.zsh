@@ -83,6 +83,46 @@ _sorted_keys="${(j:,:)${(o)_keys[@]}}"
                               || _fail "contract: MODULE_IDS count changed (${#MODULE_IDS[@]})"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 4. Wiring — every registered id dispatches, and every module file is
+#    registered. The dispatcher calls "_module_<id>" for each id the resolver
+#    kept, `go` expands MODULE_IDS without consulting MODULE_DESC, and the menu
+#    draws MODULE_IDS only. So a registered id without its function would make
+#    the run call a missing command (zsh says "command not found", nothing
+#    reads the status — STATE #4b — and the summary still shows the row as
+#    completed); an id in `go` but not registered would do the same; one
+#    registered but not in `go` could be typed but would never be shown; and a
+#    module file nobody registers would be dead code. The trap a removal sets:
+#    a file deleted with its id left in a registry, or the other way round.
+# ─────────────────────────────────────────────────────────────────────────────
+typeset -a _nofn=() _notgo=() _ghost=() _unreg=() _files=()
+for _k in "${(k)MODULE_DESC[@]}"; do
+    _f=("$_ROOT"/modules/mod_${(l:2::0:)_k}_*.sh(N))
+    if (( ${#_f[@]} != 1 )) || ! grep -q "^_module_${_k}() {" "${_f[1]}"; then
+        _nofn+=("$_k")
+    fi
+    (( ${MODULE_IDS[(Ie)$_k]} )) || _notgo+=("$_k")
+done
+for _k in "${MODULE_IDS[@]}"; do
+    [[ -n "${MODULE_DESC[$_k]}" ]] || _ghost+=("$_k")
+done
+_files=("$_ROOT"/modules/mod_*.sh(N))
+for _f in "${_files[@]}"; do
+    _n="${${_f:t}#mod_}"; _n="${_n%%_*}"; _n="${_n#0}"   # mod_05_cleanup.sh → 5
+    [[ -n "${MODULE_DESC[$_n]}" ]] || _unreg+=("${_f:t}")
+done
+# anti-vacuity: an empty modules/ glob would pass the file loop vacuously
+(( ${#_files[@]} >= 13 )) && _pass "wiring: ${#_files[@]} module files scanned" \
+                          || _fail "wiring: only ${#_files[@]} module files found"
+(( ${#_nofn[@]} == 0 ))  && _pass "wiring: every registered id has its file and its _module_<id> function" \
+                         || _fail "wiring: registered id(s) with no module function: ${_nofn[*]}"
+(( ${#_notgo[@]} == 0 )) && _pass "wiring: every registered id is in the go sequence and the menu" \
+                         || _fail "wiring: registered id(s) missing from MODULE_IDS: ${_notgo[*]}"
+(( ${#_ghost[@]} == 0 )) && _pass "wiring: every go id is registered" \
+                         || _fail "wiring: MODULE_IDS id(s) absent from MODULE_DESC: ${_ghost[*]}"
+(( ${#_unreg[@]} == 0 )) && _pass "wiring: every module file is registered" \
+                         || _fail "wiring: unregistered module file(s): ${_unreg[*]}"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Verdict (anti-vacuity: at least one check must have run)
 # ─────────────────────────────────────────────────────────────────────────────
 print -r -- ""

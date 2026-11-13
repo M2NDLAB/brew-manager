@@ -64,7 +64,7 @@ trap 'cleanup; trap - EXIT; exit 130' INT TERM
 trap cleanup EXIT
 
 # ── Mock brew: records the sub-command, answers the read-only queries the
-#    modules make. `install` and `update` do nothing but leave their trace.
+#    module makes. `update` does nothing but leave its trace.
 _MOCKDIR="$_SANDBOX/mock"
 mkdir -p "$_MOCKDIR"
 cat > "$_MOCKDIR/brew" <<EOF

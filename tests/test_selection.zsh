@@ -8,8 +8,11 @@
 # so a broken source or an emptied battery fails the build instead of passing
 # silently.
 #
-# These lock the BEHAVIOUR the refactor had to preserve: the resolver is a
-# straight move of the old inline parser, and this battery is the proof.
+# These lock the BEHAVIOUR the refactor had to preserve — the resolver was a
+# straight move of the old inline parser (BM-08a), and this battery is the proof
+# — and the one deliberate departure since: in 2.0.0 the names bk, las, log and
+# mas and module 10 were removed, and every check that selected them now pins
+# their refusal.
 # =============================================================================
 
 # Resolve the repo root from this script's own location (:A absolute, :h dir).
@@ -51,9 +54,9 @@ assert_warns() {
 }
 
 # assert_rc <spec> <expected>: the resolver returns 0 when MODULES_TO_RUN ended
-# up non-empty and 1 when empty. This contract is NOT load-bearing on the
-# interactive path today (which reads the array length), but BM-08b/c will wire
-# the return code into CLI / scheduled dispatch — so pin it now.
+# up non-empty and 1 when empty. brew_manager.sh does not read it (the menu reads
+# the array length, and the CLI path reads _resolve_cli's own status), but it is
+# the function's documented contract, so it stays pinned.
 assert_rc() {
     local _spec="$1" _expected="$2" _rc
     _resolve_selection "$_spec" >/dev/null 2>&1
@@ -173,8 +176,7 @@ assert_rc "0,4,5"  0
 assert_rc "0,foo"  0            # one valid token kept → non-empty → 0
 assert_rc "14"     1
 assert_rc "99"     1
-assert_rc "Log"    1
-assert_rc " "      1           # lone space → empty
+assert_rc " "      1           # lone space → empty (Log, once a quirk, is in the removed-names loop below)
 
 # whole-string leading/trailing whitespace: padding is literal, NOT trimmed —
 # " go " does not expand to the full sequence (locks parity for future callers)
