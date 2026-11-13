@@ -5,7 +5,8 @@
 # The badge makes a module's blast radius visible; a badge that UNDERSTATES risk
 # (says [RO] on a module that removes/installs/adopts) is a security bug. These
 # checks pin: every module has a level, the level set matches the adversarially-
-# audited classification, the docs/03 sensitive modules are all [!], the badge
+# audited classification, the sensitive modules that delete or install
+# (CLAUDE.md, Sensitive components) are all [!], the badge
 # degrades to plain ASCII at level 0 (no ANSI when piped / NO_COLOR) and keeps a
 # constant width, and the "About this module" line composes badge + caption.
 #
@@ -58,13 +59,17 @@ _expect_level() {
                            || _fail "level: $id = $got, expected $exp"
 }
 for _id in 3 6 7 8 9 11 12 13;   do _expect_level "$_id" ro;     done
-for _id in 1 2 log;             do _expect_level "$_id" write;  done
-for _id in 0 4 5 bk las mas;    do _expect_level "$_id" danger; done
+for _id in 1 2;                 do _expect_level "$_id" write;  done
+for _id in 0 4 5;               do _expect_level "$_id" danger; done
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. docs/03 sensitive modules MUST be danger (non-regression: sensibili = [!])
+# 3. The sensitive modules that delete or install (CLAUDE.md, Sensitive
+#    components: 0 adopts, 4 upgrades, 5 removes) MUST be danger (non-
+#    regression: sensibili = [!]). Module 1 is sensitive too, as it may change
+#    Homebrew's configuration, and is `write` by design: it installs and
+#    removes nothing.
 # ─────────────────────────────────────────────────────────────────────────────
-for _id in 0 5 bk las; do
+for _id in 0 4 5; do
     [[ "${MODULE_RISK[$_id]}" == danger ]] \
         && _pass "sensitive: module $_id is [!]" \
         || _fail "sensitive: module $_id is '${MODULE_RISK[$_id]}', must be danger"
@@ -146,10 +151,10 @@ else
 fi
 
 # no destructive _ask left un-framed in the danger modules: every _ask ("... ?")
-# guarding a mutation must now be _ask_danger. Scan the 6 wired modules (mod_01
+# guarding a mutation must now be _ask_danger. Scan the 4 wired modules (mod_01
 # since its developer-mode restore).
 _bare=() _absent=()
-for _m in mod_00_audit mod_01_health mod_04_updates mod_05_cleanup mod_bk_brewfile mod_mas_mas; do
+for _m in mod_00_audit mod_01_health mod_04_updates mod_05_cleanup; do
     _f="$_ROOT/modules/$_m.sh"
     # A listed file that is gone must fail: grep returns 2 on a missing file, so
     # the scan would pass without having looked at anything — the trap a removed

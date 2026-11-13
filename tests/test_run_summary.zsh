@@ -171,8 +171,6 @@ done
 # against a mock brew by tests/test_dryrun_gates.zsh.
 [[ "${MODULE_DRYRUN[2]}"   == "1" ]] && _pass "dryrun: mod_02 gated (brew update skipped)" \
                                      || _fail "dryrun: mod_02 honours --dry-run — registry must say 1"
-[[ "${MODULE_DRYRUN[mas]}" == "1" ]] && _pass "dryrun: mas gated (install skipped)" \
-                                     || _fail "dryrun: mas honours --dry-run — registry must say 1"
 
 # The set of ungated modules is pinned as an ALLOW-LIST, not asserted empty.
 # Failing the build on any 0 would invert the incentive the registry depends on:
@@ -180,10 +178,11 @@ done
 # in a comment, and the summary would then attest "nothing changed" for a module
 # that writes. Declaring debt honestly must stay free; what must not happen is
 # the debt growing in silence, or a fixed module keeping its exemption.
-# Each entry with its reason: mod_bk [4] runs `brew bundle check`; mod_las [c]
-# runs rm; mod_01 writes /tmp/brew_doctor.log and runs a plain `git status` in
-# Homebrew's repository (STATE #14, until task 4 of the 2.0.0 plan).
-typeset -a _KNOWN_UNGATED=(bk las 1)
+# Each entry with its reason: mod_01 writes /tmp/brew_doctor.log and runs a
+# plain `git status` in Homebrew's repository (STATE #14, until task 4 of the
+# 2.0.0 plan). bk and las, its first two entries, left with their modules in
+# 2.0.0.
+typeset -a _KNOWN_UNGATED=(1)
 typeset -a _declared=()
 for _k in "${(k)MODULE_DESC[@]}"; do
     (( ${MODULE_DRYRUN[$_k]:-0} )) || _declared+=("$_k")

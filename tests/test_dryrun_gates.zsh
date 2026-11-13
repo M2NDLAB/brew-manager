@@ -4,9 +4,10 @@
 #
 # The registry check in test_run_summary.zsh only greps a module for the string
 # BREW_MANAGER_DRY_RUN: it proves a gate is MENTIONED, not that the command is
-# skipped. These checks close that gap for the two modules that used to act in
-# a preview session (STATE Attenzione #3/#14) by running them for real against
-# a mock `brew` that records every invocation:
+# skipped. These checks close that gap for mod_02, which used to act in a
+# preview session (STATE Attenzione #3/#14), by running it for real against a
+# mock `brew` that records every invocation (mas, the other module once
+# checked here, was removed in 2.0.0):
 #
 #   dry run  → the tripwire must NOT contain the mutating verb, and the module
 #              must still have run (other verbs recorded) — an empty tripwire
@@ -16,8 +17,7 @@
 #              anything at all (a test with no teeth).
 #
 # Isolation: PATH is cut down to the mock dir plus the system bins, so `brew` is
-# always the mock and `mas` is absent whether or not the developer has it
-# installed — which is what puts mod_mas on its install path.
+# always the mock, whether or not the developer has Homebrew installed.
 #
 # Zero external deps; run by `make test`. Exits non-zero unless every check
 # passed AND at least one ran (anti-vacuity).
@@ -27,7 +27,6 @@ _ROOT="${0:A:h:h}"
 source "$_ROOT/lib/common.sh"    || { print -r -- "cannot source lib/common.sh"; exit 1; }
 source "$_ROOT/lib/selection.sh" || { print -r -- "cannot source lib/selection.sh"; exit 1; }
 source "$_ROOT/modules/mod_02_update.sh" || { print -r -- "cannot source mod_02"; exit 1; }
-source "$_ROOT/modules/mod_mas_mas.sh"  || { print -r -- "cannot source mod_mas"; exit 1; }
 
 typeset -i TESTS_RUN=0 TESTS_FAILED=0
 _pass() { (( TESTS_RUN += 1 ));                          print -r -- "  ok    $1"; }
@@ -145,44 +144,7 @@ _age_missing="$( PATH="/usr/bin:/bin" _mod02_index_age )"   # no brew on PATH
                                    || _fail "index age: '$_age_missing' without brew (expected unknown)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. mas — `brew install mas` must not run under --dry-run, even when the user
-#    would have said yes. --yes alone never reaches it (the prompt's default is
-#    "n"), so the path that actually installed despite --dry-run was the
-#    INTERACTIVE one: both checks below therefore answer "y" from the same
-#    stdin file, leaving --dry-run as the only variable between them.
-# ─────────────────────────────────────────────────────────────────────────────
-print -r -- "y" > "$_SANDBOX/yes.txt"
-
-# Guard: with mas absent from the sandbox PATH the module takes its install
-# path. If a developer's mas leaked in, every assertion below would be vacuous.
-if PATH="$_SAFE_PATH" command -v mas >/dev/null 2>&1; then
-    _fail "mas sandbox: mas is reachable — the install path is not exercised"
-else
-    _pass "mas sandbox: mas absent, module takes its install path"
-fi
-
-_tripwire_reset
-_out="$(_run_module _module_16 1 0 0 < "$_SANDBOX/yes.txt")"
-
-_saw install && _fail "mas dry-run: brew install mas WAS invoked" \
-              || _pass "mas dry-run: brew install mas never invoked"
-[[ "$_out" == *"skipping install"* ]] && _pass "mas dry-run: says it skipped" \
-                                      || _fail "mas dry-run: no skip notice"
-[[ "$_out" == *"Would run"*"brew install mas"* ]] && _pass "mas dry-run: previews the command" \
-                                                  || _fail "mas dry-run: no preview of the command"
-# The gate must come BEFORE the confirmation: a preview session must not even
-# ask (asking, then ignoring the answer, is how consent bugs start).
-[[ "$_out" == *"Install mas now?"* ]] && _fail "mas dry-run: asked for confirmation anyway" \
-                                      || _pass "mas dry-run: never asks for consent"
-
-# ── teeth: same module, same "y" on stdin, wet — it DOES invoke the install ──
-_tripwire_reset
-_out_wet="$(_run_module _module_16 0 0 0 < "$_SANDBOX/yes.txt")"
-_saw install && _pass "mas wet: brew install mas invoked (dry-run check has teeth)" \
-             || _fail "mas wet: install NOT invoked — the dry-run check proves nothing"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. Homebrew's IMPLICIT update must be off under --dry-run.
+# 2. Homebrew's IMPLICIT update must be off under --dry-run.
 #    brew runs `brew update --auto-update` on its own before install/outdated/
 #    upgrade/bundle, so modules that only LIST packages still rewrote the index
 #    in a preview session (gate finding). The switch is HOMEBREW_NO_AUTO_UPDATE,
@@ -234,7 +196,7 @@ _env_wet="$(_seen_env 8)"
     || _fail "auto-update: normal run saw '$_env_wet' (expected unset)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Verdict + anti-vacuity
+# 3. Verdict + anti-vacuity
 # ─────────────────────────────────────────────────────────────────────────────
 print -r -- ""
 if (( TESTS_RUN == 0 )); then

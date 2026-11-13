@@ -7,17 +7,17 @@
 # (it only defines data and a function), so a test can pull it in without
 # starting the TUI.
 #
-# Owns the "selection" concern, kept in one place so the SAME resolver can back
-# the interactive menu today and — planned — positional CLI dispatch (BM-08b)
-# and scheduled agents (BM-08c). Before this extraction the parser lived inline
-# in brew_manager.sh and could not be reused or tested.
+# Owns the "selection" concern, kept in one place so the SAME resolver backs
+# the interactive menu and the positional CLI dispatch (BM-08b). Before this
+# extraction the parser lived inline in brew_manager.sh and could not be reused
+# or tested.
 #
 # Provides:
-#   MODULE_DESC          — id/name → one-line description; its keys are also the
-#                          single source of truth for which numbered ids exist
-#   MODULE_NAME          — id/name → short display name for the menu card (BM-11,
+#   MODULE_DESC          — id → one-line description; its keys are also the
+#                          single source of truth for which ids exist
+#   MODULE_NAME          — id → short display name for the menu card (BM-11,
 #                          presentation-only: never feeds the resolver)
-#   MODULE_DRYRUN        — id/name → 1 if a --dry-run session changes nothing by
+#   MODULE_DRYRUN        — id → 1 if a --dry-run session changes nothing by
 #                          running it (BM-12; honesty of the run summary)
 #   MODULE_IDS           — the numbered modules, in the 'go' sequence order
 #   _resolve_selection   — parse a selection spec into MODULES_TO_RUN
@@ -32,12 +32,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # -g: these are global on purpose — the menu, the dispatcher and the summary in
-# brew_manager.sh all read them, and so does _resolve_selection below. The named
-# modules (log/bk/las/mas) live in MODULE_DESC but NOT in MODULE_IDS: they are
-# reachable by name but never part of the 'go' sequence.
+# brew_manager.sh all read them, and so does _resolve_selection below. Every
+# module is numbered and in the 'go' sequence: the modules selected by name
+# (bk, las, log, mas) were removed in 2.0.0, with module 10, and their ids stay
+# reserved — never given to another module.
 # Description TEXTS are presentation (the menu card's subtitle, the summary):
 # they can be reworded freely, but the KEYS are the public selection contract
-# (frozen — docs/04). Layout invariant, pinned by tests/test_menu_registry.zsh:
+# (frozen — CLAUDE.md, Public contract). Layout invariant, pinned by tests/test_menu_registry.zsh:
 # every description is ASCII-only and at most 46 columns, so the menu row
 # (indent+badge+id+name+description) never exceeds 78 columns and the layout
 # holds on an 80-column terminal (roadmap §4.4). ASCII because a multibyte
@@ -56,10 +57,6 @@ typeset -gA MODULE_DESC=(
     [11]="duplicate and conflicting formulae"
     [12]="broken deps, pinned, non-HTTPS, deprecated"
     [13]="per-package disk usage, sorted by size"
-    [log]="browse and prune session logs"
-    [bk]="backup / restore packages and agents"
-    [las]="LaunchAgent auto-run setup"
-    [mas]="Mac App Store integration (mas)"
 )
 
 # MODULE_NAME — short display name for the menu card and the summary (BM-11).
@@ -74,8 +71,6 @@ typeset -gA MODULE_NAME=(
     [6]="Dependency map"    [7]="Services"          [8]="Untracked bins"
     [9]="Brew-owned bins"   [11]="Conflicts"
     [12]="Security audit"   [13]="Disk usage"
-    [log]="Log manager"     [bk]="Brewfile backup"  [las]="Scheduler"
-    [mas]="App Store"
 )
 
 # MODULE_DRYRUN — id → 1 when a `--dry-run` session provably changes NOTHING by
@@ -86,14 +81,6 @@ typeset -gA MODULE_NAME=(
 #
 # Read-only modules are 1 by construction — they never mutate. Mutating modules
 # are 1 only when EVERY acting path is behind the dry-run gate:
-#   [bk]  0 — option [4] "Check" runs `brew bundle check`, which evaluates the
-#             Brewfile as a Ruby DSL: a preview that executes file content. The
-#             restore paths themselves ARE gated (the preview reads the Brewfile
-#             statically for exactly this reason, mod_bk_brewfile.sh:96-99).
-#   [las] 0 — option [c] deletes agents_activity.log and the per-agent logs with
-#             `rm -f`, with no gate, and the module creates
-#             ~/Library/LaunchAgents on a Mac that had none. The install /
-#             modify / remove paths ARE gated.
 #   [1]   0 — its developer-mode restore IS gated, but under --dry-run it still
 #             writes brew doctor's output to the fixed /tmp/brew_doctor.log and,
 #             before its dry-run check, runs a plain `git status` in Homebrew's
@@ -102,24 +89,22 @@ typeset -gA MODULE_NAME=(
 #             `write`: tests/test_run_summary.zsh found the restore's gate by
 #             grep. Task 4 of the 2.0.0 plan removes both writes and flips it
 #             back (STATE #3, #11, #14).
-# bk and las were 1 before fix/dryrun-mod02-mas — declared, never verified. The gate
-# on that branch checked the whole registry against the code and found them
-# wrong; they are declared honestly here instead of being fixed in the same
-# breath, because both are sensitive components (docs/03) and deserve their own
-# task and their own review. Understating is honest, overstating is not.
+# A 0 is declared, never hidden: bk and las were 1 — declared, never verified —
+# until fix/dryrun-mod02-mas checked the whole registry against the code and
+# found both acting under --dry-run; they stayed 0, honestly, until their
+# removal in 2.0.0. Understating is honest, overstating is not.
 #
 # Overstating dry-run coverage here is a security bug of the same class as a
 # risk badge that understates blast radius (docs/03): both make the session log
 # claim a safety property the run did not have. Kept honest by
 # tests/test_run_summary.zsh, which greps each module marked 1 for the gate and
 # pins the set of ungated modules so it cannot grow in silence, and by
-# tests/test_dryrun_gates.zsh, which runs the formerly-ungated modules against a
-# mock brew and proves the commands are never invoked.
+# tests/test_dryrun_gates.zsh, which runs mod_02 — once ungated — against a mock
+# brew and proves its command is never invoked.
 typeset -gA MODULE_DRYRUN=(
     [0]=1   [1]=0   [2]=1   [3]=1   [4]=1
     [5]=1   [6]=1   [7]=1   [8]=1   [9]=1
     [11]=1  [12]=1  [13]=1
-    [log]=1 [bk]=0  [las]=0 [mas]=1
 )
 
 # The 'go' sequence. No 10: module 10 (greedy upgrades) was retired in 2.0.0
@@ -135,21 +120,21 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 11 12 13)
 # set from an adversarially-verified per-module audit (workflow, 2026-07-20):
 #   ro     — only reads/reports, changes nothing.
 #   write  — mutates only metadata/cache, Homebrew's own settings and code (module 1's
-#            developer-mode restore, module 2's brew update) or the tool's OWN files (logs/, backups/,
-#            agents/); installs/removes nothing on the system.
-#   danger — can remove/install/adopt packages, or persist/load a LaunchAgent.
+#            developer-mode restore, module 2's brew update) or the tool's OWN files
+#            (logs/); installs/removes nothing on the system.
+#   danger — can remove/install/upgrade/adopt packages.
 # Module 1 is `write` since it can restore Homebrew from developer mode (`brew
 # developer off` + `brew update`, after a confirmation): Homebrew's own setting
 # and code, like module 2's `brew update` — no package installed or removed.
 # Kept in lockstep with MODULE_DESC: tests/test_risk_badges.zsh fails if any id is
 # missing, carries a level outside {ro,write,danger}, or the sensitive modules
-# (docs/03: 0,5,bk,las) are not 'danger'. A gate on the SELECTION contract, not
-# the risk one, so this array is presentation-only: it never feeds the resolver.
+# that delete or install (CLAUDE.md, Sensitive components: 0, 4, 5) are not
+# 'danger'. A gate on the SELECTION contract, not the risk one, so this array is
+# presentation-only: it never feeds the resolver.
 typeset -gA MODULE_RISK=(
     [0]=danger  [1]=write   [2]=write   [3]=ro      [4]=danger
     [5]=danger  [6]=ro      [7]=ro      [8]=ro      [9]=ro
     [11]=ro     [12]=ro     [13]=ro
-    [log]=write [bk]=danger [las]=danger [mas]=danger
 )
 
 # _about_risk <id> — print, at the standard indent, the risk badge followed by its
@@ -170,17 +155,14 @@ _about_risk() {
 # Parse a raw selection spec into the canonical run list.
 #
 # Populates the global array MODULES_TO_RUN (reset on entry) and the global
-# RESOLVE_INVALID (reset on entry) with every unknown token seen. Behaviour of
-# the resolution itself is a faithful move of the former inline parser — no
-# semantic change:
+# RESOLVE_INVALID (reset on entry) with every unknown token seen. The grammar is
+# the former inline parser's, moved verbatim (BM-08a), less the names bk, las,
+# log and mas: removed in 2.0.0, they are unknown tokens like any other, in any
+# case and any position, so nothing here maps a name onto a module any more:
 #   - ""|go|GO   → every MODULE_IDS entry, in order
-#   - a lone     → that single named module. Matched case-insensitively ONLY in
-#     special      its exact upper/lower forms (log|LOG, bk|BK, …), exactly as
-#     token        the old `case` arms did.
 #   - otherwise  → comma-split; each token stripped of spaces:
 #                    empty token (stray/adjacent comma, `0,4,`) → ignored;
 #                    numeric AND present in MODULE_DESC → kept;
-#                    lowercase special (log|bk|las|mas) → kept;
 #                    anything else → recorded in RESOLVE_INVALID.
 #   Duplicates and order are preserved verbatim (1,1,2 → 1 1 2; 5,2,0 → 5 2 0).
 #
@@ -191,10 +173,8 @@ _about_risk() {
 #   - "collect" → stay silent; the caller inspects RESOLVE_INVALID and decides
 #                 (used by _resolve_cli to be strict).
 #
-# Quirks preserved on purpose (they were parity-moved from the original parser
-# and are NOT security-relevant): mixed-case whole tokens like `Log` do NOT match
-# (only `log`/`LOG` do); a special inside a comma list is case-SENSITIVE (`0,LOG`
-# drops LOG); `go` inside a comma list (`0,go`) is invalid.
+# Quirk preserved on purpose (parity-moved from the original parser, NOT
+# security-relevant): `go` inside a comma list (`0,go`) is invalid.
 # Hardened in BM-08b (gate finding): tokens are split and space-stripped with
 # parameter expansion, never `echo`/`read -rA <<<`, so a token can no longer be
 # reinterpreted through backslash-escape expansion or truncated at a newline —
@@ -216,10 +196,6 @@ _resolve_selection() {
     RESOLVE_INVALID=()
 
     case "${_spec:-go}" in
-        log|LOG) MODULES_TO_RUN=("log") ;;
-        bk|BK)   MODULES_TO_RUN=("bk")  ;;
-        las|LAS) MODULES_TO_RUN=("las") ;;
-        mas|MAS) MODULES_TO_RUN=("mas") ;;
         go|GO|"")
             MODULES_TO_RUN=(${MODULE_IDS[@]})
             ;;
@@ -239,8 +215,6 @@ _resolve_selection() {
                                                      # token — ignore it, don't call it invalid
                 if [[ "$_n" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_n]}" ]]; then
                     MODULES_TO_RUN+=("$_n")
-                elif [[ "$_n" == "log" || "$_n" == "bk" || "$_n" == "las" || "$_n" == "mas" ]]; then
-                    MODULES_TO_RUN+=("$_n")
                 else
                     RESOLVE_INVALID+=("$_n")
                     [[ "$_invalid_mode" == "warn" ]] && _warn "Module '$_n' is invalid — skipped"
@@ -254,9 +228,9 @@ _resolve_selection() {
 
 # _collect_module_tokens <csv>
 # Validate a plain comma-separated list of module tokens, for the --only/--skip
-# filters. Unlike _resolve_selection there is NO 'go'/whole-string special
-# handling — a filter names concrete modules — so each token must be numeric and
-# present in MODULE_DESC, or one of log|bk|las|mas.
+# filters. Unlike _resolve_selection there is NO 'go' handling — a filter names
+# concrete modules — so each token must be numeric and present in MODULE_DESC
+# (a removed name such as bk is an unknown token here too).
 # Populates the global FILTER_TOKENS (valid tokens, in order) and APPENDS every
 # unknown token to RESOLVE_INVALID (which it does NOT reset — the caller owns it).
 _collect_module_tokens() {
@@ -271,8 +245,6 @@ _collect_module_tokens() {
         [[ -z "$_t" ]] && continue           # tolerate stray/adjacent commas (0,4, / 5,,2)
         _valid=0
         if [[ "$_t" =~ ^[0-9]+$ ]] && [[ -n "${MODULE_DESC[$_t]}" ]]; then
-            _valid=1
-        elif [[ "$_t" == "log" || "$_t" == "bk" || "$_t" == "las" || "$_t" == "mas" ]]; then
             _valid=1
         fi
         if (( _valid )); then
@@ -291,8 +263,7 @@ _collect_module_tokens() {
 # Strict: any unknown token anywhere (spec, only, skip) is recorded in
 # RESOLVE_INVALID and makes the call fail — nothing is silently skipped, unlike
 # the lenient interactive path. <only_csv>/<skip_csv> are plain module-token
-# lists: they do NOT accept 'go' or the whole-string specials (a bare 'go' in a
-# filter is an unknown token).
+# lists: they do NOT accept 'go' (a bare 'go' in a filter is an unknown token).
 #
 # Populates MODULES_TO_RUN. Returns:
 #   2  → at least one invalid token (caller reports RESOLVE_INVALID and aborts)
@@ -333,18 +304,4 @@ _resolve_cli() {
 
     (( ${#RESOLVE_INVALID[@]} > 0 )) && return 2
     (( ${#MODULES_TO_RUN[@]} > 0 ))
-}
-
-# _selection_is_valid <spec>
-# Predicate: 0 (true) iff <spec> resolves to a NON-EMPTY selection with NO unknown
-# tokens — i.e. exactly what a stored agent selection (mod_las_scheduler) may run.
-# Delegates to _resolve_cli so there is ONE grammar; runs it in a SUBSHELL so the
-# resolver's global side effects (MODULES_TO_RUN / RESOLVE_INVALID / FILTER_TOKENS)
-# do NOT leak to the caller (it is called mid-run, at agent install time).
-# NB: this is the install-time gate; the agent RUN itself goes through the same
-# _resolve_cli via positional dispatch, so a value that passes here also runs.
-_selection_is_valid() {
-    [[ -z "$1" ]] && return 1        # an empty stored selection is not valid:
-                                     # the caller must fall back to an explicit 'go'
-    ( _resolve_cli "$1" "" "" ) >/dev/null 2>&1
 }

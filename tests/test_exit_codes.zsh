@@ -135,6 +135,13 @@ assert_exit 1 "selection resolves empty (8 --skip=8)" 8 --skip=8
 # selection is refused, the valid ids next to it included
 assert_exit 2 "retired module (10)"              10
 assert_exit 2 "retired module in a list (8,10)"  8,10
+# so is a removed name (decision D5), in every form a 1.x agent or script used:
+# lone, upper case, in a list, in --skip and in --only
+assert_exit 2 "removed module (bk)"              bk
+assert_exit 2 "removed module, upper case (LAS)" LAS
+assert_exit 2 "removed module in a list (8,mas)" 8,mas
+assert_exit 2 "removed module in --skip (go --skip=log)" go --skip=log
+assert_exit 2 "removed module in --only (--only=bk)"     --only=bk
 
 # ── parent-side guard (rejected BEFORE the re-exec: flag parser regression) ──
 assert_exit 2 "unknown flag (--dryrun)"          --dryrun

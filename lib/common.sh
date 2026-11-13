@@ -489,7 +489,7 @@ _stat_row() {
 #
 # The badge makes a module's blast radius visible BEFORE the action: [RO] reads
 # only, [W] writes metadata, cache or Homebrew's settings, [!] can change the system (remove/install/
-# adopt/schedule). The level classification lives in MODULE_RISK (lib/selection.sh),
+# upgrade/adopt packages). The level classification lives in MODULE_RISK (lib/selection.sh),
 # adversarially audited so it never UNDERSTATES risk (a low badge is a security
 # bug, docs/03). These renderers are PURE (level in → string out) and colour
 # through the BM-09 palette, so a piped / NO_COLOR run degrades them to plain
@@ -521,7 +521,7 @@ _risk_caption() {
     case "$1" in
         ro)     printf '%s' 'Read-only: inspects and reports, changes nothing.' ;;
         write)  printf '%s' "Writes metadata, cache or Homebrew's settings — never packages." ;;
-        danger) printf '%s' 'Can change your system: removes, installs, adopts, or schedules.' ;;
+        danger) printf '%s' 'Can change your system: removes, installs, upgrades or adopts packages.' ;;
         *)      printf '%s' 'Risk level unknown.' ;;
     esac
 }

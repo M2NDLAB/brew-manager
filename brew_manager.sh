@@ -9,8 +9,8 @@
 #   brew_manager.sh       ← this file (entry point, menu, dispatch, summary)
 #   lib/common.sh         ← colors, symbols, TUI utilities
 #   lib/log.sh            ← session log management
-#   modules/mod_NN_*.sh   ← one file per numbered module
-#   modules/mod_<name>_*.sh ← one file per named module (bk, las, log, mas)
+#   lib/selection.sh      ← module registry and selection resolver
+#   modules/mod_NN_*.sh   ← one file per module
 # =============================================================================
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ ONLY_ANSWER=""   # --only=<ids>: keep only these modules from the selection
 SKIP_ANSWER=""   # --skip=<ids>: drop these modules from the selection
 typeset -a _POSITIONAL=()  # bare module spec tokens (joined with commas below)
 
-# NON_INTERACTIVE marks a run with no usable stdin (a LaunchAgent, a pipe, cron,
+# NON_INTERACTIVE marks a run with no usable stdin (a launchd job, a pipe, cron,
 # `ssh host cmd` without -t). Its ONLY job is to keep _ask / _read_choice from
 # blocking on a dead stdin — it is NOT consent. Consent to auto-confirm a
 # prompt's built-in default comes ONLY from an explicit --yes (parsed below): a
@@ -192,7 +192,7 @@ BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)
 BREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 # _brew_bootstrap_path — put Homebrew on PATH when the environment lacks it.
-# NOTE: launchd starts every job (so every brew-manager LaunchAgent) with PATH
+# NOTE: launchd starts every job (a LaunchAgent left by brew-manager 1.x too) with PATH
 # /usr/bin:/bin:/usr/sbin:/sbin, a GUI app launched from the Finder inherits the
 # same, and a non-login zsh never reads ~/.zprofile, where `brew shellenv` usually
 # lives. Without this probe every scheduled run stopped at "Homebrew is not
@@ -384,7 +384,7 @@ echo ""
 printf '  %b%s%b%*s%b%s%b\n' "$C_BRAND" "$_bm_left" "$NC" "$_bm_pad" "" "$C_INFO" "$_bm_right" "$NC"
 _hline "─" "$C_GRAY"
 # Home shortened to ~ so the usual log path fits an 80-column line (display
-# only — $LOG_FILE itself stays absolute for script(1) and the log manager).
+# only — $LOG_FILE itself stays absolute for script(1) and _handle_log).
 printf '  %bSession log: %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 
 # The module registry (MODULE_DESC / MODULE_NAME / MODULE_IDS) lives in
@@ -414,9 +414,9 @@ if (( CLI_SELECTION )); then
     _sel_rc=$?
     if (( _sel_rc == 2 )); then
         _err "Unknown module token(s): ${RESOLVE_INVALID[*]}"
-        # The numbered ids come from the registry, so this line cannot drift
-        # from what the resolver accepts (it said 0-13 after 10 was retired).
-        _err "Valid modules: ${(j:,:)MODULE_IDS}, log, bk, las, mas. Base 'go' runs the full sequence."
+        # The ids come from the registry, so this line cannot drift from what
+        # the resolver accepts (it said 0-13 after 10 was retired).
+        _err "Valid modules: ${(j:,:)MODULE_IDS}. Base 'go' runs the full sequence."
         exit 2
     fi
     if (( ${#MODULES_TO_RUN[@]} == 0 )); then
@@ -444,21 +444,11 @@ _menu_row() {
 }
 
 echo ""
-_menu_section "AUDIT & MAINTENANCE" "go = run the full sequence 0${SYM_ARR}13"
+# The ends of the sequence come from the registry, like the rows below.
+_menu_section "AUDIT & MAINTENANCE" "go = run the full sequence ${MODULE_IDS[1]}${SYM_ARR}${MODULE_IDS[-1]}"
 echo ""
 for mid in "${MODULE_IDS[@]}"; do
     _menu_row "$mid"
-done
-echo ""
-_hline "─" "$C_GRAY"
-echo ""
-# The named tools live below their own rule: they are selected by NAME and
-# never run as part of the 'go' sequence — the visual split mirrors the
-# MODULE_IDS vs named-modules split in the registry.
-_menu_section "TOOLS" "select by name"
-echo ""
-for tid in log bk las mas; do
-    _menu_row "$tid"
 done
 echo ""
 _hline "─" "$C_GRAY"
@@ -468,11 +458,11 @@ printf '  %bRisk%b   %s %bread-only%b   %s %bwrites cache/metadata%b   %s %bchan
     "$C_INFO" "$NC" "$(_risk_badge ro)"     "$C_INFO" "$NC" \
                     "$(_risk_badge write)"  "$C_INFO" "$NC" \
                     "$(_risk_badge danger)" "$C_INFO" "$NC"
-printf '  %bInput  go%s0,1,5%sgo --skip=5%sbk           Flags  --dry-run%s--yes%b\n' \
-    "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
+printf '  %bInput  go%s0,1,5%sgo --skip=5                Flags  --dry-run%s--yes%b\n' \
+    "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
 printf '  %bCtrl+C exits at any time; the session log is always saved%b\n' "$C_INFO" "$NC"
 echo ""
-printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / numbers / name, default: go]${NC}: "
+printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / numbers, default: go]${NC}: "
 read -r module_choice
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -537,13 +527,11 @@ typeset -a UNMANAGED_APPLE=()
 typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
     _mod_t0=$SECONDS
-    case "$_mod" in
-        log) _module_log  ;;
-        bk)  _module_14   ;;
-        las) _module_15   ;;
-        mas) _module_16   ;;
-        *)   "_module_${_mod}" ;;
-    esac
+    # Every id here passed the resolver, which keeps only the numbers registered
+    # in MODULE_DESC, so the function name is built from a registered number
+    # alone. The four named arms (bk, las, log, mas) went with their modules in
+    # 2.0.0, and with them the _module_14 collision (bk was _module_14).
+    "_module_${_mod}"
     RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
     RUN_STATUS+=( "$(_run_status "$DRY_RUN" "${MODULE_RISK[$_mod]:-write}" "${MODULE_DRYRUN[$_mod]:-0}")" )
 done

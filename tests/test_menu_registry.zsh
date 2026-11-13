@@ -68,11 +68,11 @@ done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Selection contract untouched — the frozen id set is exactly the registry
-#    keys (CLAUDE.md, Public contract: numbers 0-13 + go + log/bk/las/mas, 10
-#    retired in 2.0.0 and never reassigned; renames must never add/remove/
-#    renumber a selectable id)
+#    keys (CLAUDE.md, Public contract: numbers 0-13 + go; 10 and the names
+#    bk/las/log/mas removed in 2.0.0 and never reassigned; renames must never
+#    add/remove/renumber a selectable id)
 # ─────────────────────────────────────────────────────────────────────────────
-typeset -a _expected=(0 1 2 3 4 5 6 7 8 9 11 12 13 log bk las mas)
+typeset -a _expected=(0 1 2 3 4 5 6 7 8 9 11 12 13)
 typeset -a _keys=("${(k)MODULE_DESC[@]}")
 _sorted_expected="${(j:,:)${(o)_expected[@]}}"
 _sorted_keys="${(j:,:)${(o)_keys[@]}}"

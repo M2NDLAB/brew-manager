@@ -65,7 +65,10 @@ a grep proves their code gone.
   lone, in a list, in `--only`, in `--skip`; the danger list; the `_ask_danger` wiring scan,
   which now fails on a missing file; the frozen key set; `MODULE_IDS` = 13; the three
   `>= 18` guards → `>= 13`. RED first (the rejection checks fail on the base). Verification:
-  `make check`, `make test`, smokes `10` → 2 and `8 --dry-run` → 0. — commit: —
+  `make check`, `make test`, smokes `10` → 2 and `8 --dry-run` → 0. — commit: `55ba0ee`
+  (RED on the unchanged code: 21 selection, 2 registry and 2 end-to-end checks; the scan's
+  missing-file check shown by listing `mod_10_greedy` again; 349 checks; the "Valid
+  modules" error derived from `MODULE_IDS` here already, since it said 0-13)
 - [ ] 4. Remove bk, las, log and mas: the four files; their registry entries; the resolver's
   whole-token arms and lowercase-special checks, with the quirk notes they carried;
   `_selection_is_valid` (NEW-d); the dispatch to `"_module_${_mod}"` alone (#18); the TOOLS

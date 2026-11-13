@@ -134,22 +134,6 @@ assert_cli_strict() {
     fi
 }
 
-# assert_valid_sel <spec> <exp 0|1>: _selection_is_valid predicate (0=valid), used
-# by mod_las_scheduler to gate a stored agent selection. Also asserts NO global
-# side effect (it runs mid-run at install time — a leak would corrupt the summary).
-assert_valid_sel() {
-    local _spec="$1" _exp="$2" _rc _got=1 _leak=0
-    MODULES_TO_RUN=(SENTINEL); RESOLVE_INVALID=(SENTINEL)
-    _selection_is_valid "$_spec"; _rc=$?
-    (( _rc == 0 )) && _got=0
-    [[ "${MODULES_TO_RUN[*]}" == "SENTINEL" && "${RESOLVE_INVALID[*]}" == "SENTINEL" ]] || _leak=1
-    if (( _got == _exp )) && (( _leak == 0 )); then
-        _pass "valid_sel('${_spec}')=${_got} (no leak)"
-    else
-        _fail "valid_sel('${_spec}')=${_got} leak=${_leak}, expected ${_exp} no-leak"
-    fi
-}
-
 _ALL="0 1 2 3 4 5 6 7 8 9 11 12 13"   # the full 'go' sequence (MODULE_IDS; no 10, retired in 2.0.0)
 
 # ── go / empty → full sequence ──────────────────────────────────────────────
@@ -164,24 +148,14 @@ assert_list "1,1,2,1"  "1 1 2 1"   # duplicates allowed
 assert_list "0, 4, 5"  "0 4 5"     # inner spaces stripped
 assert_list "11,13"    "11 13"     # two-digit ids
 
-# ── named modules as a lone token ───────────────────────────────────────────
-assert_list "log" "log"
-assert_list "bk"  "bk"
-assert_list "las" "las"
-assert_list "mas" "mas"
-assert_list "LOG" "log"            # whole-token uppercase special is accepted
-assert_list "0,log,4" "0 log 4"    # lowercase special inside a list is kept
-
 # ── invalid tokens are dropped ──────────────────────────────────────────────
 assert_list "14"     ""            # numeric but not in the registry
 assert_list "99"     ""
 assert_list "0,99,4" "0 4"         # out-of-range id skipped, valid ones kept
 assert_list "0,foo,4" "0 4"        # non-numeric junk skipped
 
-# ── quirks preserved on purpose (parity, NOT fixes) ─────────────────────────
-assert_list "Log"    ""            # mixed-case whole token does NOT match
+# ── quirk preserved on purpose (parity, NOT a fix) ──────────────────────────
 assert_list "0,go"   "0"           # 'go' inside a list is dropped, 0 kept
-assert_list "0,LOG,4" "0 4"        # special inside a list is case-SENSITIVE
 
 # ── the drop must be observable, not silent ─────────────────────────────────
 assert_warns "0,99,4"  "invalid"
@@ -219,11 +193,6 @@ assert_warns      "0,foo,4" "'foo'"
 assert_warn_count "foo,bar" 2
 assert_warn_count "0,4,5"   0
 
-# uppercase named specials — the |BK/|LAS/|MAS case arms (only LOG was covered)
-assert_list "BK"  "bk"
-assert_list "LAS" "las"
-assert_list "MAS" "mas"
-
 # ─────────────────────────────────────────────────────────────────────────────
 # BM-08b — strict non-interactive resolution (_resolve_cli) + collect mode.
 # Values confirmed against the live resolver before being pinned.
@@ -242,7 +211,6 @@ assert_sel_invalid "0,4,5"       ""
 assert_cli "0,4,5" "" "" 0 "0 4 5"
 assert_cli "go"    "" "" 0 "$_ALL"
 assert_cli ""      "" "" 0 "$_ALL"        # empty spec → go
-assert_cli "log"   "" "" 0 "log"
 
 # --only: intersection with the base, preserving base order and duplicates
 assert_cli "go"    "0,4"   "" 0 "0 4"
@@ -258,7 +226,6 @@ assert_cli "go" "0,4,5" "5" 0 "0 4"
 
 # empty result (all tokens valid) → rc 1, not a strict failure
 assert_cli "5"  ""     "5" 1 ""
-assert_cli "go" "log"  ""  1 ""          # log is not in the 'go' set → intersection empty
 
 # strict: any unknown token anywhere → rc 2, recorded in RESOLVE_INVALID
 assert_cli_strict "0,foo"  ""      ""     "foo"
@@ -314,28 +281,35 @@ assert_cli_strict  "go"      ""      "10"   "10"   # in --skip
 assert_cli_strict  "go"      ""      "5,10" "10"   # the old menu footer's example
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BM-08c — _selection_is_valid: the install-time gate for a stored agent
-# selection (mod_las_scheduler). Same grammar as the agent RUN (_resolve_cli),
-# so what installs is exactly what runs; a value that fails here falls back to a
-# safe explicit 'go'. Must be side-effect free (called mid-run at install time).
+# bk, las, log and mas are removed in 2.0.0 and their names reserved (decision
+# D5): each is an unknown token in every position and in every case — never a
+# module, never mapped onto another one, never widened to `go`. The CLI path
+# refuses the WHOLE selection (rc 2), the valid tokens next to it included; the
+# lenient menu path (_resolve_selection, warn mode) drops it with a warning.
+# Until 2.0.0 the lone forms, the lower-case form inside a list and the filters
+# selected these modules, and each upper-case name selected its module alone.
 # ─────────────────────────────────────────────────────────────────────────────
-
-# valid stored selections
-assert_valid_sel "go"     0
-assert_valid_sel "GO"     0
-assert_valid_sel "0,1,3"  0
-assert_valid_sel "5"      0
-assert_valid_sel "log"    0
-assert_valid_sel "bk"     0
-assert_valid_sel "0,,4"   0          # tolerated empty tokens still valid
-
-# invalid → caller falls back to 'go' (these would exit 2 as an agent, or inject)
-assert_valid_sel "99"     1          # alphanumeric but not a real module
-assert_valid_sel "foo"    1
-assert_valid_sel "0,99"   1          # one bad token taints the whole selection
-assert_valid_sel "--ye"   1          # flag-shaped legacy value
-assert_valid_sel '0;<x>'  1          # shell/XML metacharacters
-assert_valid_sel ""       1          # empty is not a valid stored selection
+for _name in bk las log mas; do
+    _NAME="${(U)_name}" _Mixed="${(C)_name}"
+    for _tok in "$_name" "$_NAME" "$_Mixed"; do
+        assert_list        "$_tok"       ""              # lone, any case
+        assert_rc          "$_tok"       1
+        assert_sel_invalid "$_tok"       "$_tok"
+        assert_cli_strict  "$_tok"       ""  ""          "$_tok"
+    done
+    assert_list        "$_name,3"     "3"                # first of a list
+    assert_list        "3,$_name,4"   "3 4"              # middle
+    assert_list        "3,$_name"     "3"                # last
+    assert_list        "3,$_NAME"     "3"                # upper case inside a list
+    assert_warns       "3,$_name"     "'$_name'"         # the menu path names what it dropped
+    assert_cli_strict  "$_name,3"     ""  ""             "$_name"
+    assert_cli_strict  "3,$_name,4"   ""  ""             "$_name"
+    assert_cli_strict  "3,$_NAME"     ""  ""             "$_NAME"
+    assert_cli_strict  "go"           "$_name"    ""     "$_name"   # in --only
+    assert_cli_strict  "go"           "0,$_name"  ""     "$_name"
+    assert_cli_strict  "go"           ""  "$_name"       "$_name"   # in --skip
+    assert_cli_strict  "go"           ""  "5,$_NAME"     "$_NAME"
+done
 
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""
