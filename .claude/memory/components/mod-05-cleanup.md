@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-05-cleanup
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # mod-05-cleanup (modules/mod_05_cleanup.sh)
@@ -34,6 +34,10 @@ cambiato solo COME si misura la cache. Nessun test unitario proprio (il consenso
   "both operations are safe" nel codice è ottimista).
 - Misura solo la cache, non lo spazio recuperato dai pacchetti rimossi: il numero
   del summary sottostima.
+- Its default `y` under `--yes` stays (decision D4 of the 2.0.0 plan); since task 3 the
+  code's comment justifies it by an explicit `--yes`, no longer by the LaunchAgents, and so
+  does its twin in `tests/test_guardrails.zsh`
+  ([[sessions/2026-11-13-remove-special-modules]]).
 
 ## Sessioni che l'hanno toccato
 - [[sessions/2026-07-11-innesto-note]] (assessment, nessuna modifica al codice)
@@ -42,3 +46,4 @@ cambiato solo COME si misura la cache. Nessun test unitario proprio (il consenso
 - [[sessions/2026-07-20-bm10-risk-badges]] (the confirmation becomes `_ask_danger`)
 - [[sessions/2026-07-21-bm12-progress-summary]] (misura cache in KB per il delta disco;
   correzione della voce stale su conferma/dry-run)
+- [[sessions/2026-11-13-remove-special-modules]] (the D4 comment reworded)

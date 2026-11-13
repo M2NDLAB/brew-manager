@@ -9,8 +9,8 @@
 #   brew_manager.sh       ← this file (entry point, menu, dispatch, summary)
 #   lib/common.sh         ← colors, symbols, TUI utilities
 #   lib/log.sh            ← session log management
-#   modules/mod_NN_*.sh   ← one file per numbered module
-#   modules/mod_<name>_*.sh ← one file per named module (bk, las, log, mas)
+#   lib/selection.sh      ← module registry and selection resolver
+#   modules/mod_NN_*.sh   ← one file per module
 # =============================================================================
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ ONLY_ANSWER=""   # --only=<ids>: keep only these modules from the selection
 SKIP_ANSWER=""   # --skip=<ids>: drop these modules from the selection
 typeset -a _POSITIONAL=()  # bare module spec tokens (joined with commas below)
 
-# NON_INTERACTIVE marks a run with no usable stdin (a LaunchAgent, a pipe, cron,
+# NON_INTERACTIVE marks a run with no usable stdin (a launchd job, a pipe, cron,
 # `ssh host cmd` without -t). Its ONLY job is to keep _ask / _read_choice from
 # blocking on a dead stdin — it is NOT consent. Consent to auto-confirm a
 # prompt's built-in default comes ONLY from an explicit --yes (parsed below): a
@@ -152,7 +152,7 @@ export BREW_MANAGER_DRY_RUN=$DRY_RUN
 # A dry run must also suppress Homebrew's IMPLICIT update. brew runs
 # `brew update --auto-update` by itself before install/outdated/upgrade/bundle/
 # release (Homebrew's brew.sh, AUTO_UPDATE_COMMANDS), so a preview session that
-# merely LISTS outdated packages (modules 4, 10, bk) still refetched the API and
+# merely LISTS outdated packages (module 4, for one) still refetched the API and
 # rewrote the local index — the exact mutation module 2 is gated against. brew's
 # own --dry-run does not stop it: the decision is taken before the arguments are
 # read. HOMEBREW_NO_AUTO_UPDATE is the documented off switch (gate finding).
@@ -192,7 +192,7 @@ BREW_BIN_CANDIDATES=(/opt/homebrew/bin/brew /usr/local/bin/brew)
 BREW_INSTALL_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 # _brew_bootstrap_path — put Homebrew on PATH when the environment lacks it.
-# NOTE: launchd starts every job (so every brew-manager LaunchAgent) with PATH
+# NOTE: launchd starts every job (a LaunchAgent left by brew-manager 1.x too) with PATH
 # /usr/bin:/bin:/usr/sbin:/sbin, a GUI app launched from the Finder inherits the
 # same, and a non-login zsh never reads ~/.zprofile, where `brew shellenv` usually
 # lives. Without this probe every scheduled run stopped at "Homebrew is not
@@ -384,7 +384,7 @@ echo ""
 printf '  %b%s%b%*s%b%s%b\n' "$C_BRAND" "$_bm_left" "$NC" "$_bm_pad" "" "$C_INFO" "$_bm_right" "$NC"
 _hline "─" "$C_GRAY"
 # Home shortened to ~ so the usual log path fits an 80-column line (display
-# only — $LOG_FILE itself stays absolute for script(1) and the log manager).
+# only — $LOG_FILE itself stays absolute for script(1) and _handle_log).
 printf '  %bSession log: %s%b\n' "$C_INFO" "${LOG_FILE/#$HOME/~}" "$NC"
 
 # The module registry (MODULE_DESC / MODULE_NAME / MODULE_IDS) lives in
@@ -414,7 +414,13 @@ if (( CLI_SELECTION )); then
     _sel_rc=$?
     if (( _sel_rc == 2 )); then
         _err "Unknown module token(s): ${RESOLVE_INVALID[*]}"
-        _err "Valid modules: 0-13, log, bk, las, mas. Base 'go' runs the full sequence."
+        # A removed id gets a pointer to what replaced it (decision D5): a
+        # constant line, printed only — the exit status below is the same.
+        _retired_in "${RESOLVE_INVALID[@]}" && _err "$RETIRED_HINT"
+        # The ids come from MODULE_IDS, which tests/test_menu_registry.zsh holds
+        # to MODULE_DESC's keys — what the resolver accepts —, so the line does
+        # not drift as the hand-written "0-13" did after 10 was retired.
+        _err "Valid modules: ${(j:,:)MODULE_IDS}. Base 'go' runs the full sequence."
         exit 2
     fi
     if (( ${#MODULES_TO_RUN[@]} == 0 )); then
@@ -442,21 +448,11 @@ _menu_row() {
 }
 
 echo ""
-_menu_section "AUDIT & MAINTENANCE" "go = run the full sequence 0${SYM_ARR}13"
+# The ends of the sequence come from the registry, like the rows below.
+_menu_section "AUDIT & MAINTENANCE" "go = run the full sequence ${MODULE_IDS[1]}${SYM_ARR}${MODULE_IDS[-1]}"
 echo ""
 for mid in "${MODULE_IDS[@]}"; do
     _menu_row "$mid"
-done
-echo ""
-_hline "─" "$C_GRAY"
-echo ""
-# The named tools live below their own rule: they are selected by NAME and
-# never run as part of the 'go' sequence — the visual split mirrors the
-# MODULE_IDS vs named-modules split in the registry.
-_menu_section "TOOLS" "select by name"
-echo ""
-for tid in log bk las mas; do
-    _menu_row "$tid"
 done
 echo ""
 _hline "─" "$C_GRAY"
@@ -466,11 +462,11 @@ printf '  %bRisk%b   %s %bread-only%b   %s %bwrites cache/metadata%b   %s %bchan
     "$C_INFO" "$NC" "$(_risk_badge ro)"     "$C_INFO" "$NC" \
                     "$(_risk_badge write)"  "$C_INFO" "$NC" \
                     "$(_risk_badge danger)" "$C_INFO" "$NC"
-printf '  %bInput  go%s0,1,5%sgo --skip=5,10%sbk        Flags  --dry-run%s--yes%b\n' \
-    "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
+printf '  %bInput  go%s0,1,5%sgo --skip=5                Flags  --dry-run%s--yes%b\n' \
+    "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
 printf '  %bCtrl+C exits at any time; the session log is always saved%b\n' "$C_INFO" "$NC"
 echo ""
-printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / numbers / name, default: go]${NC}: "
+printf "  ${C_CYAN}${SYM_ARR}${NC}  Choice ${C_GRAY}[go / numbers, default: go]${NC}: "
 read -r module_choice
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -482,6 +478,8 @@ read -r module_choice
 # empty-is-fatal policy stays here — the interactive session must not proceed
 # with nothing to run.
 _resolve_selection "$module_choice"
+# The same pointer as on the command line, after the resolver's own warnings.
+_retired_in "${RESOLVE_INVALID[@]}" && _warn "$RETIRED_HINT"
 
 if (( ${#MODULES_TO_RUN[@]} == 0 )); then
     _err "No valid module selected. Exiting."
@@ -535,13 +533,13 @@ typeset -a UNMANAGED_APPLE=()
 typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
     _mod_t0=$SECONDS
-    case "$_mod" in
-        log) _module_log  ;;
-        bk)  _module_14   ;;
-        las) _module_15   ;;
-        mas) _module_16   ;;
-        *)   "_module_${_mod}" ;;
-    esac
+    # Every id here comes from the resolver: a typed id is kept only if it is a
+    # number registered in MODULE_DESC, and `go` copies MODULE_IDS, which
+    # tests/test_menu_registry.zsh holds to the registered ids — so the function
+    # name is built from a registered number alone. The four named arms (bk,
+    # las, log, mas) went with their modules in 2.0.0, and with them the
+    # _module_14 collision (bk was _module_14).
+    "_module_${_mod}"
     RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
     RUN_STATUS+=( "$(_run_status "$DRY_RUN" "${MODULE_RISK[$_mod]:-write}" "${MODULE_DRYRUN[$_mod]:-0}")" )
 done
@@ -600,10 +598,11 @@ _stat_row "Available updates"           "${OUTDATED_COUNT}"             "${OUTDA
 # mod_05 does). "" from _du_kb means "no measurement" and omits the line: a
 # fabricated 0 would render a fake freed-delta.
 #
-# The "after" side is re-measured HERE, not reused from mod_05: in the `go`
-# sequence module 10 (greedy upgrades) runs AFTER 5 and downloads into the same
-# cache, so mod_05's own end-of-module figure would report "freed ~1.6G" for a
-# cache that ended the session larger (gate finding). Measured at render time,
+# The "after" side is re-measured HERE, not reused from mod_05: a module that
+# runs AFTER 5 can download into the same cache — module 4 in a `5,4` selection
+# (the order is free), as module 10's greedy upgrades did in the `go` sequence
+# until 2.0.0 — so mod_05's own end-of-module figure would report "freed ~1.6G"
+# for a cache that ended the session larger (gate finding). Measured at render time,
 # the line describes the session, which is what it claims to be. The cache can
 # legitimately GROW: say so rather than clamping to zero.
 if [[ -n "$DU_BEFORE_KB" ]]; then

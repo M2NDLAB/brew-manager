@@ -66,7 +66,8 @@ _module_5() {
         return 0
     fi
 
-    # Default "y" keeps automated runs (--yes / LaunchAgents) behaving as before;
+    # Default "y": an explicit --yes run frees the space it is run for, as before
+    # (decision D4 of the 2.0.0 plan kept it when the scheduler went);
     # interactively _ask still requires an explicit y — Enter aborts
     if ! _ask_danger "Cache & orphan cleanup" "Proceed with autoremove and cleanup now?" "y" \
         "brew autoremove  - remove orphaned dependencies" \

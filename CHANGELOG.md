@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The Ruby version now comes from `brew config`.
   - The row labelled "Last DB update" showed the date of Homebrew's own code, not of
     the package index. It now reads "Homebrew code dated".
+- **Under `--dry-run` the session summary claimed a preview for module 1.** The module
+  still writes the output of `brew doctor` to `/tmp/brew_doctor.log`, and when a developer
+  command or `brew developer on` left developer mode on, it runs `git status` in
+  Homebrew's repository, which may rewrite that repository's index file. Its row now reads
+  "ran anyway (no --dry-run gate)".
 
 ### Added
 - **Module 1 reports Homebrew's developer mode and offers to turn it off.**
@@ -28,14 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     off` followed by `brew update`, which brings Homebrew back to its latest stable
     release.
   - It is previewed under `--dry-run` and runs only after you confirm, or with `--yes`.
-    A scheduled agent that runs module 1 (or `go`) with `--yes` will therefore turn
-    developer mode off on its own, even one you turned on with `brew developer on`.
+    A run with `--yes` that includes module 1 (`go` does) will therefore turn developer
+    mode off on its own, even one you turned on with `brew developer on`.
   - Before you confirm it shows the version Homebrew moves from. `brew update` checks
     Homebrew out at its latest release tag, which can be older than the main-branch
     commit it was on. It also warns when Homebrew's repository has local changes:
     `brew update` stashes them and does not restore them.
-  - Developer mode set in your environment (`HOMEBREW_DEVELOPER`,
-    `HOMEBREW_DEV_CMD_RUN`) is only reported.
+  - Developer mode set in the environment of the run (`HOMEBREW_DEVELOPER`,
+    `HOMEBREW_DEV_CMD_RUN`) is only reported. A run started by launchd sees what
+    `~/.zshenv` exports, not `~/.zshrc` or `~/.zprofile`.
   - With developer mode off, the row turns yellow when Homebrew is not on a release,
     for example after a failed update.
   - A test keeps Homebrew developer commands out of brew-manager's code.
@@ -46,6 +52,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Writes metadata, cache or Homebrew's settings — never packages".
 - `make lint` runs the same `zsh -n` syntax check as `make check`, on the same files.
   shellcheck does not support zsh, so the advisory shellcheck pass is gone.
+- **A removed module exits `2`.** `bk`, `las`, `log`, `mas` and `10` are unknown module
+  tokens in every position and case — alone, in a list, in `--only` or in `--skip` — so
+  the whole selection is refused and nothing runs. The error adds one line: "bk, las, log,
+  mas and module 10 were removed in 2.0.0 — see CHANGELOG.md". At the interactive prompt
+  they are warned about and skipped, like any unknown token, with the same line.
+- The menu has no TOOLS section, and its prompt reads `Choice [go / numbers, default:
+  go]`. The "Valid modules" error lists the numbers the module registry holds.
+
+### Removed
+- **`bk`, `las`, `log` and `mas`**, as 1.5.0 announced: the Brewfile backup and restore,
+  the LaunchAgent scheduler, the log manager and the Mac App Store module. Their names are
+  reserved: they are never given to another module, because scripts and agents written for
+  1.x may still pass them.
+  - **Remove your scheduled agents with `./brew_manager.sh las` before you update past
+    the `v1.5.0` tag.** 2.0.0 cannot list or remove them. An agent left installed keeps
+    running: one that selects a removed module fails at every run with status `2`, and
+    one that runs `go --yes` — the weekly and daily presets — still runs every module:
+    `brew update`, module 5's cleanup and, where a developer command or `brew developer
+    on` left Homebrew's developer mode on (1.x's module 1 did, at every run), module 1's
+    restore. If you have
+    already updated, the README's *Upgrading from 1.x* gives the way back to 1.5.0 for
+    that step, and the commands that find and remove the agents.
+  - `agents/` and `backups/` are no longer read or written, and brew-manager never deletes
+    them for you. A Brewfile in `backups/` still works with `brew bundle install
+    --file=backups/Brewfile`, which runs it as Ruby code: read it first (README,
+    *Upgrading from 1.x*). The session logs
+    are pruned by hand now (README, *Session logging*).
+- **Module 10** (greedy upgrades of the casks that update themselves). Its detection did
+  not match Homebrew's output — it looked for `auto_updates: true`, and Homebrew prints
+  `(auto_updates)` — so it found no cask to upgrade, and since Homebrew 6.0 a plain `brew
+  upgrade` (module 4) already upgrades such a cask when its app is older than Homebrew's
+  version. To re-sync
+  an app that updated itself, run `brew upgrade --cask --greedy`. The number 10 is
+  reserved: `go` runs 0–9 and 11–13.
+- **The LaunchAgent format is no longer part of the public contract**: nothing writes the
+  agents' plists or reads their `modules=` field any more.
 
 ## [1.5.0] - 2026-10-07
 

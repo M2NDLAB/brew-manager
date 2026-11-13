@@ -14,7 +14,8 @@ _module_4() {
     echo ""
     echo -e "  ${C_GRAY}Before upgrading, shows a brew upgrade --dry-run preview so you can see${NC}"
     echo -e "  ${C_GRAY}exactly what will change before committing. Auto-update casks (marked [A]${NC}"
-    echo -e "  ${C_GRAY}in module 3) are handled separately in module 10 via brew upgrade --greedy.${NC}"
+    echo -e "  ${C_GRAY}in module 3) whose app already updated itself are left out: to sync them,${NC}"
+    echo -e "  ${C_GRAY}run brew upgrade --cask --greedy by hand.${NC}"
     _hline "·" "$C_GRAY"
 
     outdated_raw=$(brew outdated --verbose 2>/dev/null)

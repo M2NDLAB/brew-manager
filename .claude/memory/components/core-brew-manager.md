@@ -1,7 +1,7 @@
 ---
 type: component
 component: core-brew-manager
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # core-brew-manager (brew_manager.sh)
@@ -36,7 +36,7 @@ with default `n` (so `--yes` never installs). The download-and-run is `_brew_ins
 (download first with timeouts, a non-empty body, the installer's own exit status read,
 then the probe; it only RETURNS, and only a full success re-execs). The exit order:
 `--version` (0) → an unknown flag (2) → Homebrew (69) → the selection (2 or 1).
-`tests/test_exit_codes.zsh` pins it (49 checks): the minimal environment through
+`tests/test_exit_codes.zsh` pins it (~~49~~ 66 checks since 2.0.0's task 3): the minimal environment through
 `script(1)`, each guard clause alone, `_brew_install` extracted and run against a mock
 curl — no test ever answers the installer prompt.
 
@@ -58,7 +58,8 @@ curl — no test ever answers the installer prompt.
   1 char ma 2 colonne: pad corretto di −1) + rule + log path (`~` al posto di
   $HOME, display-only). Menu = card `badge(4)·id(3)·nome(17)·desc(≤46)` ≤78 col
   via helper LOCALI `_menu_row`/`_menu_section` (printf %s sui dati, IMP-003);
-  rule tra sequenza numerata e TOOLS; footer 3 righe. I cap di colonna sono
+  ~~rule tra sequenza numerata e TOOLS~~ (the TOOLS section left with bk/las/log/mas in
+  2.0.0's task 3; the range in the header comes from `MODULE_IDS`); footer 3 righe. I cap di colonna sono
   invarianti di dati ([[lib-selection]], `tests/test_menu_registry.zsh`). Il
   summary elenca i moduli con `MODULE_NAME`. Il `read` della Choice e la
   grammatica sono INTATTI (presentazione pura).
@@ -68,14 +69,22 @@ curl — no test ever answers the installer prompt.
   ([[lib-common]]) da DUE registri: `MODULE_RISK` (quanto il modulo può cambiare)
   e `MODULE_DRYRUN` (se `--dry-run` lo ferma davvero) — `done` se non è una dry
   run o il modulo è `ro`, `preview` se è un mutante gatato, **`ran`** se è un
-  mutante NON gatato (oggi `bk` e `las`, STATE #15/#16). Derivarlo dal solo
+  mutante NON gatato (~~oggi `bk` e `las`, STATE #15/#16~~ module 1 since 2.0.0's task 3,
+  STATE #14). Derivarlo dal solo
   rischio è ciò che produsse la falsa attestazione trovata dal gate BM-12.
   **`failed` non è mai assegnato** (#4b). Il summary rende righe di esito
   + stat + riga "Disk" (solo se `DU_*_KB` sono stati misurati da mod_05) + footer
   identità. `_menu_section` è definita FUORI dal ramo interattivo perché la usa
   anche l'header del summary (una run CLI quel ramo non lo attraversa).
-- Dispatch: numerico → `_module_N` dinamica; speciali → case esplicito
-  (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`).
+- Dispatch: numerico → `_module_N` dinamica; ~~speciali → case esplicito
+  (log→`_module_log`, bk→`_module_14`, las→`_module_15`, mas→`_module_16`)~~ — since 2.0.0's
+  task 3 the dynamic call alone: a typed id is kept only if it is a registered number, and
+  `go` copies `MODULE_IDS`, which `tests/test_menu_registry.zsh` holds to the registered ids
+  (the wiring invariant). A removed id (10, bk, las, log, mas) exits 2 on the command line
+  with a constant hint, and is warned about and skipped in the menu, with the same hint.
+  The suite's first menu check (`_run_menu` in `tests/test_exit_codes.zsh`) types its line at
+  a pseudo-terminal once the prompt shows: the recorder's `script(1)` discards input typed
+  before it set the terminal to raw mode.
 - **Consenso vs non-interattivo (BM-08c)**: `NON_INTERACTIVE` (da `! -t 0`, o
   dall'handoff `BREW_MANAGER_NONINTERACTIVE` nel figlio re-exec col pty) NON è
   consenso — solo `--yes` setta `YES_MODE`. Export di entrambi per i moduli.
@@ -104,7 +113,7 @@ curl — no test ever answers the installer prompt.
   2026-07-21): `(( DRY_RUN )) && export HOMEBREW_NO_AUTO_UPDATE=1`. Senza,
   `brew` eseguiva `brew update --auto-update` da sé prima di
   `install|outdated|upgrade|bundle|release`, quindi moduli che "si limitano a
-  elencare" (4, 10, bk) riscrivevano comunque l'indice in una preview — e nemmeno
+  elencare" (4, 10, bk — module 4 alone since 2.0.0) riscrivevano comunque l'indice in una preview — e nemmeno
   il `--dry-run` DI BREW lo ferma (decide prima di leggere gli argomenti). Solo
   sotto dry-run: una run normale mantiene il comportamento abituale di brew.
   Verificato end-to-end perché la variabile deve sopravvivere al re-exec di
@@ -136,3 +145,5 @@ curl — no test ever answers the installer prompt.
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (HOMEBREW_NO_AUTO_UPDATE sotto --dry-run)
 - [[sessions/2026-09-26-startup-brew-env]] (the Homebrew PATH bootstrap, exit 69, the
   installer only at a terminal)
+- [[sessions/2026-11-13-remove-special-modules]] (2.0.0: the named arms, the TOOLS menu and
+  module 10 gone; the removed-id hint; the derived "Valid modules" and menu range)

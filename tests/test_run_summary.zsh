@@ -146,10 +146,19 @@ for _k in "${(k)MODULE_DESC[@]}"; do
         _dr_bad+=("$_v")
     fi
 done
-(( ${#MODULE_DESC[@]} >= 18 )) && _pass "dryrun: registry has ${#MODULE_DESC[@]} modules to check" \
+(( ${#MODULE_DESC[@]} >= 13 )) && _pass "dryrun: registry has ${#MODULE_DESC[@]} modules to check" \
                                || _fail "dryrun: registry too small"
 (( ${#_dr_missing[@]} == 0 )) && _pass "dryrun: every module declares dry-run capability" \
                               || _fail "dryrun: undeclared: ${_dr_missing[*]}"
+# ...and nothing more: an entry left behind by a removed module (a [bk]=0 once
+# bk is gone) would otherwise pass every check above, which all start from
+# MODULE_DESC — the lockstep MODULE_NAME and MODULE_RISK already have.
+typeset -a _dr_phantom=()
+for _k in "${(k)MODULE_DRYRUN[@]}"; do
+    [[ -n "${MODULE_DESC[$_k]}" ]] || _dr_phantom+=("$_k")
+done
+(( ${#_dr_phantom[@]} == 0 )) && _pass "dryrun: no MODULE_DRYRUN id absent from MODULE_DESC" \
+                              || _fail "dryrun: phantom dry-run id(s): ${_dr_phantom[*]}"
 (( ${#_dr_bad[@]} == 0 ))     && _pass "dryrun: every value is 0 or 1" \
                               || _fail "dryrun: invalid values: ${_dr_bad[*]}"
 # A MUTATING module marked gated must reference BREW_MANAGER_DRY_RUN in its file
@@ -171,8 +180,6 @@ done
 # against a mock brew by tests/test_dryrun_gates.zsh.
 [[ "${MODULE_DRYRUN[2]}"   == "1" ]] && _pass "dryrun: mod_02 gated (brew update skipped)" \
                                      || _fail "dryrun: mod_02 honours --dry-run — registry must say 1"
-[[ "${MODULE_DRYRUN[mas]}" == "1" ]] && _pass "dryrun: mas gated (install skipped)" \
-                                     || _fail "dryrun: mas honours --dry-run — registry must say 1"
 
 # The set of ungated modules is pinned as an ALLOW-LIST, not asserted empty.
 # Failing the build on any 0 would invert the incentive the registry depends on:
@@ -180,7 +187,11 @@ done
 # in a comment, and the summary would then attest "nothing changed" for a module
 # that writes. Declaring debt honestly must stay free; what must not happen is
 # the debt growing in silence, or a fixed module keeping its exemption.
-typeset -a _KNOWN_UNGATED=(bk las)   # mod_bk [4] bundle check · mod_las [c] rm
+# Each entry with its reason: mod_01 writes /tmp/brew_doctor.log and runs a
+# plain `git status` in Homebrew's repository (STATE #14, until task 4 of the
+# 2.0.0 plan). bk and las, its first two entries, left with their modules in
+# 2.0.0.
+typeset -a _KNOWN_UNGATED=(1)
 typeset -a _declared=()
 for _k in "${(k)MODULE_DESC[@]}"; do
     (( ${MODULE_DRYRUN[$_k]:-0} )) || _declared+=("$_k")

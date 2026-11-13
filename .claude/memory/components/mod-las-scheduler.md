@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-las-scheduler
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # mod-las-scheduler (modules/mod_las_scheduler.sh)
@@ -10,7 +10,15 @@ Installa e gestisce LaunchAgent macOS (launchd, utente corrente, no sudo) che
 eseguono brew_manager.sh a orari programmati. SENSIBILE: crea PERSISTENZA.
 
 ## Stato attuale
-Funzionante con riserve importanti (sotto). Nessun test.
+**Retired: removed in 2.0.0** by task 3 of [[plans/v2-personal-tool]] (`cf1ef60`,
+2026-11-13, [[sessions/2026-11-13-remove-special-modules]]). The name `las` is reserved: it
+exits 2 with the removal hint, and no module gets it again. The LaunchAgent format left the
+public contract; nothing writes or reads the plists any more. 1.x agents left on a Mac keep
+running: the README's *Upgrading from 1.x* gives the way back to 1.5.0 to remove them with
+this module, and the `launchctl bootout` fallback. `agents/` stays in `.gitignore`. This
+note is kept as the module's history; what follows describes it as it was until 1.5.0.
+
+~~Funzionante con riserve importanti (sotto). Nessun test.~~ (until 1.5.0)
 
 ## Cosa espone / responsabilità
 - Funzione `_module_15` (alias di menu `las`).
@@ -62,3 +70,4 @@ Funzionante con riserve importanti (sotto). Nessun test.
 - [[sessions/2026-07-17-bm08c-agent-selection]] (agenti via resolver, _install_agent rifiuta invalidi)
 - [[sessions/2026-07-20-bm10-risk-badges]] (the risk badge in its About block)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (gate: `[c]` + `mkdir` non gatati → `MODULE_DRYRUN[las]=0`)
+- [[sessions/2026-11-13-remove-special-modules]] (removed in 2.0.0; the name reserved)

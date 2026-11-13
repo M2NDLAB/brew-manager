@@ -1,6 +1,6 @@
 ---
 type: decision
-updated: 2026-09-25
+updated: 2026-11-13
 tags: [decision]
 ---
 # Componenti sensibili: criterio = raggio di impatto sul Mac dell'utente
@@ -59,3 +59,13 @@ tags: [decision]
   rule 8: these paths, its own categories — the method's enforcement edge (its guard, hooks
   and settings) among them — and a product that asserts a security property; in doubt,
   under the gate.
+- **Amendment (2026-11-13, task 3 of the 2.0.0 plan)**: `mod_bk_brewfile`,
+  `mod_las_scheduler`, `mod_log_manager`, `mod_mas_mas` and `mod_10_greedy` are removed, and
+  their paths leave CLAUDE.md's answer **Sensitive components** with them. The answer gains
+  a path it always had and never listed, found by the branch's gate (F4): the deletion of
+  the session log at the end-of-run prompt in `lib/log.sh`, until task 4 removes that
+  prompt. The remaining paths: delete — mod_05's autoremove and cleanup, the session's
+  temporary files, that log; install — mod_00's adoption, mod_04's upgrade, the Homebrew
+  installer; modify Homebrew's configuration — mod_01's restore; decide what runs — the
+  flags, the dispatch and `--yes`, `lib/selection.sh`, `lib/common.sh`'s consent helpers
+  ([[sessions/2026-11-13-remove-special-modules]]).

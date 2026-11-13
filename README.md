@@ -17,13 +17,13 @@
 
 ## Why this exists
 
-If you use Homebrew regularly, you know the feeling: your Mac accumulates apps installed manually that could be managed by brew, packages that haven't been updated in months because they self-update and `brew upgrade` silently skips them, orphan libraries taking up gigabytes of disk space, binaries in `/usr/local/bin` placed there by some installer you don't remember, and no clean way to reproduce your exact setup if you get a new machine.
+If you use Homebrew regularly, you know the feeling: your Mac accumulates apps installed manually that could be managed by brew, packages that haven't been updated in months because they self-update and `brew upgrade` silently skips them, orphan libraries taking up gigabytes of disk space, and binaries in `/usr/local/bin` placed there by some installer you don't remember.
 
 The standard Homebrew CLI is excellent for installing and updating software — but it doesn't give you a clear picture of the state of your system. You have to run a dozen commands and mentally connect the output.
 
 **brew-manager** was built to fill that gap.
 
-It is a single shell script that runs entirely in your terminal, requires nothing beyond what macOS already has installed, captures every session to a log file, and can run fully automatically via macOS LaunchAgents. Every module starts with a plain-language explanation of what it does and why — so you always know what you are running before it runs.
+It is a single shell script that runs entirely in your terminal, requires nothing beyond what macOS already has installed, and captures every session to a log file. Every module starts with a plain-language explanation of what it does and why — so you always know what you are running before it runs.
 
 It is **not** a replacement for Homebrew. It is a maintenance and audit layer on top of it.
 
@@ -38,21 +38,18 @@ It is **not** a replacement for Homebrew. It is a maintenance and audit layer on
 | Homebrew | 4.x or later | Uses JSON API — no local core/cask clone needed |
 | Python 3 | any | Pre-installed on macOS — used for fast JSON parsing in module 3 |
 
-brew-manager finds Homebrew on your `PATH` or, when the `PATH` lacks it — a scheduled
-LaunchAgent, an app started from the Finder — at its standard prefix: `/opt/homebrew`
+brew-manager finds Homebrew on your `PATH` or, when the `PATH` lacks it — a job started
+by launchd, an app started from the Finder — at its standard prefix: `/opt/homebrew`
 (Apple Silicon) is tried first, then `/usr/local` (Intel); a `brew` executable already
 on your `PATH` is always used as it is. A shell function or alias named `brew` does not
 count as Homebrew being installed, but if `~/.zshenv` defines one, brew-manager's
-commands still go through it. Scheduled runs do not read your shell profiles, so
-`HOMEBREW_*` settings exported in `~/.zprofile` or `~/.zshrc` (such as
-`HOMEBREW_NO_ANALYTICS`) do not reach them: put those in `~/.zshenv`, or use a
+commands still go through it. A run started by launchd does not read your shell
+profiles, so `HOMEBREW_*` settings exported in `~/.zprofile` or `~/.zshrc` (such as
+`HOMEBREW_NO_ANALYTICS`) do not reach it: put those in `~/.zshenv`, or use a
 persistent setting such as `brew analytics off`. If Homebrew is missing altogether, the tool
 offers to install it only at an interactive terminal and only after you confirm —
 never under `--dry-run`, never without a terminal — and otherwise exits with status
 `69` without running anything.
-
-**Optional:**
-- `mas` — required for module `mas` (Mac App Store integration). If not installed, the module will offer to install it for you. Install manually with `brew install mas`.
 
 ---
 
@@ -81,6 +78,39 @@ export PATH="$PATH:$HOME/Dev/brew-manager"
 
 ---
 
+## Upgrading from 1.x
+
+2.0.0 makes brew-manager a personal terminal tool for one Mac. It removes the four modules that were selected by name — `bk` (Brewfile backup and restore), `las` (the LaunchAgent scheduler), `log` (the log manager) and `mas` (Mac App Store) — and retires module `10` (greedy upgrades of the casks that update themselves). The ids `bk`, `las`, `log`, `mas` and `10` are reserved: they are never given to another module, and a selection that names one exits `2` without running anything, with a pointer to the [CHANGELOG](CHANGELOG.md).
+
+**Remove your scheduled agents first, before you update past the `v1.5.0` tag.** 2.0.0 has no scheduler, so nothing in brew-manager can list or remove the LaunchAgents that `las` installed. Before you update, run `./brew_manager.sh las` and remove the agents you no longer want (option `5`). An agent you keep goes on running after the update: one whose selection names a removed id fails at every run with status `2`, and one that runs `go --yes` — as the weekly and daily presets do — still runs every module: `brew update`, module `5`'s cleanup and, where a developer command or `brew developer on` left Homebrew's developer mode on (1.x's module `1` did, at every run), module `1`'s restore of Homebrew's stable releases.
+
+**If you have already updated**, go back to 1.5.0 for that one step, from the brew-manager folder: `git checkout v1.5.0`, then `./brew_manager.sh las`, then `git checkout main`. Or check what is left with these two read-only commands:
+
+```bash
+ls ~/Library/LaunchAgents | grep '^com\.m2ndlab\.brew-manager\.'
+launchctl list | grep 'com\.m2ndlab\.brew-manager\.'
+```
+
+Only if the first one listed something, stop each agent and delete its plist (`rm -i` asks before each deletion):
+
+```bash
+for p in ~/Library/LaunchAgents/com.m2ndlab.brew-manager.*.plist(N); do launchctl bootout gui/$(id -u) "$p"; rm -i -- "$p"; done
+```
+
+Only if the second one listed a label whose plist is already gone:
+
+```bash
+launchctl list | awk '$3 ~ /^com\.m2ndlab\.brew-manager\./ {print $3}' | while read -r l; do launchctl bootout "gui/$(id -u)/$l"; done
+```
+
+`(N)` is zsh syntax, the default shell on macOS: with no plist left, the first loop does nothing. The loop stops each agent before it deletes its plist; the second command is for a label that is still loaded after its plist is gone.
+
+**Leftover files.** The commands in this paragraph run from the brew-manager folder. brew-manager no longer reads or writes `agents/` (the agents' configurations and activity log) or `backups/` (the Brewfile backups), and it never deletes them for you. A Brewfile in `backups/` is still a snapshot of your packages, which `brew bundle install --file=backups/Brewfile` installs again. Read the file before you run it — it is Ruby code, and Homebrew runs it as it is — and read `brew bundle install --help` too: the command can also update Homebrew itself and upgrade what is installed, records the trust its `trusted:` options name, and, with some `HOMEBREW_BUNDLE_*` settings in your environment, removes what the file does not list. The agents wrote their output to `logs/agent_stdout_*.log` and `logs/agent_stderr_*.log`. Look at what is there with `ls -la agents backups`, then remove what you no longer need by hand — for example `rm -ri -- agents backups`, which asks before each deletion. Both folders stay in `.gitignore`, so a leftover one is never committed by mistake. If you updated by copying the new files over the old folder rather than with `git pull`, the five old module files are still in `modules/` — `mod_bk_brewfile.sh`, `mod_las_scheduler.sh`, `mod_log_manager.sh`, `mod_mas_mas.sh` and `mod_10_greedy.sh` — and brew-manager loads every `modules/mod_*.sh` file it finds: delete those five too.
+
+**What replaces the removed modules:** `brew bundle dump --file=<path>` writes a Brewfile of what is installed, `brew upgrade --cask --greedy` re-syncs the casks whose apps updated themselves, the App Store app (or the third-party `mas` tool) updates App Store apps, and the session logs are plain files you browse and prune yourself (see [Session logging](#session-logging)).
+
+---
+
 ## Usage
 
 ### Interactive TUI
@@ -89,7 +119,7 @@ export PATH="$PATH:$HOME/Dev/brew-manager"
 ./brew_manager.sh
 ```
 
-Launches a full-screen terminal interface showing all available modules. Type `go` to run the complete audit sequence, or enter specific module numbers or names to run only what you need.
+Launches a full-screen terminal interface showing all available modules. Type `go` to run the complete audit sequence, or enter specific module numbers to run only what you need.
 
 At the top of each module you will see an **About this module** section explaining in plain language what the module does, what it checks, and what actions it can take — before anything runs.
 
@@ -99,24 +129,26 @@ Every module also carries a **risk badge** that makes its blast radius visible a
 |-------|---------|
 | `[RO]` | **Read-only** — inspects and reports, changes nothing. |
 | `[W]`  | **Writes metadata, cache or Homebrew's settings** — refreshes Homebrew's index, changes a Homebrew setting after you confirm (module `1`), or writes the tool's own files; never installs or removes a package. |
-| `[!]`  | **Can change your system** — removes packages/cache, installs, adopts apps, or schedules a LaunchAgent. |
+| `[!]`  | **Can change your system** — removes packages/cache, installs or upgrades packages, or adopts apps. |
 
 Before a `[!]` action actually runs, brew-manager draws a **framed danger box** that names the exact command and spells out what it will do, then asks you to confirm. Under `--dry-run` you get a preview instead and are never asked; in an unattended run consent still comes only from `--yes` (see [Available flags](#available-flags)).
 
-While a long operation is in flight (`brew doctor`, `brew update`) a **spinner** shows it is still working, with the seconds elapsed. It only animates on a real terminal: piped output and scheduled runs get a single static line per operation instead, so the log stays clean.
+While a long operation is in flight (`brew doctor`, `brew update`) a **spinner** shows it is still working, with the seconds elapsed. It only animates on a real terminal: piped output and runs without a terminal get a single static line per operation instead, so the log stays clean.
 
 ### The session summary
 
 Every run ends with a **session summary**: one row per module in the order it ran, with the time it took, then the totals the modules collected, the Homebrew cache before and after, and the path of the session log.
 
-```
-  ✓      7  Services               5s
-  ↷      5  Cleanup                4s   preview (--dry-run)
-  ↷      2  Database update        0s   preview (--dry-run)
-  ⚠     bk  Brewfile backup        2s   ran anyway (no --dry-run gate)
+A real `./brew_manager.sh 1,2,5,7 --dry-run`, the rows and the disk line:
 
-  ✓ completed    ↷ previewed, nothing changed    ⚠ acted despite --dry-run
-  Disk   cache 3.8G → 2.1G  (freed ~1.7G)
+```
+  ⚠      1  System health          3s   ran anyway (no --dry-run gate)
+  ↷      2  Database update        1s   preview (--dry-run)
+  ↷      5  Cleanup                3s   preview (--dry-run)
+  ✓      7  Services               0s
+
+  ✓    completed    ↷    previewed, nothing changed    ⚠    acted despite --dry-run
+  Disk   cache 3.7G → 3.7G  (grew ~8K)
 ```
 
 | Mark | Meaning |
@@ -127,14 +159,13 @@ Every run ends with a **session summary**: one row per module in the order it ra
 
 Read-only modules show `✓` even under `--dry-run` — they only inspect, so a dry run is their normal work.
 
-Two modules still carry the `⚠` mark, and the summary says so rather than claiming a preview that did not happen:
+One module still carries the `⚠` mark, and the summary says so rather than claiming a preview that did not happen:
 
-- **`bk`** — the *Check* option runs `brew bundle check`, which evaluates the Brewfile as a Ruby script. The backup and restore paths themselves are previewed properly.
-- **`las`** — the *clear logs* option deletes the agent activity log outright, and the module creates `~/Library/LaunchAgents` if it does not exist. Installing, modifying and removing agents are previewed properly.
+- **`1`** — it writes the output of `brew doctor` to a scratch file, `/tmp/brew_doctor.log`, and when a developer command or `brew developer on` left Homebrew's developer mode on, it runs `git status` in Homebrew's repository, which may rewrite that repository's index file. The developer-mode restore itself is only previewed.
 
 Every other module stops at a preview: nothing is installed, removed, upgraded or overwritten. A dry run also sets `HOMEBREW_NO_AUTO_UPDATE`, because Homebrew otherwise refreshes its package index by itself before commands such as `brew outdated` — so even the modules that only *list* packages used to leave the index rewritten behind them.
 
-Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]` / `[!]`. The disk line appears only when a module measured the cache (today, module `5`); the "after" figure is taken at the end of the run, so later modules that download into the cache are reflected in it.
+Without a UTF-8 terminal the marks degrade to `[OK]` / `[--]` / `[!]`. The disk line appears only when a module measured the cache (today, module `5`); the "after" figure is taken at the end of the run, so later modules that download into the cache are reflected in it. Even a dry run can show the cache grow by a few kilobytes, as in the example: Homebrew keeps its own Ruby compile cache in there, and any `brew` command may update it.
 
 ### Choosing what to run
 
@@ -143,36 +174,34 @@ You can choose the modules **on the command line** or **interactively** — whic
 **On the command line** — pass the selection as a positional argument. The run is then non-interactive and skips the menu:
 
 ```bash
-./brew_manager.sh go            # all standard modules, 0 to 13
+./brew_manager.sh go            # every module, 0 to 13 (there is no 10)
 ./brew_manager.sh 1,4,5         # only these, in this order
 ./brew_manager.sh 5,2,0         # any order, duplicates allowed
-./brew_manager.sh log           # a named module: log, bk, las, mas
 ```
 
 Refine a selection with `--only` (keep only these) or `--skip` (remove these):
 
 ```bash
-./brew_manager.sh go --skip=5,10    # every module except 5 and 10
+./brew_manager.sh go --skip=5,13    # every module except 5 and 13
 ./brew_manager.sh go --only=0,4     # only 0 and 4 out of the full sequence
 ```
 
-An unknown module token is **rejected with an error and a non-zero exit** — nothing runs, never silently skipped — so a typo can't run a different set of modules than you intended. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
+An unknown module token is **rejected with an error and a non-zero exit** — nothing runs, never silently skipped — so a typo can't run a different set of modules than you intended. A module removed in 2.0.0 (`bk`, `las`, `log`, `mas`, `10`) is an unknown token like any other, and the error adds a line that points to the CHANGELOG. (Inside the interactive prompt an unknown token is instead warned about and skipped.)
 
 **Interactively** — start the script with no selection and type your choice at the `Choice` prompt:
 
 ```
-→  Choice [go / comma-separated numbers, default: go]: go       # all standard modules, 0 to 13
-→  Choice [go / comma-separated numbers, default: go]: 1,4,5    # only these, in this order
-→  Choice [go / comma-separated numbers, default: go]: log      # a named module: log, bk, las, mas
+→  Choice [go / numbers, default: go]: go       # every module, 0 to 13 (there is no 10)
+→  Choice [go / numbers, default: go]: 1,4,5    # only these, in this order
 ```
 
 Flags change **how** the run behaves and combine with either form:
 
 ```bash
-# Read-only inspection of the full sequence — nothing on your system is modified
+# Preview the full sequence: nothing is installed, removed, upgraded or adopted
 ./brew_manager.sh go --dry-run
 
-# Unattended full run: every question is auto-answered with its built-in safe default
+# Unattended full run: every question is auto-answered with its built-in default
 ./brew_manager.sh go --yes
 
 # Run modules 0 and 4, pre-answering their adoption/upgrade prompts
@@ -188,17 +217,17 @@ Flags change **how** the run behaves and combine with either form:
 
 | Flag | What it does |
 |------|--------------|
-| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`, and force-upgrades (module `10`), Mac App Store updates and restores stay off. The one deliberate exception is module `5`, whose cleanup prompt defaults to *yes* so a scheduled maintenance run can actually free disk space — add `--skip=5` (or `--dry-run`) if you don't want that. |
-| `--dry-run` | Read-only mode: previews what would happen and executes nothing. Overrides `--yes` — a dry run never modifies anything, even when combined with it. It also sets `HOMEBREW_NO_AUTO_UPDATE` for the session, so Homebrew does not refresh its index behind your back while you are only looking. Two modules still have ungated options — see [the session summary](#the-session-summary). |
+| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`. Without an opt-in, two prompts deliberately default to *yes*: module `5`'s cleanup, so that a run you start with `--yes` frees disk space, and module `1`'s developer-mode restore (`brew developer off`, then `brew update`, which stashes any local change in Homebrew's repository), offered only when a developer command or `brew developer on` left developer mode on. Add `--skip=1,5` (or `--dry-run`) if you don't want them. |
+| `--dry-run` | Preview mode: shows what would happen, and installs, removes, upgrades and adopts nothing. Overrides `--yes` — even combined with it, a dry run only previews. It also sets `HOMEBREW_NO_AUTO_UPDATE` for the session, so Homebrew does not refresh its index behind your back while you are only looking. Module `1` still writes a scratch file and may rewrite the index of Homebrew's own repository — see [the session summary](#the-session-summary). |
 | `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
 | `--only=ids` | Keeps only the listed modules from the selection (e.g. `go --only=0,4`). Applied after the positional selection. |
-| `--skip=ids` | Removes the listed modules from the selection (e.g. `go --skip=5,10`). Applied after `--only`. |
+| `--skip=ids` | Removes the listed modules from the selection (e.g. `go --skip=5,13`). Applied after `--only`. |
 | `--version` / `-V` | Prints the version and exits. Inside a git work tree it also shows the distance from the latest release tag. |
 
 An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-zero exit status — it is never ignored, because silently continuing would run the tool in a mode you did not ask for. The same strictness applies to an unknown **module** token: `./brew_manager.sh 99` exits `2` without running anything, rather than a partial, unexpected selection.
 
-> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (this is what the LaunchAgents installed by the `las` module do). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, Homebrew unavailable → `69`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start; a module that fails while running does not change it yet. `--version` answers before anything else, even next to an unknown flag; then an unknown flag is rejected, then a missing Homebrew, then the module selection. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
+> **Non-interactive runs:** pass the module selection as an argument and add `--yes` (from a script, cron, or a launchd job you set up yourself). Consent is explicit: without `--yes`, a run with no terminal attached is **fail-closed** — every confirmation prompt is automatically declined (the session banner says so), so it can inspect and report but never modify anything. The exit status reflects how the run ended (invalid selection → `2`, nothing to run → `1`, Homebrew unavailable → `69`, interrupted by a signal → the signal number), so launchd, scripts and CI can detect a failed start; a module that fails while running does not change it yet. `--version` answers before anything else, even next to an unknown flag; then an unknown flag is rejected, then a missing Homebrew, then the module selection. Piping input to drive the *interactive* prompt is not supported — the session recorder owns the script's standard input — so the command-line selection is the way to run unattended.
 
 > **Ctrl+C:** if you interrupt a session, the log file is still saved. The ANSI stripping and cleanup step runs in the parent process, independently of how the child session ended.
 
@@ -206,11 +235,11 @@ An unknown flag (a typo such as `--dryrun`) is rejected with an error and a non-
 
 ## Modules
 
-brew-manager has two categories of modules:
+Every module has a number, and `go` runs them all.
 
-### Standard modules — run with `go`
+### The modules — all run with `go`
 
-These run in sequence (0 → 13) when you type `go`. They are pure audit and maintenance operations with no persistent side effects beyond what you explicitly confirm.
+These run in sequence (0 → 13; there is no `10`, retired in 2.0.0 — see [Upgrading from 1.x](#upgrading-from-1x)) when you type `go`. They are pure audit and maintenance operations with no persistent side effects beyond what you explicitly confirm.
 
 ---
 
@@ -257,7 +286,7 @@ Under `--dry-run` nothing is fetched: the module lists the repositories that wou
 Lists every package currently installed by Homebrew, split into two sections:
 
 **Applications (Casks)** — GUI apps installed via `brew install --cask`. Each cask is tagged:
-- `[A]` — the app has its own auto-updater (e.g. Docker, Firefox, VS Code). `brew upgrade` skips it by default to avoid conflicts with the app's built-in update mechanism. Module `10` handles these.
+- `[A]` — the app has its own auto-updater (e.g. Docker, Firefox, VS Code). `brew upgrade` skips it by default to avoid conflicts with the app's built-in update mechanism. `brew upgrade --cask --greedy`, run by hand, upgrades these too.
 - `[M]` — the app is fully managed by `brew upgrade`. No built-in updater.
 
 **Formulae and libraries** — CLI tools and libraries. Descriptions are fetched live from `brew info --json=v2 --installed` in a single fast call — no per-package queries.
@@ -268,7 +297,7 @@ Lists every package currently installed by Homebrew, split into two sections:
 
 Shows every installed cask and formula that has a newer version available, with a version diff table. Before asking whether to upgrade, displays a `brew upgrade --dry-run` preview so you can see exactly what will change.
 
-Casks tagged `[A]` (auto_updates) are listed but not upgraded here — use module `10` for those.
+A cask tagged `[A]` (auto_updates) whose app has already updated itself is left out here: to sync it, run `brew upgrade --cask --greedy` by hand.
 
 ---
 
@@ -279,7 +308,7 @@ Removes two categories of files that Homebrew accumulates over time:
 - **Orphan dependencies** — formulae that were installed as dependencies of something you removed, but are no longer needed by any installed package. Removed via `brew autoremove`.
 - **Old versions and download cache** — previous versions of upgraded packages and the downloaded archives used to install them. Removed via `brew cleanup -s`.
 
-Nothing is removed until you confirm: interactively the module requires an explicit `y`, and `--dry-run` previews what `brew autoremove` and `brew cleanup -s` would delete (including the space that would be freed) without touching anything. In an unattended `--yes` run this prompt is deliberately auto-confirmed — freeing space is what a scheduled maintenance run is for; leave `5` out of the selection (or `--skip=5`) if you don't want that.
+Nothing is removed until you confirm: interactively the module requires an explicit `y`, and `--dry-run` previews what `brew autoremove` and `brew cleanup -s` would delete (including the space that would be freed) without touching anything. In a `--yes` run this prompt is deliberately auto-confirmed — an explicit `--yes` is your consent to the cleanup; leave `5` out of the selection (or `--skip=5`) if you don't want that.
 
 Cache size is measured before and after so you can see exactly how much space was freed.
 
@@ -315,16 +344,6 @@ Companion to module `8` — lists binaries in `/usr/local/bin` that **are** mana
 
 ---
 
-#### `10` — Greedy: auto-update cask check
-
-Homebrew marks certain casks as `auto_updates: true` because they have a built-in update mechanism. `brew upgrade` intentionally skips these to avoid version conflicts. This module finds them, checks which are actually outdated, and offers to force an update.
-
-**Only the casks listed in the confirmation are upgraded** — no formulae and no other casks. Each one is upgraded on its own, its exit status is reported, and a cask that turns out not to have changed version (these apps update themselves, so one may have done so while you were reading the prompt) is reported as *no change* rather than as upgraded. Use module `4` for formulae and regular casks. Under `--dry-run` you get a preview and nothing is upgraded.
-
-Common examples: Docker, Firefox, Discord, VS Code, Telegram, Chrome.
-
----
-
 #### `11` — Conflicts: duplicates and deprecated packages
 
 Detects three categories of potential problems:
@@ -354,125 +373,6 @@ Shows three totals: Cellar (formulae), Caskroom (cask metadata), and download ca
 
 ---
 
-### Special modules — call by name
-
-These are excluded from `go` because they are interactive configuration and management tools, not audits. Call them directly by name.
-
----
-
-#### `log` — Session log manager
-
-```bash
-./brew_manager.sh          # then type `log` at the Choice prompt
-```
-
-Manages all log files in the `logs/` directory. Logs are color-coded by type in the file list:
-
-| Type | Color | Description |
-|------|-------|-------------|
-| `brew_report_*` | Cyan | Full session logs — one per run of brew_manager.sh |
-| `agent_stdout_*` | Green | Output from scheduled LaunchAgent runs |
-| `agent_stderr_*` | Yellow | Errors from scheduled LaunchAgent runs |
-
-Options: **View** (print log contents), **Delete** (by number, list, or `all`), **Purge old** (delete logs older than N days).
-
----
-
-#### `bk` — Brewfile and agents backup/restore
-
-```bash
-./brew_manager.sh          # then type `bk` at the Choice prompt
-```
-
-Creates and manages portable snapshots of your entire setup — both Homebrew packages and LaunchAgent schedules. Each operation can be run independently or on the full set:
-
-| Option | What it does |
-|--------|--------------|
-| `1` — Backup all | Generates Brewfile + agents bundle in `backups/` |
-| `1b` — Backup Brewfile | Homebrew packages only |
-| `1a` — Backup agents | LaunchAgent schedules only |
-| `2` — Preview all | Shows what would be saved without writing anything |
-| `2b` — Preview brew | Lists packages that would go into the Brewfile |
-| `2a` — Preview agents | Lists configured LaunchAgent schedules |
-| `3` — Restore all | Installs all Brewfile packages + reloads all agents (asks first) |
-| `3b` — Restore brew | Restores Homebrew packages only (asks first) |
-| `3a` — Restore agents | Recreates and reloads LaunchAgents from bundle (asks first) |
-| `4` — Check | Verifies all Brewfile dependencies are currently satisfied |
-| `5` — View | Shows saved Brewfile contents with color-coded categories + agents bundle |
-| `6` — Delete | Removes Brewfile, lock file, and/or agents bundle (selectable) |
-
-All three restore options ask for confirmation before writing anything, so in an unattended run (`--yes`) they do nothing: a restore is a deliberate act. Under `--dry-run` they show exactly what would be installed and which agents would be loaded, without executing. When agents are restored, each stored module selection is validated first: an entry that no longer resolves to real modules is skipped with a warning — never silently replaced with the full sequence.
-
-**To move your setup to a new Mac:**
-
-```bash
-# On the old Mac — backup everything
-./brew_manager.sh bk   # option 1
-
-# Copy the backups/ folder to your new Mac
-cp -r backups/ /path/to/new/mac/brew-manager/backups/
-
-# On the new Mac — restore everything
-./brew_manager.sh bk   # option 3
-```
-
----
-
-#### `las` — LaunchAgent scheduler
-
-```bash
-./brew_manager.sh          # then type `las` at the Choice prompt
-```
-
-Installs, modifies, and removes macOS LaunchAgents that run brew-manager automatically on a schedule. Uses macOS `launchd` natively — no cron, no sudo, no third-party tools. Runs as your user account and starts automatically at login.
-
-All scheduled runs pass `--yes` automatically so they complete without interaction. Output goes to `logs/agent_stdout_*.log`, errors to `logs/agent_stderr_*.log`. launchd starts every agent with a minimal `PATH` that does not include Homebrew; brew-manager finds it at its standard prefix by itself (up to v1.4.0 it did not, so scheduled runs stopped before running any module — see the CHANGELOG), and an agent that cannot find Homebrew (not installed, or installed outside the standard prefixes) ends with status `69`, visible in `launchctl print`.
-
-> **After updating from v1.4.0 or earlier, review your agents first.** They need no reinstall, and that is the point: at their next scheduled time they will run their modules for real — for most of them, the first time. The weekly and daily presets run `go --yes`, which includes `brew update` and module `5`'s cleanup. List them with `las` and remove the ones you no longer want.
-
-> **What a scheduled agent actually runs:** exactly the module selection you configured — the agent's plist invokes `brew_manager.sh <your modules> --yes`, so an agent installed for `8,9` runs modules 8 and 9 and nothing else. The selection is validated whenever an agent is written (install, modify, re-register): a value that does not resolve to real modules is refused — and skipped on restore from a backup — never silently replaced with the full sequence. Scheduled runs are unattended, so each prompt is auto-answered with its built-in default: conservative everywhere except module `5`'s cleanup (see *Available flags*) — schedule `5` only if you want the agent to actually free disk space.
-
-| Option | What it does |
-|--------|--------------|
-| `1` | Install weekly agent — every Sunday at 09:00 |
-| `2` | Install daily agent — every day at 09:00 |
-| `3` | Custom agent — choose name, day, hour and minute |
-| `4` | Modify agent — change the schedule without reinstalling |
-| `5` | Remove agent — unloads from macOS and deletes plist + conf |
-| `6` | **Integrity check** — see below |
-| `v` | View activity log — color-coded history of installs/modifications/removals |
-| `c` | Clear logs — only available when no agents are installed |
-
-**Option 6 — Integrity check:**
-
-If you delete a `.plist` or `.conf` file manually instead of using option `5`, the system can get out of sync. The integrity check finds three types of problems:
-
-- **Orphan plists** — agents active in `~/Library/LaunchAgents/` with the brew-manager label prefix but no corresponding `.conf` in `agents/`. brew-manager has no record of them but they are still running.
-- **Dangling confs** — `.conf` files in `agents/` that reference plists that no longer exist in `~/Library/LaunchAgents/`. brew-manager thinks they exist but macOS does not.
-- **Legacy or corrupted agents** — a tracked agent whose stored data no longer matches the schedule macOS actually uses, or whose module list was mangled by an older version. Such an agent can fail on every scheduled run.
-
-For the first two you can **re-register** (create the missing file and bring everything back in sync) or **remove** (clean up completely). For the third, the **repair** option regenerates both files from the schedule launchd really uses. Agents that fire on several weekdays are left untouched by these repairs — rewriting them as a single day would silently change when they run.
-
-> Always use option `[5]` to remove agents. If you delete files manually, run the integrity check with option `[6]` to restore consistency.
-
----
-
-#### `mas` — Mac App Store integration
-
-```bash
-./brew_manager.sh          # then type `mas` at the Choice prompt
-```
-
-Manages apps installed from the Mac App Store using [`mas`](https://github.com/mas-cli/mas), an open-source CLI tool. If `mas` is not installed, this module will offer to install it via `brew install mas`.
-
-Shows all installed App Store apps with their App ID, name, and version. Checks for available updates and offers to run `mas upgrade` to update them all. Requires that you are signed into the App Store with your Apple ID.
-
-Under `--dry-run` neither the `mas` install nor the upgrade runs: you are shown what would be installed or updated, and you are not asked to confirm.
-
-Note: `mas` is completely separate from Homebrew — it only communicates with the Mac App Store and does not interact with brew at all.
-
----
-
 ## Project structure
 
 ```
@@ -483,7 +383,8 @@ brew-manager/
 │
 ├── lib/
 │   ├── common.sh             ← colors, symbols, TUI utilities, _ask, _read_choice
-│   └── log.sh                ← session log menu and support footer
+│   ├── log.sh                ← session log menu and support footer
+│   └── selection.sh          ← module registry and selection resolver
 │
 ├── modules/
 │   ├── mod_00_audit.sh       ← [0]   unmanaged app audit
@@ -496,30 +397,14 @@ brew-manager/
 │   ├── mod_07_services.sh    ← [7]   homebrew services
 │   ├── mod_08_untracked.sh   ← [8]   untracked binaries in /usr/local/bin
 │   ├── mod_09_tracked.sh     ← [9]   brew-tracked binaries in /usr/local/bin
-│   ├── mod_10_greedy.sh      ← [10]  auto-update casks (greedy check)
 │   ├── mod_11_conflicts.sh   ← [11]  duplicates and conflicts
 │   ├── mod_12_security.sh    ← [12]  security audit
-│   ├── mod_13_disk.sh        ← [13]  disk usage breakdown
-│   ├── mod_bk_brewfile.sh    ← [bk]  Brewfile + agents backup/restore
-│   ├── mod_las_scheduler.sh  ← [las] LaunchAgent scheduler
-│   ├── mod_mas_mas.sh        ← [mas] Mac App Store integration
-│   └── mod_log_manager.sh    ← [log] session log manager
+│   └── mod_13_disk.sh        ← [13]  disk usage breakdown
 │
 ├── logs/                     ← auto-created at first run, git-ignored
-│   ├── brew_report_*.log     ← one per interactive session
-│   ├── agent_stdout_*.log    ← stdout from each scheduled LaunchAgent run
-│   └── agent_stderr_*.log    ← stderr from each scheduled LaunchAgent run
+│   └── brew_report_*.log     ← one per run
 │
-├── backups/                  ← auto-created by module bk, git-ignored
-│   ├── Brewfile              ← declarative snapshot of all installed packages
-│   ├── Brewfile.lock.json    ← Homebrew lock file for reproducible restores
-│   └── agents_bundle.conf    ← snapshot of all LaunchAgent configurations
-│
-├── agents/                   ← auto-created by module las, git-ignored
-│   ├── agent_*.conf          ← one configuration file per installed agent
-│   └── agents_activity.log   ← timestamped install/modify/remove history
-│
-├── .gitignore                ← excludes logs/, backups/, agents/
+├── .gitignore                ← excludes logs/ (and backups/, agents/, left by 1.x)
 ├── CHANGELOG.md              ← what changed in each release
 ├── LICENSE                   ← MIT
 ├── README.md
@@ -527,9 +412,9 @@ brew-manager/
                                  system, and how to report a vulnerability
 ```
 
-> `logs/`, `backups/`, and `agents/` are created automatically and are excluded from git. They contain session data and local paths that should not be committed.
+> `logs/` is created automatically and is excluded from git: it holds session data and local paths that should not be committed. So are `backups/` and `agents/`, which 1.x created and 2.0.0 no longer uses (see [Upgrading from 1.x](#upgrading-from-1x)).
 
-The repository also carries the development tooling used to maintain the project (`CLAUDE.md`, `.claude/`, `Makefile`, `scripts/`). None of it is needed to *run* brew-manager — the script only requires itself, `VERSION`, `lib/` and `modules/`.
+The repository also carries the development tooling used to maintain the project (`CLAUDE.md`, `.claude/`, `Makefile`, `scripts/`, and the test suites in `tests/`). None of it is needed to *run* brew-manager — the script only requires itself, `VERSION`, `lib/` and `modules/`.
 
 ---
 
@@ -545,9 +430,11 @@ At the end of each interactive session you are presented with three choices:
 - **Open** — the log is opened in your default editor for review (file is saved regardless)
 - **Delete** — the log file is removed
 
-To manage all session logs at once:
+The logs are plain text files in `logs/`, one per run, and brew-manager never prunes them on its own. Browse them with `ls -lt logs/` and any editor or pager. To prune old ones, list them first, then delete them by hand — for example, from the brew-manager folder, the logs older than 90 days:
+
 ```bash
-./brew_manager.sh          # then type `log` at the Choice prompt
+find logs -name 'brew_report_*.log' -mtime +90 -print
+find logs -name 'brew_report_*.log' -mtime +90 -delete
 ```
 
 ---
@@ -558,7 +445,7 @@ brew-manager adapts its output to what your terminal can actually display, and d
 
 - **Color depth is detected automatically.** A truecolor terminal (`COLORTERM=truecolor`) gets the full 24-bit palette; a 256-color terminal gets 256-color hues; anything poorer falls back to the classic 16 colors. The palette is *semantic* — one tint per state (green = safe/read-only, yellow = writes metadata, red = destructive) — so the meaning of an action is legible at a glance rather than decorative.
 - **`NO_COLOR` is honored.** Set `NO_COLOR=1` (see [no-color.org](https://no-color.org)) and the output is plain text with no ANSI sequences at all.
-- **Piped or non-interactive output is clean at the source.** When standard output is not a terminal — a pipe, a redirect, a scheduled LaunchAgent — no color or cursor-control sequences are emitted in the first place, and the progress spinner is replaced by one static line per operation. This complements the ANSI stripping of the saved log: a piped report is clean text you can `grep` or archive directly.
+- **Piped or non-interactive output is clean at the source.** When standard output is not a terminal — a pipe, a redirect, a job started by launchd — no color or cursor-control sequences are emitted in the first place, and the progress spinner is replaced by one static line per operation. This complements the ANSI stripping of the saved log: a piped report is clean text you can `grep` or archive directly.
 - **Non-UTF-8 locales fall back to ASCII.** In a UTF-8 locale the interface uses rounded boxes and Unicode symbols (`✓ ⚠ ✗ → ─`); otherwise it uses ASCII equivalents (`+ ! x -> -`), so it stays readable in a `LANG=C` environment.
 
 All of this is driven from `lib/common.sh`, so every module inherits it — there is nothing to configure.
@@ -567,22 +454,14 @@ All of this is driven from `lib/common.sh`, so every module inherits it — ther
 
 ## Adding a new module
 
-brew-manager's dispatch system is designed to make adding modules trivial.
+brew-manager's dispatch system is designed to make adding modules trivial. Every module is numbered and runs in `go`:
 
-**Numbered module (included in `go`):**
+1. Create `modules/mod_NN_name.sh` (`NN` is the next free number, two digits) containing a function named `_module_N()` (the number without the leading zero). Never reuse a retired id: `10`, `bk`, `las`, `log` and `mas` stay reserved for good, because scripts and agents written for 1.x may still pass them.
+2. Register it in `lib/selection.sh` — four entries, one per registry: `MODULE_DESC` (one-line description, plain ASCII, max 46 chars), `MODULE_NAME` (short menu name, plain ASCII, max 17 chars), `MODULE_RISK` (`ro`, `write` or `danger` — drives the risk badge) and `MODULE_DRYRUN` (`1` only if a `--dry-run` run of the module changes nothing; a `0` must also be listed, with its reason, in `_KNOWN_UNGATED` of `tests/test_run_summary.zsh`).
+3. Add the number to the `MODULE_IDS` array: it is the `go` sequence, and the menu draws its rows from it.
+4. Update the two deliberate pins of `tests/test_menu_registry.zsh` — the frozen id set and the `MODULE_IDS` count — since the module ids are part of the public contract.
 
-1. Create `modules/mod_NN_name.sh` containing a function named `_module_NN()`
-2. Register it in `lib/selection.sh` — three entries, one per registry: `MODULE_DESC` (one-line description, plain ASCII, max 46 chars), `MODULE_NAME` (short menu name, plain ASCII, max 17 chars) and `MODULE_RISK` (`ro`, `write` or `danger` — drives the risk badge). The test suite fails if any of the three is missing or over the column caps (`tests/test_menu_registry.zsh`, `tests/test_risk_badges.zsh`)
-3. Add `NN` to the `MODULE_IDS` array
-4. Done — the source glob, menu, dispatch loop, and summary pick it up automatically
-
-**Named module (excluded from `go`, selected by name at the prompt):**
-
-1. Create `modules/mod_KEYNAME_*.sh` with a function (any number is fine internally)
-2. Register the key in `lib/selection.sh` — same three registry entries as above (`MODULE_DESC`, `MODULE_NAME`, `MODULE_RISK`)
-3. In `lib/selection.sh`, teach the resolver the new key: add a whole-token `case` arm to `_resolve_selection` (`keyname|KEYNAME) MODULES_TO_RUN=("keyname") ;;`) and include `keyname` in the lowercase-special checks so it is also accepted inside comma lists and `--only`/`--skip`
-4. Add a `case` entry in the dispatch loop in `brew_manager.sh`: `keyname) _module_function ;;`
-5. Add the key to the TOOLS loop in the interactive menu in `brew_manager.sh` (`for tid in log bk las mas ...`)
+The source glob, the menu rows and the range in the menu's header, the dispatch, the "Valid modules" error and the summary then pick the module up from the registries. `make test` fails if a registry entry is missing or over its column cap, if a registered id has no module file or no `_module_N()` function, or if a module file is not registered (`tests/test_menu_registry.zsh`, `tests/test_risk_badges.zsh`, `tests/test_run_summary.zsh`).
 
 > The selection is parsed by `_resolve_selection` (`lib/selection.sh`) from **either** a command-line spec **or** what the user types at the `Choice` prompt — the same code path backs both. `--only` / `--skip` then filter the result.
 
@@ -614,6 +493,6 @@ In plain language: use it freely, modify it, include it in your own projects. Th
 <div align="center">
 
 *brew-manager is a macOS-only tool.*
-*It relies on macOS-specific features — Caskroom, LaunchAgents, bundle identifiers, mdfind, script(1) — that do not exist on Linux.*
+*It relies on macOS-specific features — Caskroom, bundle identifiers, mdfind, script(1) — that do not exist on Linux.*
 
 </div>

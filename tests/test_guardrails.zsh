@@ -3,7 +3,7 @@
 # tests/test_guardrails.zsh — consent guard-rails of _ask / _read_choice
 #
 # The tool's core safety property (BM-08c gate finding): "non-interactive" (no
-# usable stdin — a LaunchAgent, a pipe, cron, `ssh host cmd`) must NOT imply
+# usable stdin — a launchd job, a pipe, cron, `ssh host cmd`) must NOT imply
 # consent. Only an explicit --yes (BREW_MANAGER_YES=1) authorizes taking a
 # prompt's built-in default. A non-interactive run WITHOUT --yes
 # (BREW_MANAGER_NONINTERACTIVE=1) DECLINES every _ask — so a destructive default
@@ -56,8 +56,9 @@ assert_ask 1 0 n 1
 assert_ask 0 1 y 1
 assert_ask 0 1 n 1
 
-# ── an agent is BOTH non-interactive AND --yes → still takes the default, so
-#    scheduled maintenance (e.g. cleanup) runs as intended ────────────────────
+# ── non-interactive AND --yes (a run you started from a script with --yes, say)
+#    → still takes the default: an explicit --yes is consent, so its cleanup
+#    runs as intended (decision D4 of the 2.0.0 plan kept mod_05's default y) ─
 assert_ask 1 1 y 0
 assert_ask 1 1 n 1
 
