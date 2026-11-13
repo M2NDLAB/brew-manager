@@ -42,7 +42,7 @@ for _k in "${(k)MODULE_NAME[@]}"; do
     [[ -n "${MODULE_DESC[$_k]}" ]] || _phantom+=("$_k")
 done
 # anti-vacuity: an empty registry would vacuously pass every per-entry loop
-(( ${#MODULE_DESC[@]} >= 18 )) && _pass "registry: MODULE_DESC has ${#MODULE_DESC[@]} modules" \
+(( ${#MODULE_DESC[@]} >= 13 )) && _pass "registry: MODULE_DESC has ${#MODULE_DESC[@]} modules" \
                                || _fail "registry: MODULE_DESC too small (${#MODULE_DESC[@]})"
 (( ${#_missing[@]} == 0 )) && _pass "registry: every module has a display name" \
                            || _fail "registry: no display name for: ${_missing[*]}"
@@ -68,17 +68,18 @@ done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. Selection contract untouched — the frozen id set is exactly the registry
-#    keys (docs/04: numbers 0-13 + go + log/bk/las/mas; renames must never
-#    add/remove/renumber a selectable id)
+#    keys (CLAUDE.md, Public contract: numbers 0-13 + go + log/bk/las/mas, 10
+#    retired in 2.0.0 and never reassigned; renames must never add/remove/
+#    renumber a selectable id)
 # ─────────────────────────────────────────────────────────────────────────────
-typeset -a _expected=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 log bk las mas)
+typeset -a _expected=(0 1 2 3 4 5 6 7 8 9 11 12 13 log bk las mas)
 typeset -a _keys=("${(k)MODULE_DESC[@]}")
 _sorted_expected="${(j:,:)${(o)_expected[@]}}"
 _sorted_keys="${(j:,:)${(o)_keys[@]}}"
 [[ "$_sorted_keys" == "$_sorted_expected" ]] \
     && _pass "contract: MODULE_DESC keys are exactly the frozen id set" \
     || _fail "contract: key drift — got: $_sorted_keys"
-(( ${#MODULE_IDS[@]} == 14 )) && _pass "contract: MODULE_IDS still has 14 numbered modules" \
+(( ${#MODULE_IDS[@]} == 13 )) && _pass "contract: MODULE_IDS still has 13 numbered modules" \
                               || _fail "contract: MODULE_IDS count changed (${#MODULE_IDS[@]})"
 
 # ─────────────────────────────────────────────────────────────────────────────

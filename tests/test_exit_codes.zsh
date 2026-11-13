@@ -131,6 +131,10 @@ assert_exit() {
 #    checks below go THROUGH the script(1) wrapper (the propagation itself) ──
 assert_exit 2 "unknown module token (99)"        99
 assert_exit 1 "selection resolves empty (8 --skip=8)" 8 --skip=8
+# a retired module is an unknown token like any other (decision D3): the whole
+# selection is refused, the valid ids next to it included
+assert_exit 2 "retired module (10)"              10
+assert_exit 2 "retired module in a list (8,10)"  8,10
 
 # ── parent-side guard (rejected BEFORE the re-exec: flag parser regression) ──
 assert_exit 2 "unknown flag (--dryrun)"          --dryrun

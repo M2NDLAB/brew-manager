@@ -56,7 +56,8 @@ a grep proves their code gone.
 - [ ] 2. Module 1 declared ungated under `--dry-run` (#14): `MODULE_DRYRUN[1]=0` with its
   reason; `_KNOWN_UNGATED=(bk las 1)`. The summary marks a `1 --dry-run` row "ran anyway",
   which is what it does. Verification: `make test`; a `1 --dry-run` smoke shows the row. —
-  commit: —
+  commit: `44394b9` (RED: the allow-list check failed on the declaration alone; GREEN
+  with the entry, 333 checks; the smoke's row: "ran anyway (no --dry-run gate)")
 - [ ] 3. Retire module 10 (D3): delete `modules/mod_10_greedy.sh`; its entries in the four
   registries and `MODULE_IDS` (`go` = 0–9, 11–13); the menu footer's `go --skip=5,10`;
   module 4's About text (no module 10; `brew upgrade --cask --greedy` by hand); the core's

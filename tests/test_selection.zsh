@@ -150,7 +150,7 @@ assert_valid_sel() {
     fi
 }
 
-_ALL="0 1 2 3 4 5 6 7 8 9 10 11 12 13"   # the full 'go' sequence (MODULE_IDS)
+_ALL="0 1 2 3 4 5 6 7 8 9 11 12 13"   # the full 'go' sequence (MODULE_IDS; no 10, retired in 2.0.0)
 
 # ── go / empty → full sequence ──────────────────────────────────────────────
 assert_list "go"  "$_ALL"
@@ -162,7 +162,7 @@ assert_list "0,4,5"    "0 4 5"
 assert_list "5,2,0"    "5 2 0"     # free order
 assert_list "1,1,2,1"  "1 1 2 1"   # duplicates allowed
 assert_list "0, 4, 5"  "0 4 5"     # inner spaces stripped
-assert_list "10,13"    "10 13"     # two-digit ids
+assert_list "11,13"    "11 13"     # two-digit ids
 
 # ── named modules as a lone token ───────────────────────────────────────────
 assert_list "log" "log"
@@ -250,7 +250,7 @@ assert_cli "5,2,0" "0,2,5" "" 0 "5 2 0"
 assert_cli "1,1,2" "1"     "" 0 "1 1"
 
 # --skip: removes every occurrence
-assert_cli "go"    "" "5,10" 0 "0 1 2 3 4 6 7 8 9 11 12 13"
+assert_cli "go"    "" "5,11" 0 "0 1 2 3 4 6 7 8 9 12 13"
 assert_cli "1,1,2" "" "1"    0 "2"
 
 # --only then --skip (only restricts, then skip removes)
@@ -290,7 +290,28 @@ assert_cli "0,4,"  ""      ""    0 "0 4"
 assert_cli "5,,2"  ""      ""    0 "5 2"
 assert_cli ",5"    ""      ""    0 "5"
 assert_cli "go"    "0,,4"  ""    0 "0 4"
-assert_cli "go"    ""      "5,"  0 "0 1 2 3 4 6 7 8 9 10 11 12 13"
+assert_cli "go"    ""      "5,"  0 "0 1 2 3 4 6 7 8 9 11 12 13"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Module 10 is retired in 2.0.0 and its number reserved (decision D3): `10` is
+# an unknown token in every position — never a module, never widened to `go`.
+# The CLI path rejects the WHOLE selection (rc 2, nothing runs, even when the
+# other tokens are valid); the lenient menu path drops it with a warning.
+# ─────────────────────────────────────────────────────────────────────────────
+assert_list        "10"      ""            # lone
+assert_rc          "10"      1
+assert_sel_invalid "10"      "10"
+assert_list        "10,3"    "3"           # first of a list
+assert_list        "3,10,4"  "3 4"         # middle
+assert_list        "3,10"    "3"           # last
+assert_warns       "3,10"    "'10'"        # the menu path says which token it dropped
+assert_cli_strict  "10"      ""      ""     "10"
+assert_cli_strict  "10,3"    ""      ""     "10"
+assert_cli_strict  "3,10,4"  ""      ""     "10"
+assert_cli_strict  "go"      "10"    ""     "10"   # in --only
+assert_cli_strict  "go"      "0,10"  ""     "10"
+assert_cli_strict  "go"      ""      "10"   "10"   # in --skip
+assert_cli_strict  "go"      ""      "5,10" "10"   # the old menu footer's example
 
 # ─────────────────────────────────────────────────────────────────────────────
 # BM-08c — _selection_is_valid: the install-time gate for a stored agent

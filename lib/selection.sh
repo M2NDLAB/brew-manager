@@ -53,7 +53,6 @@ typeset -gA MODULE_DESC=(
     [7]="Homebrew services status"
     [8]="/usr/local/bin not owned by brew"
     [9]="/usr/local/bin owned by brew"
-    [10]="casks with auto_updates (--greedy)"
     [11]="duplicate and conflicting formulae"
     [12]="broken deps, pinned, non-HTTPS, deprecated"
     [13]="per-package disk usage, sorted by size"
@@ -73,7 +72,7 @@ typeset -gA MODULE_NAME=(
     [0]="Unmanaged apps"    [1]="System health"     [2]="Database update"
     [3]="Package report"    [4]="Available updates" [5]="Cleanup"
     [6]="Dependency map"    [7]="Services"          [8]="Untracked bins"
-    [9]="Brew-owned bins"   [10]="Greedy upgrades"  [11]="Conflicts"
+    [9]="Brew-owned bins"   [11]="Conflicts"
     [12]="Security audit"   [13]="Disk usage"
     [log]="Log manager"     [bk]="Brewfile backup"  [las]="Scheduler"
     [mas]="App Store"
@@ -119,11 +118,15 @@ typeset -gA MODULE_NAME=(
 typeset -gA MODULE_DRYRUN=(
     [0]=1   [1]=0   [2]=1   [3]=1   [4]=1
     [5]=1   [6]=1   [7]=1   [8]=1   [9]=1
-    [10]=1  [11]=1  [12]=1  [13]=1
+    [11]=1  [12]=1  [13]=1
     [log]=1 [bk]=0  [las]=0 [mas]=1
 )
 
-typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
+# The 'go' sequence. No 10: module 10 (greedy upgrades) was retired in 2.0.0
+# and its number is reserved, never given to another module (decision D3 of
+# the 2.0.0 plan; CLAUDE.md, Public contract) — a 1.x script or agent that still
+# passes 10 must be refused, not run something else.
+typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 11 12 13)
 
 # MODULE_RISK — id → risk level, one entry for EVERY MODULE_DESC key. It is the
 # single source of truth for the risk BADGE the menu and each module's "About"
@@ -145,7 +148,7 @@ typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13)
 typeset -gA MODULE_RISK=(
     [0]=danger  [1]=write   [2]=write   [3]=ro      [4]=danger
     [5]=danger  [6]=ro      [7]=ro      [8]=ro      [9]=ro
-    [10]=danger [11]=ro     [12]=ro     [13]=ro
+    [11]=ro     [12]=ro     [13]=ro
     [log]=write [bk]=danger [las]=danger [mas]=danger
 )
 

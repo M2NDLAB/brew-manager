@@ -152,7 +152,7 @@ export BREW_MANAGER_DRY_RUN=$DRY_RUN
 # A dry run must also suppress Homebrew's IMPLICIT update. brew runs
 # `brew update --auto-update` by itself before install/outdated/upgrade/bundle/
 # release (Homebrew's brew.sh, AUTO_UPDATE_COMMANDS), so a preview session that
-# merely LISTS outdated packages (modules 4, 10, bk) still refetched the API and
+# merely LISTS outdated packages (module 4, for one) still refetched the API and
 # rewrote the local index — the exact mutation module 2 is gated against. brew's
 # own --dry-run does not stop it: the decision is taken before the arguments are
 # read. HOMEBREW_NO_AUTO_UPDATE is the documented off switch (gate finding).
@@ -414,7 +414,9 @@ if (( CLI_SELECTION )); then
     _sel_rc=$?
     if (( _sel_rc == 2 )); then
         _err "Unknown module token(s): ${RESOLVE_INVALID[*]}"
-        _err "Valid modules: 0-13, log, bk, las, mas. Base 'go' runs the full sequence."
+        # The numbered ids come from the registry, so this line cannot drift
+        # from what the resolver accepts (it said 0-13 after 10 was retired).
+        _err "Valid modules: ${(j:,:)MODULE_IDS}, log, bk, las, mas. Base 'go' runs the full sequence."
         exit 2
     fi
     if (( ${#MODULES_TO_RUN[@]} == 0 )); then
@@ -466,7 +468,7 @@ printf '  %bRisk%b   %s %bread-only%b   %s %bwrites cache/metadata%b   %s %bchan
     "$C_INFO" "$NC" "$(_risk_badge ro)"     "$C_INFO" "$NC" \
                     "$(_risk_badge write)"  "$C_INFO" "$NC" \
                     "$(_risk_badge danger)" "$C_INFO" "$NC"
-printf '  %bInput  go%s0,1,5%sgo --skip=5,10%sbk        Flags  --dry-run%s--yes%b\n' \
+printf '  %bInput  go%s0,1,5%sgo --skip=5%sbk           Flags  --dry-run%s--yes%b\n' \
     "$C_INFO" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$_tui_dot" "$NC"
 printf '  %bCtrl+C exits at any time; the session log is always saved%b\n' "$C_INFO" "$NC"
 echo ""
@@ -600,10 +602,11 @@ _stat_row "Available updates"           "${OUTDATED_COUNT}"             "${OUTDA
 # mod_05 does). "" from _du_kb means "no measurement" and omits the line: a
 # fabricated 0 would render a fake freed-delta.
 #
-# The "after" side is re-measured HERE, not reused from mod_05: in the `go`
-# sequence module 10 (greedy upgrades) runs AFTER 5 and downloads into the same
-# cache, so mod_05's own end-of-module figure would report "freed ~1.6G" for a
-# cache that ended the session larger (gate finding). Measured at render time,
+# The "after" side is re-measured HERE, not reused from mod_05: a module that
+# runs AFTER 5 can download into the same cache — module 4 in a `5,4` selection
+# (the order is free), as module 10's greedy upgrades did in the `go` sequence
+# until 2.0.0 — so mod_05's own end-of-module figure would report "freed ~1.6G"
+# for a cache that ended the session larger (gate finding). Measured at render time,
 # the line describes the session, which is what it claims to be. The cache can
 # legitimately GROW: say so rather than clamping to zero.
 if [[ -n "$DU_BEFORE_KB" ]]; then

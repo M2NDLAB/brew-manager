@@ -146,7 +146,7 @@ for _k in "${(k)MODULE_DESC[@]}"; do
         _dr_bad+=("$_v")
     fi
 done
-(( ${#MODULE_DESC[@]} >= 18 )) && _pass "dryrun: registry has ${#MODULE_DESC[@]} modules to check" \
+(( ${#MODULE_DESC[@]} >= 13 )) && _pass "dryrun: registry has ${#MODULE_DESC[@]} modules to check" \
                                || _fail "dryrun: registry too small"
 (( ${#_dr_missing[@]} == 0 )) && _pass "dryrun: every module declares dry-run capability" \
                               || _fail "dryrun: undeclared: ${_dr_missing[*]}"

@@ -39,7 +39,7 @@ for _k in "${(k)MODULE_RISK[@]}"; do
     [[ -n "${MODULE_DESC[$_k]}" ]] || _phantom+=("$_k")
 done
 # anti-vacuity: without a populated registry this whole battery is meaningless
-(( ${#MODULE_DESC[@]} >= 18 )) && _pass "registry: MODULE_DESC has ${#MODULE_DESC[@]} modules" \
+(( ${#MODULE_DESC[@]} >= 13 )) && _pass "registry: MODULE_DESC has ${#MODULE_DESC[@]} modules" \
                                || _fail "registry: MODULE_DESC too small (${#MODULE_DESC[@]})"
 (( ${#_missing[@]} == 0 )) && _pass "registry: every module has a risk level" \
                            || _fail "registry: no risk level for: ${_missing[*]}"
@@ -59,7 +59,7 @@ _expect_level() {
 }
 for _id in 3 6 7 8 9 11 12 13;   do _expect_level "$_id" ro;     done
 for _id in 1 2 log;             do _expect_level "$_id" write;  done
-for _id in 0 4 5 10 bk las mas; do _expect_level "$_id" danger; done
+for _id in 0 4 5 bk las mas;    do _expect_level "$_id" danger; done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. docs/03 sensitive modules MUST be danger (non-regression: sensibili = [!])
@@ -146,14 +146,20 @@ else
 fi
 
 # no destructive _ask left un-framed in the danger modules: every _ask ("... ?")
-# guarding a mutation must now be _ask_danger. Scan the 7 wired modules (mod_01
+# guarding a mutation must now be _ask_danger. Scan the 6 wired modules (mod_01
 # since its developer-mode restore).
-_bare=()
-for _m in mod_00_audit mod_01_health mod_04_updates mod_05_cleanup mod_10_greedy mod_bk_brewfile mod_mas_mas; do
+_bare=() _absent=()
+for _m in mod_00_audit mod_01_health mod_04_updates mod_05_cleanup mod_bk_brewfile mod_mas_mas; do
     _f="$_ROOT/modules/$_m.sh"
+    # A listed file that is gone must fail: grep returns 2 on a missing file, so
+    # the scan would pass without having looked at anything — the trap a removed
+    # module leaves in this list.
+    [[ -f "$_f" ]] || { _absent+=("$_m"); continue; }
     # a bare `_ask "` still present (not `_ask_danger`) at a mutation site is a miss
     grep -nE '(^|[^_])_ask "' "$_f" >/dev/null 2>&1 && _bare+=("$_m")
 done
+(( ${#_absent[@]} == 0 )) && _pass "wiring: every scanned danger module exists" \
+                          || _fail "wiring: scanned module file(s) missing: ${_absent[*]}"
 (( ${#_bare[@]} == 0 )) && _pass "wiring: no bare _ask left in the wired danger modules" \
                         || _fail "wiring: bare _ask remains in: ${_bare[*]}"
 
