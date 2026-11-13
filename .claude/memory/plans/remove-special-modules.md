@@ -110,7 +110,8 @@ a grep proves their code gone.
   line had opened with `--dry-run:`)
 - [ ] 7. SECURITY.md (footprint, network, scope; the gate list), CHANGELOG `[Unreleased]`
   (Removed, Changed, the upgrade procedure), `.gitignore` comments (the entries kept). —
-  commit: —
+  commit: `6a8c725` (module 1's dry-run row under Fixed; SECURITY.md's F5 claims left
+  for task 8 of the 2.0.0 plan, as recorded)
 - [ ] 8. CLAUDE.md — the answers **Sensitive components**, **Public contract** (the names and
   10 removed and reserved, the plist item deleted), **Error format**; the technical rules
   (Stack's runtime dependencies, the module structure, the Tests rule's bk/las/log caveat,

@@ -18,16 +18,12 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
 - **Documentation** — where the project documentation lives (the core's rule 5; `docs/02`, DoD point 7): `README.md`
 - **Sensitive components** — the components under the security gate (the core's rule 8; `docs/03`): brew-manager has no auth and no payments: here "sensitive" = blast radius on the
   user's real Mac (removed files, packages installed or upgraded, Homebrew's
-  configuration, launchd persistence). The components are the code paths that:
+  configuration). The components are the code paths that:
   - **delete** — `brew autoremove` and `brew cleanup -s` in `modules/mod_05_cleanup.sh`;
-    the removal of the session's own temporary files in `brew_manager.sh`; until 2.0.0
-    also the deletions of `mod_las_scheduler.sh` ([c], Remove), `mod_bk_brewfile.sh`
-    (Delete) and `mod_log_manager.sh`
+    the removal of the session's own temporary files in `brew_manager.sh`
   - **install** — `brew install --cask --adopt` in `modules/mod_00_audit.sh`,
-    `brew upgrade` in `modules/mod_04_updates.sh`, `brew upgrade --cask --greedy` in
-    `modules/mod_10_greedy.sh` (retired in 2.0.0), the Homebrew installer in
-    `brew_manager.sh`; until 2.0.0 also the restore of `mod_bk_brewfile.sh` and
-    `mod_mas_mas.sh` (`brew install mas`, `mas upgrade`)
+    `brew upgrade` in `modules/mod_04_updates.sh`, the Homebrew installer in
+    `brew_manager.sh`
   - **modify Homebrew's configuration** — the developer-mode restore of
     `modules/mod_01_health.sh` and any code that writes a Homebrew setting (only through
     an explicit, shown and confirmed action: the technical rules, Code conventions)
@@ -35,9 +31,7 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     resolver and the per-id registries of `lib/selection.sh` (`MODULE_IDS`,
     `MODULE_DESC`, `MODULE_RISK`, `MODULE_DRYRUN`, …: a defect there decides WHICH
     modules run); `_ask`, `_read_choice`, YES_MODE and DRY_RUN in `lib/common.sh` (a
-    defect there propagates to ALL modules); until 2.0.0 also the LaunchAgent
-    persistence (plists, launchctl) of `mod_las_scheduler.sh` and of the agents'
-    restore in `mod_bk_brewfile.sh`
+    defect there propagates to ALL modules)
 - **Branches** — the integration and the stable branch, and the branching model if it is not the default (`docs/04`, *Branching model*): trunk-based on `main` — the integration branch and the stable branch are both `main` (the two roles COINCIDE): "merge onto the integration branch" and "release on the stable branch" both refer to `main`. Wherever `docs/04` and the commands say `develop`, in this project read `main`. A remote `origin/dev` exists, dormant and aligned with `main` at the time of the graft: it is not the integration branch (decision recorded in `.claude/memory/decisions/`).
 - **Merge** — via Pull Request or via the `/fw:integrate` block (`docs/04`, *Merge*): the **`/fw:integrate` block** (single developer, trunk-based on `main`).
 - **Public contract** — what the project promises its consumers, whose breaking is a MAJOR (`docs/04`, *Versioning*): any change that forces a consumer to adapt in order to adopt the new version is breaking. brew-manager is a **code** project: its public contract — what a release promises NOT to break without a MAJOR — is the set of these surfaces:
@@ -46,27 +40,27 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     changing its meaning is MAJOR;
   - **Selection grammar** — the positional `[modules]` (a list of ids, or `go`) plus
     `--only`/`--skip`: changing its format incompatibly is MAJOR;
-  - **Module identifiers** — the NUMBERS (`0`–`13`), the `go` keyword and the special
-    NAMES (`bk`/`las`/`log`/`mas`) are FROZEN: renumbering, reassigning a number to a
-    different module or renaming is MAJOR; new modules are APPENDED (new numbers/names),
-    never by reorganising the existing ones. Concrete reason: the numbers are persisted
-    in the LaunchAgent plists on users' Macs (`modules=3,5`), and reassigning them would
-    silently change what an already-installed agent runs;
+  - **Module identifiers** — the NUMBERS (`0`–`13`) and the `go` keyword are FROZEN:
+    renumbering, reassigning a number to a different module or renaming is MAJOR; new
+    modules are APPENDED (new numbers), never by reorganising the existing ones. The
+    names `bk`/`las`/`log`/`mas` and the number `10` were removed in 2.0.0, a MAJOR, and
+    are RESERVED forever: never given to another module, refused like any unknown token
+    (`2`, with a constant hint). Concrete reason: numbers and names are what scripts,
+    aliases and the LaunchAgents installed by 1.x on users' Macs pass on the command line
+    (`modules=3,5`), and reassigning one would silently change what they run;
   - **Exit-code contract** — the codes pinned by the end-to-end tests
     (`tests/test_exit_codes.zsh`): `0` successful run, `1` a selection that resolves to
-    empty, `2` an unknown module token or flag, `69` Homebrew unavailable — not on PATH
+    empty, `2` an unknown module token (a removed id included) or flag, `69` Homebrew unavailable — not on PATH
     nor at a standard prefix, and the installer not offered (`--dry-run`, no terminal),
     declined or failed (sysexits `EX_UNAVAILABLE`; added in v1.5.0, a MINOR) — changing
     them is MAJOR. Order: `--version` answers first (`0`, even next to an unknown flag),
     then an unknown flag (`2`), then the Homebrew precondition, then the module selection
     (`2` or `1`). *(Outside the contract for now, coming in as an additive extension with
     BM-18: the propagation of a module's runtime failure, which today still exits `0` —
-    #4b.)*;
-  - **plist/LaunchAgent format** — the schema written by the scheduler into
-    `~/Library/LaunchAgents` and the `modules=` field read by the restore: an
-    incompatible change breaks the agents already installed, so it is MAJOR.
+    #4b.)* The plist/LaunchAgent format left the contract in 2.0.0, with the scheduler
+    that wrote it and the restore that read it.
 - **Doc comments** — the language's documentation-comment tool (`docs/02`, *Comments*): a block of `#` comments before the function, as already used in `lib/common.sh` and in the modules — zsh has no native doc comments.
-- **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): in this project the "client" is the terminal: in `lib/` and the modules, errors ONLY through `_err`/`_warn` of `lib/common.sh`, with an actionable message — a module's findings, its ✗/⚠ table rows (module 1's system checks, for one), are report rows, not error messages; `brew_manager.sh`'s own messages stand outside that rule, its startup lines, the run header's dry-run notice, the Homebrew-not-found screen and the warning after `script(1)` returns among them, some drawn by hand. A failed command's raw output has no single home yet: a module that relays it — modules 4 and 5, module 1's restore, module 10, bk and mas among them — shows it on screen, and so in the session log `script(1)` records; modules 0, 1 and 2 first write it to a fixed `/tmp/brew_*.log` file (STATE #11), which module 1 then prints, module 0 shows the last line of, and module 2 only greps; many queries discard their stderr (`2>/dev/null`). The raw output on failure into the session log is task 7 of the 2.0.0 plan, the per-run files task 4 (STATE #4b, #11).
+- **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): in this project the "client" is the terminal: in `lib/` and the modules, errors ONLY through `_err`/`_warn` of `lib/common.sh`, with an actionable message — a module's findings, its ✗/⚠ table rows (module 1's system checks, for one), are report rows, not error messages; `brew_manager.sh`'s own messages stand outside that rule, its startup lines, the run header's dry-run notice, the Homebrew-not-found screen and the warning after `script(1)` returns among them, some drawn by hand. A failed command's raw output has no single home yet: a module that relays it — modules 4 and 5 and module 1's restore among them — shows it on screen, and so in the session log `script(1)` records; modules 0, 1 and 2 first write it to a fixed `/tmp/brew_*.log` file (STATE #11), which module 1 then prints, module 0 shows the last line of, and module 2 only greps; many queries discard their stderr (`2>/dev/null`). The raw output on failure into the session log is task 7 of the 2.0.0 plan, the per-run files task 4 (STATE #4b, #11).
 - **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): NONE active — the block stays commented out in `scripts/hooks-install.sh` with a ready `shfmt` example (shfmt/shellcheck are not installed; decision recorded at the graft). Minimal manual check: `zsh -n` on the touched files; project-wide gates: `make check` (`zsh -n` on every script, blocking) and `make test`; `make lint` runs the same `zsh -n` as `make check` — a syntax check only: shellcheck does not support zsh (SC1071).
 - **Production artifact** — its format for a deployable component (`docs/02`, DoD point 9): NOT applicable — the repo's scripts ARE the artifact, distributed via `git clone`; the practical equivalent is: the module works from a clean copy of the repo, without depending on local state.
 
@@ -76,8 +70,7 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
 
 - **Stack**: pure zsh, macOS-only. No compilation, no build: the scripts are the
   artifact. Runtime dependencies: Homebrew (built-in installer), `script(1)`,
-  `python3` (JSON parsing in mod_03), `mas` (optional, mas module), `launchctl`,
-  `mdfind`, `tput`, `open(1)`.
+  `python3` (JSON parsing in mod_03), `mdfind`, `tput`, `open(1)`.
 - **Run**: `./brew_manager.sh` (interactive TUI; `make run`). CLI selection: the
   positional `[modules]` (a list of ids, or `go`) plus `--only=`/`--skip=`. Flags:
   `--dry-run`, `--yes|-y`, `--adopt=n|all|1,2`, `--upgrade=y|n`, `--version|-V`.
@@ -94,20 +87,21 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   field) are MINOR; fixes that do not touch the contract are PATCH.
 - **Commit attribution**: Commits keep Co-Authored-By; the session link is disabled via
   attribution.sessionUrl in .claude/settings.json (framework architect's decision,
-  2026-11-07). Commits published before that date keep their Claude-Session trailer and are
-  not rewritten.
+  2026-11-07). The key applies only to cloud and Remote Control sessions, the only ones
+  that add the link (the user, 2026-11-08), and only in a session that loads the
+  project's settings (STATE #42). Commits published before 2026-11-07 keep their
+  Claude-Session trailer and are not rewritten.
 - **Standard structure of a component** (= module, for /fw:new-component): see
   `.claude/commands/fw/new-component.md`. In short: a `modules/mod_NN_slug.sh` file
-  (loaded automatically by the `mod_*.sh` glob), a `_module_NN` function (number
-  without zero-padding; `_module_14`/`_module_15`/`_module_16` are currently taken by
-  bk/las/mas — see STATE.md), and an entry in each per-id registry of
-  `lib/selection.sh`: `MODULE_DESC` (mandatory: without it the module cannot be
-  selected), `MODULE_NAME`, `MODULE_RISK` and `MODULE_DRYRUN` (kept in lockstep by
-  the tests); only if it must run in the `go` sequence, also in `MODULE_IDS`. The
-  rows of the numbered modules are rendered from the registries (`_menu_row` over
-  `MODULE_IDS`); the special modules are also named by hand in `lib/selection.sh`,
-  in the menu loop and in the dispatch case of `brew_manager.sh` — full list in
-  fw/new-component.md.
+  (loaded automatically by the `mod_*.sh` glob; `NN` the next free number, never a
+  retired id — the answer **Public contract**), a `_module_N` function (the number
+  without zero-padding), an entry in each per-id registry of `lib/selection.sh` —
+  `MODULE_DESC` (mandatory: without it the module cannot be selected), `MODULE_NAME`,
+  `MODULE_RISK` and `MODULE_DRYRUN`, kept in lockstep by the tests both ways — and its
+  number in `MODULE_IDS`, the `go` sequence and the only list the menu draws (a module
+  outside it could be typed but never shown: `tests/test_menu_registry.zsh` fails on
+  it). The menu rows, the range in the menu's header and the "Valid modules" error are
+  rendered from the registries, so no module list is written by hand.
 - **Code conventions**: internal functions prefixed with `_`; constants and shared
   state in UPPERCASE; TUI output only through the `lib/common.sh` utilities
   (`_section`, `_ok`, `_warn`, `_err`, `_info`, `_item`, `_stat_row`), plus
@@ -156,11 +150,12 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   Never pipe input into the prompt (under `script(1)` the menu reads EOF and falls back
   to its default `go`: a full run, which then waits forever at the final log prompt)
   and never truncate the output with `| head` (SIGPIPE kills the run and leaves a
-  0-byte session log). A run that does not end is a defect, not a smoke artefact: until
-  STATE #21 is fixed, `bk` and `log` never end without a terminal, and `las`
-  returns at once without one (its headless smoke only proves the dispatch reaches
-  it) — the user smokes those from a real terminal. The menu is checked by the user
-  from a real terminal too: a CLI run never renders it.
+  0-byte session log). A run that does not end is a defect, not a smoke artefact. The
+  menu is checked by the user from a real terminal too: a CLI run never renders it,
+  and the suite's menu check (`_run_menu` in `tests/test_exit_codes.zsh`) reads the
+  text, not how it looks. That check types its line only once the prompt is on screen:
+  the recorder's `script(1)` discards whatever was typed before it set the terminal to
+  raw mode.
   - When a suite pins a CONTRACT — a function extracted or moved for parity, or code
     built on the same contract, down to the exit code the user observes — enumerate the
     contract's surface BEFORE writing the suite, as a proportional guide, not a ritual

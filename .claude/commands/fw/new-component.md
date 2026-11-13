@@ -9,14 +9,14 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
 1. Read the project's technical rules (CLAUDE.md) and the note of the most similar
    module in .claude/memory/components/ to replicate its structure and conventions.
 2. Create `modules/mod_NN_slug.sh` (numeric, NN two-digit zero-padded, the next free
-   number) or `modules/mod_<alias>_slug.sh` (a special module invoked by name). The
+   number — never a retired id: `10`, `bk`, `las`, `log` and `mas` stay reserved for
+   good, CLAUDE.md's answer **Public contract**; every module is numbered). The
    file is loaded automatically by the `mod_*.sh` glob: no loading registration. No
    production artefact: the module file ships with the repository, distributed via
    `git clone` (CLAUDE.md's answer **Production artifact**).
-3. Define the `_module_NN` function (number WITHOUT zero-padding, e.g. `_module_5`)
-   or `_module_<alias>` (today only `log` uses it: bk/las/mas are `_module_14`,
-   `_module_15` and `_module_16`, so a new module 14 would be shadowed by bk — fix
-   that collision first, see STATE.md). Standard internal structure:
+3. Define the `_module_N` function (number WITHOUT zero-padding, e.g. `_module_5`),
+   at the start of a line in the module's file — the form the wiring test looks for.
+   Standard internal structure:
    - opening with `_section "NN" "Title"`;
    - an "About this module" block in plain language BEFORE any action (what it does,
      what it checks, what it may modify), with `_about_risk "<id>"` (from
@@ -37,26 +37,22 @@ Create a new module named $ARGUMENTS following the project's conventions EXACTLY
      (`ro`/`write`/`danger` badge) and `MODULE_DRYRUN` (1 only if a `--dry-run` run
      changes nothing; a 0 must also be listed in `_KNOWN_UNGATED` of
      `tests/test_run_summary.zsh`) — the tests keep all four in lockstep with
-     `MODULE_DESC`;
-   - if it must run in the `go` sequence: add the number to `MODULE_IDS`;
-   - `tests/test_menu_registry.zsh` pins the `MODULE_DESC` key set (every module)
-     and the `MODULE_IDS` count (numbered modules): update it too;
-   - the rows of the numbered modules are rendered from the registries
-     (`_menu_row` over `MODULE_IDS`): no dedicated printf;
-   - the module lists written by hand: the "Valid modules" error of
-     `brew_manager.sh`, the `0→13` hint of the menu section and the "module ids
-     0-13" hint of `modules/mod_las_scheduler.sh`;
-   - for the special modules only: in `lib/selection.sh` a whole-token arm in the
-     `_resolve_selection` case AND the name in the lowercase-special checks of both
-     `_resolve_selection` (comma lists) and `_collect_module_tokens`
-     (`--only`/`--skip`); the name in the `for tid in log bk las mas` menu loop; a
-     branch in the dispatch case of `brew_manager.sh` (alias → function).
+     `MODULE_DESC`, both ways (an entry with no `MODULE_DESC` key fails too);
+   - add the number to `MODULE_IDS`: it is the `go` sequence and the only list the
+     menu draws, so every module is in it (`tests/test_menu_registry.zsh` fails on a
+     registered id outside it, on a `MODULE_IDS` id nobody registered, on a registered
+     id whose file has no `_module_N` function, and on a module file nobody
+     registered);
+   - `tests/test_menu_registry.zsh` pins the `MODULE_DESC` key set and the
+     `MODULE_IDS` count: update both, on purpose — the ids are a public contract;
+   - the menu rows, the range in the menu's header and the "Valid modules" error of
+     `brew_manager.sh` are rendered from the registries: no module list to update by
+     hand, no dedicated printf.
 5. Minimal verification:
    - `zsh -n` on every touched file;
-   - `make test` (the registry tests fail if a registry entry of step 4 is missing;
-     the special-module wiring — resolver checks, menu loop, dispatch — is not
-     covered by tests: the CLI smoke below checks the resolver and the dispatch, the
-     menu loop is checked by the user from a real terminal);
+   - `make test` (the registry and wiring tests fail if an entry of step 4 is
+     missing; the suite's menu check renders the menu at a pseudo-terminal, its text
+     only);
    - smoke run with the new module selected on the CLI, stdin from `/dev/null` and the
      output in a per-run file, filtered afterwards (the command and its caveats are in
      the Tests rule of CLAUDE.md; never input piped into the prompt, never `| head`):
