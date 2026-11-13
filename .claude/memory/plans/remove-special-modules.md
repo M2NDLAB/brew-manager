@@ -116,7 +116,7 @@ a grep proves their code gone.
   10 removed and reserved, the plist item deleted), **Error format**; the technical rules
   (Stack's runtime dependencies, the module structure, the Tests rule's bk/las/log caveat,
   **Commit attribution**'s limit) — and `fw/new-component.md` (no named-module path; never a
-  retired id). — commit: —
+  retired id). — commit: `5319eee`
 - [ ] 9. The gate, `/fw:security-review`: one independent reviewer on the branch's diff,
   «selection still fails safe», the CLAUDE.md edits included; its findings resolved or
   recorded. — commit: —

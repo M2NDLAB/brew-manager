@@ -417,8 +417,9 @@ if (( CLI_SELECTION )); then
         # A removed id gets a pointer to what replaced it (decision D5): a
         # constant line, printed only — the exit status below is the same.
         _retired_in "${RESOLVE_INVALID[@]}" && _err "$RETIRED_HINT"
-        # The ids come from the registry, so this line cannot drift from what
-        # the resolver accepts (it said 0-13 after 10 was retired).
+        # The ids come from MODULE_IDS, which tests/test_menu_registry.zsh holds
+        # to MODULE_DESC's keys — what the resolver accepts —, so the line does
+        # not drift as the hand-written "0-13" did after 10 was retired.
         _err "Valid modules: ${(j:,:)MODULE_IDS}. Base 'go' runs the full sequence."
         exit 2
     fi
@@ -532,10 +533,12 @@ typeset -a UNMANAGED_APPLE=()
 typeset -a RUN_STATUS=() RUN_SECS=()
 for _mod in "${MODULES_TO_RUN[@]}"; do
     _mod_t0=$SECONDS
-    # Every id here passed the resolver, which keeps only the numbers registered
-    # in MODULE_DESC, so the function name is built from a registered number
-    # alone. The four named arms (bk, las, log, mas) went with their modules in
-    # 2.0.0, and with them the _module_14 collision (bk was _module_14).
+    # Every id here comes from the resolver: a typed id is kept only if it is a
+    # number registered in MODULE_DESC, and `go` copies MODULE_IDS, which
+    # tests/test_menu_registry.zsh holds to the registered ids — so the function
+    # name is built from a registered number alone. The four named arms (bk,
+    # las, log, mas) went with their modules in 2.0.0, and with them the
+    # _module_14 collision (bk was _module_14).
     "_module_${_mod}"
     RUN_SECS+=( $(( SECONDS - _mod_t0 )) )
     RUN_STATUS+=( "$(_run_status "$DRY_RUN" "${MODULE_RISK[$_mod]:-write}" "${MODULE_DRYRUN[$_mod]:-0}")" )

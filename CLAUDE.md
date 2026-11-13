@@ -20,7 +20,9 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   user's real Mac (removed files, packages installed or upgraded, Homebrew's
   configuration). The components are the code paths that:
   - **delete** — `brew autoremove` and `brew cleanup -s` in `modules/mod_05_cleanup.sh`;
-    the removal of the session's own temporary files in `brew_manager.sh`
+    the removal of the session's own temporary files in `brew_manager.sh`; the deletion
+    of the session log at the end-of-run prompt in `lib/log.sh` (until task 4 of the
+    2.0.0 plan removes the prompt)
   - **install** — `brew install --cask --adopt` in `modules/mod_00_audit.sh`,
     `brew upgrade` in `modules/mod_04_updates.sh`, the Homebrew installer in
     `brew_manager.sh`
@@ -47,7 +49,7 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
     are RESERVED forever: never given to another module, refused like any unknown token
     (`2`, with a constant hint). Concrete reason: numbers and names are what scripts,
     aliases and the LaunchAgents installed by 1.x on users' Macs pass on the command line
-    (`modules=3,5`), and reassigning one would silently change what they run;
+    (`brew_manager.sh 3,5 --yes`), and reassigning one would silently change what they run;
   - **Exit-code contract** — the codes pinned by the end-to-end tests
     (`tests/test_exit_codes.zsh`): `0` successful run, `1` a selection that resolves to
     empty, `2` an unknown module token (a removed id included) or flag, `69` Homebrew unavailable — not on PATH
@@ -87,9 +89,10 @@ Stack: zsh (macOS-only, no build) | Repo: github.com/M2NDLAB/brew-manager
   field) are MINOR; fixes that do not touch the contract are PATCH.
 - **Commit attribution**: Commits keep Co-Authored-By; the session link is disabled via
   attribution.sessionUrl in .claude/settings.json (framework architect's decision,
-  2026-11-07). The key applies only to cloud and Remote Control sessions, the only ones
-  that add the link (the user, 2026-11-08), and only in a session that loads the
-  project's settings (STATE #42). Commits published before 2026-11-07 keep their
+  2026-11-07). The key applies only to cloud and Remote Control sessions (the user,
+  2026-11-08), the sessions Claude Code's settings reference names for the link (as the
+  decision record of 2026-11-07 reads it), and only in a session that loads the project's
+  settings (STATE #42). Commits published before 2026-11-07 keep their
   Claude-Session trailer and are not rewritten.
 - **Standard structure of a component** (= module, for /fw:new-component): see
   `.claude/commands/fw/new-component.md`. In short: a `modules/mod_NN_slug.sh` file

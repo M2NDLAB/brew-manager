@@ -64,16 +64,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the LaunchAgent scheduler, the log manager and the Mac App Store module. Their names are
   reserved: they are never given to another module, because scripts and agents written for
   1.x may still pass them.
-  - **Remove your scheduled agents with `./brew_manager.sh las` while you are still on
-    1.5.0.** 2.0.0 cannot list or remove them. An agent left installed keeps running: one
-    that selects a removed module fails at every run with status `2`, and one that runs
-    `go --yes` — the weekly and daily presets — still runs every module, `brew update`
-    and module 5's cleanup included. If you have already updated, the README's
-    *Upgrading from 1.x* gives the commands that find and remove them.
+  - **Remove your scheduled agents with `./brew_manager.sh las` before you update past
+    the `v1.5.0` tag.** 2.0.0 cannot list or remove them. An agent left installed keeps
+    running: one that selects a removed module fails at every run with status `2`, and
+    one that runs `go --yes` — the weekly and daily presets — still runs every module:
+    `brew update`, module 5's cleanup and, where a developer command left Homebrew's
+    developer mode on (1.x's module 1 did, at every run), module 1's restore. If you have
+    already updated, the README's *Upgrading from 1.x* gives the way back to 1.5.0 for
+    that step, and the commands that find and remove the agents.
   - `agents/` and `backups/` are no longer read or written, and brew-manager never deletes
-    them for you. A Brewfile in `backups/` still works with `brew bundle install
-    --file=backups/Brewfile`. The session logs are pruned by hand now (README, *Session
-    logging*).
+    them for you. A Brewfile in `backups/` still works with `brew bundle install`, which
+    runs it as Ruby code: read it first (README, *Upgrading from 1.x*). The session logs
+    are pruned by hand now (README, *Session logging*).
 - **Module 10** (greedy upgrades of the casks that update themselves). Its detection did
   not match Homebrew's output — it looked for `auto_updates: true`, and Homebrew prints
   `(auto_updates)` — so it found no cask to upgrade, and since Homebrew 6.0 a plain `brew

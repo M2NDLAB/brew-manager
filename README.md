@@ -82,9 +82,9 @@ export PATH="$PATH:$HOME/Dev/brew-manager"
 
 2.0.0 makes brew-manager a personal terminal tool for one Mac. It removes the four modules that were selected by name — `bk` (Brewfile backup and restore), `las` (the LaunchAgent scheduler), `log` (the log manager) and `mas` (Mac App Store) — and retires module `10` (greedy upgrades of the casks that update themselves). The ids `bk`, `las`, `log`, `mas` and `10` are reserved: they are never given to another module, and a selection that names one exits `2` without running anything, with a pointer to the [CHANGELOG](CHANGELOG.md).
 
-**Remove your scheduled agents first, while you are still on 1.5.0.** 2.0.0 has no scheduler, so nothing in brew-manager can list or remove the LaunchAgents that `las` installed. Before you update, run `./brew_manager.sh las` and remove the agents you no longer want (option `5`). An agent you keep goes on running after the update: one whose selection names a removed id fails at every run with status `2`, and one that runs `go --yes` — as the weekly and daily presets do — still runs every module, `brew update` and module `5`'s cleanup included.
+**Remove your scheduled agents first, before you update past the `v1.5.0` tag.** 2.0.0 has no scheduler, so nothing in brew-manager can list or remove the LaunchAgents that `las` installed. Before you update, run `./brew_manager.sh las` and remove the agents you no longer want (option `5`). An agent you keep goes on running after the update: one whose selection names a removed id fails at every run with status `2`, and one that runs `go --yes` — as the weekly and daily presets do — still runs every module: `brew update`, module `5`'s cleanup and, where a developer command left Homebrew's developer mode on (1.x's module `1` did, at every run), module `1`'s restore of Homebrew's stable releases.
 
-**If you have already updated**, these two read-only commands show what is left:
+**If you have already updated**, go back to 1.5.0 for that one step, from the brew-manager folder: `git checkout v1.5.0`, then `./brew_manager.sh las`, then `git checkout main`. Or check what is left with these two read-only commands:
 
 ```bash
 ls ~/Library/LaunchAgents | grep '^com\.m2ndlab\.brew-manager\.'
@@ -103,9 +103,9 @@ Only if the second one listed a label whose plist is already gone:
 launchctl list | awk '$3 ~ /^com\.m2ndlab\.brew-manager\./ {print $3}' | while read -r l; do launchctl bootout "gui/$(id -u)/$l"; done
 ```
 
-`(N)` is zsh syntax, the default shell on macOS: with no plist left, the first loop does nothing. Stop an agent before you delete its plist — a deleted plist leaves the job loaded until you log out.
+`(N)` is zsh syntax, the default shell on macOS: with no plist left, the first loop does nothing. The loop stops each agent before it deletes its plist; the second command is for a label that is still loaded after its plist is gone.
 
-**Leftover files.** brew-manager no longer reads or writes `agents/` (the agents' configurations and activity log) or `backups/` (the Brewfile backups), and it never deletes them for you. A Brewfile in `backups/` is still a snapshot of your packages: `brew bundle install --file=backups/Brewfile` installs and upgrades everything it lists. The agents wrote their output to `logs/agent_stdout_*.log` and `logs/agent_stderr_*.log`. Look at what is there with `ls -la agents backups`, then remove what you no longer need by hand — `rm -r agents backups`, for example. Both folders stay in `.gitignore`, so a leftover one is never committed by mistake.
+**Leftover files.** The commands in this paragraph run from the brew-manager folder. brew-manager no longer reads or writes `agents/` (the agents' configurations and activity log) or `backups/` (the Brewfile backups), and it never deletes them for you. A Brewfile in `backups/` is still a snapshot of your packages, and `brew bundle install --file=backups/Brewfile` installs and upgrades everything it lists — read the file first: it is Ruby code, which Homebrew runs as it is. That command also updates Homebrew itself first (unless `HOMEBREW_NO_AUTO_UPDATE` is set), upgrades what is already installed unless you add `--no-upgrade`, and turns the file's `trusted:` options into entries of Homebrew's trust store. The agents wrote their output to `logs/agent_stdout_*.log` and `logs/agent_stderr_*.log`. Look at what is there with `ls -la agents backups`, then remove what you no longer need by hand — for example `rm -ri -- agents backups`, which asks before each deletion. Both folders stay in `.gitignore`, so a leftover one is never committed by mistake. If you updated by copying the new files over the old folder rather than with `git pull`, the five old module files are still in `modules/` — `mod_bk_brewfile.sh`, `mod_las_scheduler.sh`, `mod_log_manager.sh`, `mod_mas_mas.sh` and `mod_10_greedy.sh` — and brew-manager loads every `modules/mod_*.sh` file it finds: delete those five too.
 
 **What replaces the removed modules:** `brew bundle dump --file=<path>` writes a Brewfile of what is installed, `brew upgrade --cask --greedy` re-syncs the casks whose apps updated themselves, the App Store app (or the third-party `mas` tool) updates App Store apps, and the session logs are plain files you browse and prune yourself (see [Session logging](#session-logging)).
 
@@ -201,7 +201,7 @@ Flags change **how** the run behaves and combine with either form:
 # Preview the full sequence: nothing is installed, removed, upgraded or adopted
 ./brew_manager.sh go --dry-run
 
-# Unattended full run: every question is auto-answered with its built-in safe default
+# Unattended full run: every question is auto-answered with its built-in default
 ./brew_manager.sh go --yes
 
 # Run modules 0 and 4, pre-answering their adoption/upgrade prompts
@@ -217,7 +217,7 @@ Flags change **how** the run behaves and combine with either form:
 
 | Flag | What it does |
 |------|--------------|
-| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`. The one deliberate exception is module `5`, whose cleanup prompt defaults to *yes*, so that a run you start with `--yes` frees disk space — add `--skip=5` (or `--dry-run`) if you don't want that. |
+| `--yes` / `-y` | Skips all interactive prompts and uses each prompt's built-in default. Almost all action defaults are conservative: adoption and upgrades happen only if you opt in with `--adopt=` / `--upgrade=`. Two prompts deliberately default to *yes*: module `5`'s cleanup, so that a run you start with `--yes` frees disk space, and module `1`'s developer-mode restore (`brew developer off`, then `brew update`, which stashes any local change in Homebrew's repository), offered only when a developer command or `brew developer on` left developer mode on. Add `--skip=1,5` (or `--dry-run`) if you don't want them. |
 | `--dry-run` | Preview mode: shows what would happen, and installs, removes, upgrades and adopts nothing. Overrides `--yes` — even combined with it, a dry run only previews. It also sets `HOMEBREW_NO_AUTO_UPDATE` for the session, so Homebrew does not refresh its index behind your back while you are only looking. Module `1` still writes a scratch file and may rewrite the index of Homebrew's own repository — see [the session summary](#the-session-summary). |
 | `--adopt=n\|all\|1,2` | Pre-answers the adoption prompt in module `0`. In an unattended run (`--yes`) this is the only way to have apps adopted. |
 | `--upgrade=y\|n` | Pre-answers the upgrade prompt in module `4`. Pass `y` to upgrade without interaction. |
@@ -430,7 +430,7 @@ At the end of each interactive session you are presented with three choices:
 - **Open** — the log is opened in your default editor for review (file is saved regardless)
 - **Delete** — the log file is removed
 
-The logs are plain text files in `logs/`, one per run, and brew-manager never prunes them on its own. Browse them with `ls -lt logs/` and any editor or pager. To prune old ones, list them first, then delete them by hand — for example, the logs older than 90 days:
+The logs are plain text files in `logs/`, one per run, and brew-manager never prunes them on its own. Browse them with `ls -lt logs/` and any editor or pager. To prune old ones, list them first, then delete them by hand — for example, from the brew-manager folder, the logs older than 90 days:
 
 ```bash
 find logs -name 'brew_report_*.log' -mtime +90 -print
