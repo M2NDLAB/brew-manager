@@ -15,16 +15,15 @@ If you are running an older version, update to the latest release before reporti
 
 ## What this tool does — security context
 
-brew-manager is a shell script that runs with your user account privileges. It does not require `sudo` or root access for any of its standard operations (the optional Homebrew installer runs Homebrew's official script, which asks for your administrator password). It reads and writes only within its own directory (`logs/`, `backups/`, `agents/`) and interacts with Homebrew, macOS LaunchAgents, and optionally the Mac App Store via `mas`.
+brew-manager is a shell script that runs with your user account privileges. It does not require `sudo` or root access for any of its standard operations (the optional Homebrew installer runs Homebrew's official script, which asks for your administrator password). It writes its session logs within its own directory (`logs/`) and a few scratch files at fixed paths in `/tmp` (`/tmp/brew_*.log`), and it interacts with Homebrew.
 
 brew-manager changes Homebrew's own configuration only through an explicit action that it shows first and that you confirm (or pass `--yes` for), and never under `--dry-run`. Today that is one action: turning off Homebrew's developer mode in module `1`, followed by `brew update`.
 
 The only network activity performed by this script is:
 - `brew update` / `brew upgrade` — standard Homebrew operations (module `1` runs `brew update` only to bring Homebrew back from developer mode to its latest stable release, after you confirm)
-- `mas upgrade` — if you use the MAS module and confirm the upgrade
 - Homebrew installation — only if brew is not present (neither on `PATH` nor at its
   standard prefix), at an interactive terminal, and after you confirm it: never under
-  `--dry-run`, never in a run without a terminal (a LaunchAgent, a pipe), and never
+  `--dry-run`, never in a run without a terminal (a launchd job, a pipe), and never
   implied by `--yes`
 
 No data is sent to M2NDLAB or any third party.
@@ -36,8 +35,8 @@ No data is sent to M2NDLAB or any third party.
 - **Secret scanning on every commit** — a `gitleaks` pre-commit hook blocks
   commits containing credentials (`make hooks-install` after cloning).
 - **Security gate on sensitive modules** — changes to the modules that mutate
-  the user's system (app adoption, cleanup, backup/restore, LaunchAgent
-  scheduler, plus the shared dispatch/guard-rail code) undergo a dedicated
+  the user's system (app adoption, upgrades, cleanup, the restore of Homebrew's
+  developer mode, plus the shared dispatch/guard-rail code) undergo a dedicated
   security review before being merged (see `.claude/docs/03-security-gate.md`).
 
 ---
@@ -76,10 +75,9 @@ Issues in scope for security reports:
 - Command injection or unintended code execution
 - Privilege escalation
 - Unintended file reads, writes, or deletions outside the script's directory
-- LaunchAgent abuse (e.g. agents that persist after removal)
 
 Out of scope:
-- Vulnerabilities in Homebrew, `mas`, or macOS itself
+- Vulnerabilities in Homebrew or macOS itself
 - Issues that require the attacker to already have full access to your user account
 - Social engineering
 

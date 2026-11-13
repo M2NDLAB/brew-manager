@@ -6,10 +6,12 @@
 logs/
 brew_report_*.log
 
-# Brewfile backups — contain local paths specific to your machine
+# Left by the bk module of 1.x (removed in 2.0.0): Brewfile backups with paths
+# specific to your machine. Still ignored, so a leftover folder is never committed.
 backups/
 
-# LaunchAgent configurations and activity log — local machine only
+# Left by the las module of 1.x (removed in 2.0.0): LaunchAgent configurations and
+# their activity log, local to this machine. Still ignored for the same reason.
 agents/
 
 # ─────────────────────────────────────────────────────────────────────────────

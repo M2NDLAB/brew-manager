@@ -104,7 +104,10 @@ a grep proves their code gone.
   `log`: the logs are plain files, pruned by hand), Project structure, Adding a new module
   (R1, no named-module recipe); an "Upgrading from 1.x" section — remove the agents with
   `las` while on 1.5.0, the `launchctl bootout` block as the fallback, the leftover folders.
-  Closes R1, R3, R5, R12. — commit: —
+  Closes R1, R3, R5, R12. — commit: `bbe1db7` (also R2 and R2b, the tree's `lib/selection.sh`
+  and "one per run"; the summary example a real `1,2,5,7 --dry-run`, its cache line grown
+  ~8K by Homebrew's own bootsnap cache; the message amended before publication, a wrapped
+  line had opened with `--dry-run:`)
 - [ ] 7. SECURITY.md (footprint, network, scope; the gate list), CHANGELOG `[Unreleased]`
   (Removed, Changed, the upgrade procedure), `.gitignore` comments (the entries kept). —
   commit: —
