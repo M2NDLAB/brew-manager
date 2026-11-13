@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -472,7 +472,12 @@ tags: [improvement]
   the footer's first line and that the hook "only warns" ("footer must have leading blank
   line"). It happened in the upgrade (`Plan:`, 2026-10-19) and again here (`it:`), each time
   caught only because the agent read the hook's output, and repaired by amending a local
-  commit.
+  commit. A fourth case on 2026-11-13 ([[sessions/2026-11-13-remove-special-modules]]): a
+  wrapped line opened with `--dry-run:`, a token with dashes that the parser reads as a
+  footer too; the agent's own check before the commit matched letters only, and its chain
+  committed on the hook's warning — amended locally. The stricter check that followed
+  (dashes included, the commit only on a clean lint) refused a later message before any
+  commit existed, a line opening with `F8:`.
 - Proposal: `commitlint.config.cjs` sets `footer-leading-blank` to an error, so the
   commit-msg hook refuses the message and it is reworded before any commit exists.
 - Expected benefit / risk: no cut body reaches the history, and no amend is needed. Risk: a
@@ -532,7 +537,11 @@ tags: [improvement]
   site the list missed, and each fix — a shipped file changed after the reviewed tip — needed
   a new round (`/fw:integrate`'s check). After the third, the claim was rewritten as a rule
   scoped to where it was verified (`lib/` and the modules), with open-ended examples
-  ("among them"); the fourth round found nothing more on it.
+  ("among them"); the fourth round found nothing more on it. Again on 2026-11-13
+  ([[sessions/2026-11-13-remove-special-modules]]): the first round's fix listed what `brew
+  bundle install` does by itself, and the second round found five more precision points in
+  that list; the fix scoped the sentence to what the command can do and pointed at its own
+  `--help`.
 - Proposal: docs/03, *The lenses of the gate*: when a finding shows a claim's list
   incomplete, the first fix narrows the claim's scope to what was verified and makes its
   lists examples, rather than adding the one site found; the review of that fix reads the
@@ -559,6 +568,49 @@ tags: [improvement]
   default.
 - Expected benefit / risk: the backlog says where each framework-bound lesson stands, and a
   harvest does not resend what the framework holds. Risk: one more status in the format.
+- Destination: framework
+
+### IMP-058 — The snapshot check when the main session commits during a delegated run
+- Date: 2026-11-13 | Origin: [[sessions/2026-11-13-remove-special-modules]] — four task commits made while a read-only sweep ran
+- Observed problem: docs/04, *Delegated agents and the shared working tree*: "Snapshot
+  before, check after ... Any difference: STOP and report it to the user". A delegated run
+  can last — here a read-only sweep of 27 minutes, alongside tasks 2–5 —, and the main
+  session's own commits move HEAD and its branch's ref: the plain before/after diff can then
+  no longer tell an agent's trace from the main session's work, so the rule as written
+  makes the main session wait, or the check be read loosely. This session took a snapshot
+  after each of its own commits and compared window by window: each window's diff was
+  exactly its commit (HEAD, the branch's ref, the worktree list's HEAD), and the last
+  window, after the run stopped, was identical. Its uncommitted edits confound the check
+  too: during the gate's third round the main session wrote the checkpoint's memory files,
+  and the reviewer, rightly, reported the working tree changing under it — a reviewer
+  that edited a tracked file would have looked the same in `git diff`.
+- Proposal: docs/04, the same section: when the main session commits during a delegated
+  run, it takes a snapshot right after each of its commits and compares per window; a
+  window's diff must be exactly its own commit — those three lines moving to the new sha,
+  nothing else —, and any other line is an agent's trace: STOP. The last window closes
+  after the run, with `git diff` read too. While a delegated run lasts, the main session
+  leaves the working tree alone, or writes only to paths the brief names as its own (the
+  memory, say), so that `git diff` outside them stays the agent's evidence.
+- Expected benefit / risk: a long delegated run no longer blocks the main session, and the
+  check stays exact. Risk: a skipped snapshot leaves a window with two commits; the rule
+  asks for one snapshot per commit.
+- Destination: framework
+
+### IMP-059 — A last stage placed after the slowest agent does not fit the stall budget
+- Date: 2026-11-13 | Origin: [[sessions/2026-11-13-remove-special-modules]] — the second session in a row whose last fan-out stage the budget stopped
+- Observed problem: docs/00, *Scope and session hygiene*, asks a fan-out for "a stall
+  budget fixed before the run: past it the run is stopped, and what it did not cover is
+  declared"; its last stage — a completeness critic, or the refuters of a review's
+  findings — starts only after the slowest agent of the stage before. On 2026-11-08 the
+  budget (25 minutes) stopped the critic of a four-reviewer workflow. On 2026-11-13 the
+  budget (30 minutes) stopped a sweep's critic a minute after it started, the slowest
+  finder having taken 27 minutes, and then the gate's refuters with four of eleven still
+  running, its reviewer having taken 23. Each time the missing pass was done by hand.
+- Proposal: docs/00, the same bullet: the budget is sized for the slowest agent plus the
+  last stage, or each stage gets its own share; where the last stage cannot fit, it is
+  planned as a pass by hand from the start, and the report says so.
+- Expected benefit / risk: the last stage is planned rather than lost to the budget. Risk:
+  none.
 - Destination: framework
 
 <!-- Format of a proposal:

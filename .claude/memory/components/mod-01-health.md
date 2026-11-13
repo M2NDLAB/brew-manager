@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-01-health
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # mod-01-health (modules/mod_01_health.sh)
@@ -18,7 +18,11 @@ confirmation. Its restore is a GATED path (IMP-030: it modifies Homebrew's confi
   developer-mode restore below. A third, found on 2026-11-07 by the verification of
   STATE's rewrite ([[sessions/2026-11-07-post-upgrade-checkpoint]]): the plain
   `git status` in Homebrew's repository (the local-changes check) may refresh its index,
-  `--dry-run` too (STATE #3, task 4).
+  `--dry-run` too (STATE #3, task 4). Since task 3 of 2.0.0 (`44394b9`, 2026-11-13) the
+  registry says so: `MODULE_DRYRUN[1]=0` and `_KNOWN_UNGATED=(1)`, so the summary marks a
+  `1 --dry-run` row "ran anyway"; task 4 removes both writes and flips it back (STATE #14).
+  Its restore defaults to yes under `--yes`, one of the two such prompts the README's flag
+  table now names (the gate's F1, [[sessions/2026-11-13-remove-special-modules]]).
 
 ## What it exposes / responsibilities
 - `_m01_dev_mode_state` — prints off | setting | pinned | env | unknown, READ-ONLY:
@@ -51,3 +55,4 @@ confirmation. Its restore is a GATED path (IMP-030: it modifies Homebrew's confi
 - [[sessions/2026-07-20-bm10-risk-badges]] (the risk badge in its About block)
 - [[sessions/2026-10-10-homebrew-developer-mode]] (developer mode: prevention, detection,
   restore)
+- [[sessions/2026-11-13-remove-special-modules]] (`MODULE_DRYRUN[1]=0`, declared ungated)

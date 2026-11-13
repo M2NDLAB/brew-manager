@@ -1,7 +1,7 @@
 ---
 type: component
 component: mod-bk-brewfile
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # mod-bk-brewfile (modules/mod_bk_brewfile.sh)
@@ -11,7 +11,14 @@ LaunchAgent, con preview/check/view/delete. SENSIBILE (restore installa pacchett
 carica plist).
 
 ## Stato attuale
-Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
+**Retired: removed in 2.0.0** by task 3 of [[plans/v2-personal-tool]] (`cf1ef60`,
+2026-11-13, [[sessions/2026-11-13-remove-special-modules]]). The name `bk` is reserved: it
+exits 2 with the removal hint, and no module gets it again. `backups/` stays in
+`.gitignore`, never read, written or deleted by the tool; the README's *Upgrading from 1.x*
+says how to restore a Brewfile by hand. This note is kept as the module's history; what
+follows describes it as it was until 1.5.0.
+
+~~Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.~~ (until 1.5.0)
 
 ## Cosa espone / responsabilità
 - Funzione `_module_14` (alias di menu `bk`).
@@ -60,3 +67,4 @@ Funzionante; menu ricco (1/1a/1b, 2/2a/2b, 3/3a/3b, 4, 5, 6). Nessun test.
 - [[sessions/2026-07-17-bm08c-agent-selection]] (restore agenti valida + skip invalidi)
 - [[sessions/2026-07-20-bm10-risk-badges]] (the `_ask_danger` frames)
 - [[sessions/2026-07-21-dryrun-mod02-mas]] (gate: `[4] Check` non gatato → `MODULE_DRYRUN[bk]=0`)
+- [[sessions/2026-11-13-remove-special-modules]] (removed in 2.0.0; the name reserved)

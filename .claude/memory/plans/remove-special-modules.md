@@ -3,7 +3,7 @@ type: plan
 prompt: remove-special-modules
 branch: feat/remove-special-modules
 created: 2026-11-13
-status: in-progress
+status: completed
 tags: [plan, v2, removal, selection, contract, gate]
 ---
 # Plan: task 3 of the 2.0.0 plan — remove bk, las, log, mas and module 10
@@ -54,12 +54,12 @@ a grep proves their code gone.
 
 ## Tasks
 - [x] 1. This plan. — commit: `13dde6d`
-- [ ] 2. Module 1 declared ungated under `--dry-run` (#14): `MODULE_DRYRUN[1]=0` with its
+- [x] 2. Module 1 declared ungated under `--dry-run` (#14): `MODULE_DRYRUN[1]=0` with its
   reason; `_KNOWN_UNGATED=(bk las 1)`. The summary marks a `1 --dry-run` row "ran anyway",
   which is what it does. Verification: `make test`; a `1 --dry-run` smoke shows the row. —
   commit: `44394b9` (RED: the allow-list check failed on the declaration alone; GREEN
   with the entry, 333 checks; the smoke's row: "ran anyway (no --dry-run gate)")
-- [ ] 3. Retire module 10 (D3): delete `modules/mod_10_greedy.sh`; its entries in the four
+- [x] 3. Retire module 10 (D3): delete `modules/mod_10_greedy.sh`; its entries in the four
   registries and `MODULE_IDS` (`go` = 0–9, 11–13); the menu footer's `go --skip=5,10`;
   module 4's About text (no module 10; `brew upgrade --cask --greedy` by hand); the core's
   comments that name it. Tests: `_ALL`, the `10,13` and `--skip=5,10` cases, `10` rejected
@@ -70,7 +70,7 @@ a grep proves their code gone.
   (RED on the unchanged code: 21 selection, 2 registry and 2 end-to-end checks; the scan's
   missing-file check shown by listing `mod_10_greedy` again; 349 checks; the "Valid
   modules" error derived from `MODULE_IDS` here already, since it said 0-13)
-- [ ] 4. Remove bk, las, log and mas: the four files; their registry entries; the resolver's
+- [x] 4. Remove bk, las, log and mas: the four files; their registry entries; the resolver's
   whole-token arms and lowercase-special checks, with the quirk notes they carried;
   `_selection_is_valid` (NEW-d); the dispatch to `"_module_${_mod}"` alone (#18); the TOOLS
   menu, the Choice hint, the footer's `bk`; the "Valid modules" error and the `0→13` hint
@@ -90,7 +90,7 @@ a grep proves their code gone.
   module file is registered), the `MODULE_DRYRUN` phantom check, and the test comments the
   removal made inexact — commit: `b6faea1` (two mutants caught: 10 back in `MODULE_IDS`
   alone, `[bk]=0` back in `MODULE_DRYRUN` alone; 446 checks)
-- [ ] 5. The hint (D5): `RETIRED_MODULE_IDS=(10 bk las log mas)` and `_retired_in` in
+- [x] 5. The hint (D5): `RETIRED_MODULE_IDS=(10 bk las log mas)` and `_retired_in` in
   `lib/selection.sh`; the CLI error and the menu warning print the constant line. Tests: the
   helper, the reservation (no retired id in `MODULE_DESC`), the resolver never reads the list,
   and end to end through the real binary: `bk` and `go --skip=10` → 2 with the hint and no
@@ -99,7 +99,7 @@ a grep proves their code gone.
   the prompt shows, because the recorder's script(1) flushes earlier input — the first
   form waited at the prompt until the watchdog; RED: the helper, the list and the 3 places
   the hint must show; mutants never-true and always-true each caught; 441 checks)
-- [ ] 6. README: the special modules and module 10 gone; the menu, the summary example, the
+- [x] 6. README: the special modules and module 10 gone; the menu, the summary example, the
   flags (`--yes`, `--dry-run` and module 1), module 5's default (D4), Session logging (no
   `log`: the logs are plain files, pruned by hand), Project structure, Adding a new module
   (R1, no named-module recipe); an "Upgrading from 1.x" section — remove the agents with
@@ -108,24 +108,29 @@ a grep proves their code gone.
   and "one per run"; the summary example a real `1,2,5,7 --dry-run`, its cache line grown
   ~8K by Homebrew's own bootsnap cache; the message amended before publication, a wrapped
   line had opened with `--dry-run:`)
-- [ ] 7. SECURITY.md (footprint, network, scope; the gate list), CHANGELOG `[Unreleased]`
+- [x] 7. SECURITY.md (footprint, network, scope; the gate list), CHANGELOG `[Unreleased]`
   (Removed, Changed, the upgrade procedure), `.gitignore` comments (the entries kept). —
   commit: `6a8c725` (module 1's dry-run row under Fixed; SECURITY.md's F5 claims left
   for task 8 of the 2.0.0 plan, as recorded)
-- [ ] 8. CLAUDE.md — the answers **Sensitive components**, **Public contract** (the names and
+- [x] 8. CLAUDE.md — the answers **Sensitive components**, **Public contract** (the names and
   10 removed and reserved, the plist item deleted), **Error format**; the technical rules
   (Stack's runtime dependencies, the module structure, the Tests rule's bk/las/log caveat,
   **Commit attribution**'s limit) — and `fw/new-component.md` (no named-module path; never a
   retired id). — commit: `5319eee`
-- [ ] 9. The gate, `/fw:security-review`: one independent reviewer on the branch's diff,
+- [x] 9. The gate, `/fw:security-review`: one independent reviewer on the branch's diff,
   «selection still fails safe», the CLAUDE.md edits included; its findings resolved or
-  recorded. — commit: —
-- [ ] 10. `/fw:retro`, `/fw:checkpoint` (the session note; the component notes of bk and las
+  recorded. — commit: `48b0d03`, `1226896` (three rounds, none CRITICAL, HIGH or MEDIUM:
+  round 1 on `d91b0dd..5319eee` 2 LOW and 9 INFO, nine fixed, F5 recorded for task 8, F6
+  refuted; round 2 on the fix one LOW and five INFO, the claims scoped; round 3 on the
+  second fix one INFO, recorded with its twins for task 8, the release; reviewed tip
+  `1226896` — [[sessions/2026-11-13-remove-special-modules]], *Security gate*)
+- [x] 10. `/fw:retro`, `/fw:checkpoint` (the session note; the component notes of bk and las
   retired, lib-selection and core; TREE, INDEX, the sensitive-components decision note; STATE
   reconciled with the triage's merge, the entries closed after a grep — #6, #6b, #12, #13,
   #15, #16, #18, #21's bk/log half, #22, #24, #27, #29, #31-F1, R1, R3, R5, R6, R12, NEW-d —,
   ≤ 7,000 characters), the printed `/fw:integrate`; the user checks the menu from a real
-  terminal. — commit: —
+  terminal. — commit: the checkpoint commit (the retro's IMP-058 and IMP-059, IMP-052's and
+  IMP-056's new cases; STATE 6,494 characters; the menu check is the user's, STATE #45)
 
 ## Resumption notes
 - Base: `main` at `d91b0dd` (the triage's merge), which this branch's first checkpoint

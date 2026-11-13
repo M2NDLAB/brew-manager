@@ -57,7 +57,7 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
   installed brew BEFORE use. After the merge: the user runs module 1 on this Mac
   (developer mode on today); the manual fallback commands are printed with their expected
   outcome. Then every later branch is built and smoked on Homebrew 7.0.x. — commit: —
-- [ ] 3. `feat/remove-special-modules` — MAJOR, own task plan; gate: one independent
+- [x] 3. `feat/remove-special-modules` — MAJOR, own task plan; gate: one independent
   reviewer, "selection still fails safe" (the exposure only shrinks). Remove bk, las, log, mas and module 10:
   code, registries, resolver, dispatch, the TOOLS menu, the dead `_selection_is_valid`;
   tests (the `>= 18` guards, scans that fail on a missing file, rejection checks for every
@@ -69,7 +69,10 @@ at the end of a session; strict flag values; truthful module outcomes; the READM
   the answer **Sensitive components**, the technical rules —, `fw/new-component.md`,
   `.gitignore` comments (entries kept), mod_05:69 wording (D4). Closes,
   after a grep proves the code gone: #6, #6b, #12, #13, #15, #16, #18, #21 (the bk/log
-  half), #22, #24, #27, #29, #31-F1, R1, R3, R5, R6, R12, NEW-d. — commit: —
+  half), #22, #24, #27, #29, #31-F1, R1, R3, R5, R6, R12, NEW-d. — DONE 2026-11-13 on its
+  branch, its own plan [[plans/remove-special-modules]] completed, at `/fw:integrate`'s
+  checks ([[sessions/2026-11-13-remove-special-modules]]); also R2 and R2b closed. — commit:
+  the branch's commits, `13dde6d`…the checkpoint
 - [ ] 4. `fix/session-log` — D1 and D2; gate: one independent reviewer (the only new
   deletion is the parent's own mktemp dir; the INT trap). The `_handle_log` prompt goes; `LOG_FILE` once,
   unique; a per-run dir for modules 0, 1 and 2; #28's hardening (the child trusts

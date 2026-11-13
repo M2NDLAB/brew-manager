@@ -1,6 +1,6 @@
 ---
 type: index
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [moc]
 ---
 # INDEX — memoria persistente brew-manager (MOC)
@@ -15,7 +15,7 @@ tags: [moc]
 - [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
 - [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
 - [[LEARNINGS]] — the backlog of process improvements (IMP): OPEN IMP-006, 008–021,
-  023–029, 032, 051–057 (IMP-051…056 sent to the framework's Architect on 2026-11-08);
+  023–029, 032, 051–059 (IMP-051…056 sent to the framework's Architect on 2026-11-08);
   Applied IMP-001–004, 007, 022, 030, 031; Deferred IMP-005 and IMP-033…050 (delivered to the
   framework on 2026-11-08); none rejected
 
@@ -30,13 +30,13 @@ tags: [moc]
   dry-run gap fixed in BM-04, STATE #2 — the note corrected on 2026-11-08)
 - [[mod-05-cleanup]] — autoremove+cleanup (sensibile; dry-run e conferma
   `_ask_danger` presenti da BM-02/BM-10 — la vecchia nota "senza conferma" era stale)
-- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (sensibile; the weekday bug fixed in
-  BM-05a; removed in 2.0.0, task 3)
-- [[mod-las-scheduler]] — LaunchAgent scheduler (sensibile; its CLI dependency closed in M2;
-  removed in 2.0.0, task 3)
-- The other 13 modules have no note yet, four of them on the gate's list (modules 4 and
-  10, mas and log: CLAUDE.md, **Sensitive components**); a note is written at the first
-  substantial change (components/README).
+- [[mod-bk-brewfile]] — backup/restore Brewfile+agenti (the weekday bug fixed in BM-05a);
+  RETIRED, removed in 2.0.0 by task 3 (`cf1ef60`), the note kept as history
+- [[mod-las-scheduler]] — LaunchAgent scheduler (its CLI dependency closed in M2); RETIRED,
+  removed in 2.0.0 by task 3 (`cf1ef60`), the note kept as history
+- The other modules (2, 3, 4, 6–9, 11–13) have no note yet, module 4 on the gate's list
+  (CLAUDE.md, **Sensitive components**); a note is written at the first substantial change
+  (components/README). Modules 10, mas and log were removed in 2.0.0 without one.
 
 ## Per fase (sessioni — append-only)
 - [[sessions/2026-07-11-innesto-note]] — innesto del framework v0.2.0: assessment
@@ -191,7 +191,13 @@ tags: [moc]
   second harvest's Level 1 corrections (IMP-053, IMP-056) and evidence (IMP-055); from the
   triage, IMP-046 corrected and IMP-033 extended, both measured here; IMP-057; STATE condensed
   to 6,996 characters; an independent read-only review, its fixes applied. Memory only, gate
-  not applicable. Ready for integration (no tag).
+  not applicable. INTEGRATED (merge `d91b0dd`, no tag).
+- [[sessions/2026-11-13-remove-special-modules]] — **2.0.0 task 3**: bk, las, log, mas and
+  module 10 removed, their ids refused with exit 2 and a constant hint, reserved; module 1
+  declared ungated under `--dry-run`; the wiring and `MODULE_DRYRUN` phantom invariants;
+  the suite's first menu check through a pseudo-terminal; README (Upgrading from 1.x),
+  SECURITY.md, CHANGELOG, CLAUDE.md; a read-only sweep alongside; the gate in three rounds,
+  none CRITICAL/HIGH/MEDIUM; IMP-058, IMP-059. Ready for integration (no tag).
 
 ## Decisioni
 - [[2026-07-12-trunk-based-su-main]] — trunk-based su main; origin/dev dormiente (the
@@ -200,7 +206,8 @@ tags: [moc]
   and the components under the gate (seven since IMP-022: + `lib/selection.sh`;
   PATH-BASED since IMP-030, 2026-10-07) — superseded in part by U2 of the v4.1.0 upgrade:
   the list is CLAUDE.md's answer **Sensitive components** (code paths), one independent
-  reviewer
+  reviewer; amended on 2026-11-13: the removed modules' paths gone, `lib/log.sh`'s session-log
+  deletion listed (2.0.0 task 3's gate, F4)
 - [[2026-07-12-shellcheck-advisory]] — make lint advisory: shellcheck non ha
   dialetto zsh, il gate di sintassi resta zsh -n — superseded on 2026-11-07 (decision A:
   `make lint` = `make check`'s `zsh -n`)
@@ -256,7 +263,8 @@ tags: [moc]
 - [[plans/v2-personal-tool]] — **brew-manager 2.0.0, a personal terminal tool**: B1 the
   re-plan → B2 Homebrew developer mode → B3 remove bk/las/log/mas and module 10 (MAJOR) →
   B4 session log → B5 Homebrew 6/7 → B6 flag values → B7 module outcomes → B8 release;
-  status: in-progress (tasks 1–2 integrated; next task 3).
+  status: in-progress (tasks 1–2 integrated, task 3 done on its branch; next task 4).
+- [[plans/remove-special-modules]] — plan of task 3 (10 tasks), status: completed.
 - [[plans/fix-homebrew-developer-mode]] — plan of task 2 (6 tasks), status: completed.
 - [[plans/framework-upgrade-v1.2.0-to-v4.1.0]] — plan of the framework upgrade v1.2.0 →
   v4.1.0 (11 tasks), status: completed.

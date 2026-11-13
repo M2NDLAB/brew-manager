@@ -1,7 +1,7 @@
 ---
 type: component
 component: lib-common
-updated: 2026-11-08
+updated: 2026-11-13
 tags: [component]
 ---
 # lib-common (lib/common.sh + lib/log.sh)
@@ -50,8 +50,10 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
   guard-rail BM-08c/BM-09 preservato). Va chiamato solo sul path REALE (il dry-run
   per-modulo ha la sua preview e non conferma). Dettagli in ASCII puro (no em-dash
   multibyte: sballerebbe il border-math di `_box` in locale C). Pinnato da
-  `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei ~~6~~ 7
-  moduli cablati — mod_01 since 2026-10-10; corrected on 2026-11-08).
+  `tests/test_risk_badges.zsh` (consenso == `_ask`; nessun bare `_ask` residuo nei ~~6~~ ~~7~~
+  4 moduli cablati — mod_00, 01, 04, 05 since 2.0.0's task 3, the scan failing on a listed
+  file that is gone; mod_01 since 2026-10-10; corrected on 2026-11-08). The `[!]` caption
+  says "removes, installs, upgrades or adopts packages" since task 3 (R12).
 
 ## Renderer del summary (BM-12) — presentazione del risultato
 - `_run_glyph <done|preview|failed>`: glifo di esito a **larghezza visibile fissa
@@ -136,3 +138,4 @@ moduli. Dal BM-08c i guard-rail distinguono consenso da non-interattivo. Dal
 - [[sessions/2026-07-21-bm12-progress-summary]] (`_spinner` su TUI_TTY + renderer del summary)
 - [[sessions/2026-10-10-homebrew-developer-mode]] (the `write` caption names Homebrew's
   settings)
+- [[sessions/2026-11-13-remove-special-modules]] (the `[!]` caption without "schedules")
