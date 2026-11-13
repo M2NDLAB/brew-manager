@@ -25,6 +25,9 @@
 #                          used by positional CLI dispatch (BM-08b)
 #   RESOLVE_INVALID      — global set by both: the unknown tokens seen, so a
 #                          caller can be strict (CLI) or lenient (interactive)
+#   RETIRED_MODULE_IDS   — the ids 2.0.0 removed, reserved forever; with
+#   RETIRED_HINT and       RETIRED_HINT and _retired_in, presentation only: a
+#   _retired_in            pointer printed next to a refused selection
 # =============================================================================
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -112,6 +115,31 @@ typeset -gA MODULE_DRYRUN=(
 # the 2.0.0 plan; CLAUDE.md, Public contract) — a 1.x script or agent that still
 # passes 10 must be refused, not run something else.
 typeset -ga MODULE_IDS=(0 1 2 3 4 5 6 7 8 9 11 12 13)
+
+# RETIRED_MODULE_IDS — the ids 2.0.0 removed: module 10 (decision D3 of the
+# 2.0.0 plan) and the names bk, las, log and mas (D5). They are reserved
+# forever — never given to another module, because 1.x scripts and LaunchAgents
+# may still pass them, and a new module behind an old id would silently change
+# what those run. PRESENTATION ONLY: the list feeds the hint below and NEVER the
+# resolver, which refuses these ids because MODULE_DESC lacks them. Both halves
+# are pinned by tests/test_selection.zsh: the ids absent from every registry,
+# and the resolver's verdicts unchanged when this list is emptied or altered.
+typeset -ga RETIRED_MODULE_IDS=(10 bk las log mas)
+
+# The constant line printed next to a refused selection that names a retired id
+# (D5). A constant on purpose: no token reaches the screen through it.
+typeset -g RETIRED_HINT="bk, las, log, mas and module 10 were removed in 2.0.0 — see CHANGELOG.md"
+
+# _retired_in [token...] → 0 (true) when any token, lower-cased, is a retired
+# id; 1 otherwise, an empty list included. It only reads the tokens: printing
+# the hint, and the exit status, stay the caller's.
+_retired_in() {
+    local _t
+    for _t in "$@"; do
+        (( ${RETIRED_MODULE_IDS[(Ie)${(L)_t}]} )) && return 0
+    done
+    return 1
+}
 
 # MODULE_RISK — id → risk level, one entry for EVERY MODULE_DESC key. It is the
 # single source of truth for the risk BADGE the menu and each module's "About"

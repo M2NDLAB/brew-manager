@@ -414,6 +414,9 @@ if (( CLI_SELECTION )); then
     _sel_rc=$?
     if (( _sel_rc == 2 )); then
         _err "Unknown module token(s): ${RESOLVE_INVALID[*]}"
+        # A removed id gets a pointer to what replaced it (decision D5): a
+        # constant line, printed only — the exit status below is the same.
+        _retired_in "${RESOLVE_INVALID[@]}" && _err "$RETIRED_HINT"
         # The ids come from the registry, so this line cannot drift from what
         # the resolver accepts (it said 0-13 after 10 was retired).
         _err "Valid modules: ${(j:,:)MODULE_IDS}. Base 'go' runs the full sequence."
@@ -474,6 +477,8 @@ read -r module_choice
 # empty-is-fatal policy stays here — the interactive session must not proceed
 # with nothing to run.
 _resolve_selection "$module_choice"
+# The same pointer as on the command line, after the resolver's own warnings.
+_retired_in "${RESOLVE_INVALID[@]}" && _warn "$RETIRED_HINT"
 
 if (( ${#MODULES_TO_RUN[@]} == 0 )); then
     _err "No valid module selected. Exiting."

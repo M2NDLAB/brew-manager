@@ -311,6 +311,53 @@ for _name in bk las log mas; do
     assert_cli_strict  "go"           ""  "5,$_NAME"     "$_NAME"
 done
 
+# ─────────────────────────────────────────────────────────────────────────────
+# The hint for a removed id (decision D5). _retired_in recognises the five
+# retired ids in any case; the list behind it is presentation only — it never
+# feeds the resolver, which refuses these ids because the registry lacks them —
+# and the ids stay reserved: no registry may give one of them a module again.
+# ─────────────────────────────────────────────────────────────────────────────
+# assert_retired <exp 0|1> [token...]: _retired_in's verdict over the tokens.
+assert_retired() {
+    local _exp="$1" _rc; shift
+    _retired_in "$@"; _rc=$?
+    if (( _rc == _exp )); then
+        _pass "retired_in(${(j:,:)@}) = ${_rc}"
+    else
+        _fail "retired_in(${(j:,:)@}) = ${_rc}, expected ${_exp}"
+    fi
+}
+[[ "${(j: :)RETIRED_MODULE_IDS}" == "10 bk las log mas" ]] \
+    && _pass "reserved: the retired ids are exactly 10 bk las log mas" \
+    || _fail "reserved: RETIRED_MODULE_IDS = [${(j: :)RETIRED_MODULE_IDS}]"
+for _id in "${RETIRED_MODULE_IDS[@]}"; do
+    if [[ -z "${MODULE_DESC[$_id]}${MODULE_NAME[$_id]}${MODULE_RISK[$_id]}${MODULE_DRYRUN[$_id]}" ]] \
+       && (( ! ${MODULE_IDS[(Ie)$_id]} )); then
+        _pass "reserved: $_id is in no registry and not in go"
+    else
+        _fail "reserved: $_id was given to a module again"
+    fi
+done
+assert_retired 0 bk
+assert_retired 0 LAS
+assert_retired 0 Log
+assert_retired 0 mas
+assert_retired 0 10
+assert_retired 0 3 las            # any token of the list
+assert_retired 1 99
+assert_retired 1 3 foo
+assert_retired 1                  # no token at all
+assert_retired 1 010              # not the id 10
+assert_retired 1 bkx
+# Presentation only, by behaviour: with the list emptied the resolver still
+# refuses bk, and an id put in the list still resolves.
+( RETIRED_MODULE_IDS=(); _resolve_cli "bk" "" "" >/dev/null 2>&1; (( $? == 2 )) ) \
+    && _pass "presentation only: bk is refused with the list emptied" \
+    || _fail "presentation only: the refusal of bk depends on the list"
+( RETIRED_MODULE_IDS=(3); _resolve_cli "3" "" "" >/dev/null 2>&1 && [[ "${MODULES_TO_RUN[*]}" == "3" ]] ) \
+    && _pass "presentation only: an id put in the list still resolves" \
+    || _fail "presentation only: the list took a real module away"
+
 # ── verdict + anti-vacuity ──────────────────────────────────────────────────
 print -r -- ""
 if (( TESTS_RUN == 0 )); then

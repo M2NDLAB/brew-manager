@@ -80,7 +80,10 @@ a grep proves their code gone.
   middle and last of a list, `--only`, `--skip`, the lenient menu path), the write, danger and
   sensitive lists, the key set, the `MODULE_DRYRUN[mas]` check, `_KNOWN_UNGATED=(1)`, the mas
   half of `test_dryrun_gates.zsh`. RED first. Verification: `make test`; smokes `bk`, `LAS`,
-  `3,mas`, `go --skip=log` → 2 with nothing run, `8 --dry-run` → 0. — commit: —
+  `3,mas`, `go --skip=log` → 2 with nothing run, `8 --dry-run` → 0. — commit: `cf1ef60`
+  (RED: 68 selection checks; end to end `bk` hit the 60 s watchdog — #21's hang — and
+  `LAS`, `8,mas`, `go --skip=log` exited 0; a mutant accepting `log` in the filters failed
+  exactly the three `--only`/`--skip` checks; 412 checks)
 - [ ] 5. The hint (D5): `RETIRED_MODULE_IDS=(10 bk las log mas)` and `_retired_in` in
   `lib/selection.sh`; the CLI error and the menu warning print the constant line. Tests: the
   helper, the reservation (no retired id in `MODULE_DESC`), the resolver never reads the list,

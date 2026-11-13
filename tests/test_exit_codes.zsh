@@ -143,6 +143,67 @@ assert_exit 2 "removed module in a list (8,mas)" 8,mas
 assert_exit 2 "removed module in --skip (go --skip=log)" go --skip=log
 assert_exit 2 "removed module in --only (--only=bk)"     --only=bk
 
+# ── the hint for a removed id (decision D5): one constant line next to the
+#    error, the exit status unchanged and nothing run; never for other tokens ─
+# assert_exit_out <expected_rc> <label> <out> <args...>: assert_exit, with the
+# output kept in <out> for the content checks that follow it.
+assert_exit_out() {
+    local _exp="$1" _label="$2" _out="$3"; shift 3
+    local _rc
+    PATH="$_MOCKDIR:$PATH" _guarded 60 zsh "$_FARM/brew_manager.sh" "$@" </dev/null >"$_out" 2>&1
+    _rc=$?
+    if (( _rc == _exp )); then
+        _pass "${_label}: rc=${_rc}"
+    else
+        _fail "${_label}: rc=${_rc}, expected ${_exp}"
+    fi
+}
+_HINT='were removed in 2.0.0 — see CHANGELOG.md'
+assert_exit_out 2 "removed module (bk), with its hint" "$_SANDBOX/hint_bk" bk
+_check "removed module (bk): the hint is printed, nothing runs" \
+    eval 'grep -qF -- "$_HINT" "$_SANDBOX/hint_bk" && ! grep -q "Running modules" "$_SANDBOX/hint_bk"'
+assert_exit_out 2 "retired module in --skip (go --skip=10), with its hint" "$_SANDBOX/hint_10" go --skip=10
+_check "retired module in --skip: the hint is printed, nothing runs" \
+    eval 'grep -qF -- "$_HINT" "$_SANDBOX/hint_10" && ! grep -q "Running modules" "$_SANDBOX/hint_10"'
+assert_exit_out 2 "unknown module token (99), no hint" "$_SANDBOX/hint_99" 99
+_check "unknown module token (99): the error, and no hint (it names no removed module)" \
+    eval 'grep -q "Unknown module token" "$_SANDBOX/hint_99" && ! grep -qF -- "$_HINT" "$_SANDBOX/hint_99"'
+
+# ── the menu, the lenient path: at a terminal, a removed name typed at the
+#    Choice prompt is warned about and skipped, the hint follows, and with
+#    nothing left the run ends with 1 before any module; the menu shows no
+#    TOOLS section and no removed module's row. A pseudo-terminal (script(1))
+#    types the line; the CLI checks above never render the menu. ────────────
+# _run_menu <line> <out>: the farm binary at a terminal, <line> typed at its
+# prompt. The line is typed only once the prompt is on screen: the session
+# recorder's own script(1) sets the terminal to raw mode with TCSAFLUSH, which
+# discards whatever was typed before (a line written ahead is lost, and the run
+# waits at the prompt until the watchdog). A prompt that never shows is waited
+# for 10 s, then the line is typed anyway and the watchdog bounds the run.
+_run_menu() {
+    local _line="$1" _out="$2" _i
+    : > "$_out"
+    {
+        for _i in {1..100}; do
+            grep -q 'Choice ' "$_out" 2>/dev/null && break
+            sleep 0.1
+        done
+        print -r -- "$_line"
+    } | PATH="$_MOCKDIR:$PATH" _guarded 30 /usr/bin/script -q /dev/null \
+        /bin/zsh "$_FARM/brew_manager.sh" >"$_out" 2>&1
+}
+_run_menu bk "$_SANDBOX/menu_bk"
+_rc=$?
+_check "menu, bk typed: rc=1, nothing left to run (got ${_rc})" [ "$_rc" = 1 ]
+_check "menu, bk typed: warned and skipped, the hint, no module run" \
+    eval 'grep -q "Module .bk. is invalid" "$_SANDBOX/menu_bk" && grep -qF -- "$_HINT" "$_SANDBOX/menu_bk" && grep -q "No valid module selected" "$_SANDBOX/menu_bk" && ! grep -q "Running modules" "$_SANDBOX/menu_bk"'
+_check "menu: rendered, with no TOOLS section and no removed module's row" \
+    eval 'grep -q "AUDIT & MAINTENANCE" "$_SANDBOX/menu_bk" && ! grep -q "TOOLS" "$_SANDBOX/menu_bk" && ! grep -qE "Brewfile backup|Scheduler|Log manager|App Store|Greedy upgrades" "$_SANDBOX/menu_bk"'
+_run_menu 99 "$_SANDBOX/menu_99"
+_rc=$?
+_check "menu, 99 typed: rc=1, warned, and no hint (got ${_rc})" \
+    eval '[ "$_rc" = 1 ] && grep -q "Module .99. is invalid" "$_SANDBOX/menu_99" && ! grep -qF -- "$_HINT" "$_SANDBOX/menu_99"'
+
 # ── parent-side guard (rejected BEFORE the re-exec: flag parser regression) ──
 assert_exit 2 "unknown flag (--dryrun)"          --dryrun
 
