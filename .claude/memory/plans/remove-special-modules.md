@@ -88,13 +88,17 @@ a grep proves their code gone.
   task 5's, from the read-only sweep's findings (*Resumption notes*): the wiring invariant
   (every registered id has its file and `_module_<id>`, every `go` id is registered, every
   module file is registered), the `MODULE_DRYRUN` phantom check, and the test comments the
-  removal made inexact — commit: see task 5's line
+  removal made inexact — commit: `b6faea1` (two mutants caught: 10 back in `MODULE_IDS`
+  alone, `[bk]=0` back in `MODULE_DRYRUN` alone; 446 checks)
 - [ ] 5. The hint (D5): `RETIRED_MODULE_IDS=(10 bk las log mas)` and `_retired_in` in
   `lib/selection.sh`; the CLI error and the menu warning print the constant line. Tests: the
   helper, the reservation (no retired id in `MODULE_DESC`), the resolver never reads the list,
   and end to end through the real binary: `bk` and `go --skip=10` → 2 with the hint and no
   run, `99` → 2 without it. Verification: `make test`, a mutation of the hint's guard. —
-  commit: —
+  commit: `efc9fe2` (plus a menu check through a pseudo-terminal: the line is typed once
+  the prompt shows, because the recorder's script(1) flushes earlier input — the first
+  form waited at the prompt until the watchdog; RED: the helper, the list and the 3 places
+  the hint must show; mutants never-true and always-true each caught; 441 checks)
 - [ ] 6. README: the special modules and module 10 gone; the menu, the summary example, the
   flags (`--yes`, `--dry-run` and module 1), module 5's default (D4), Session logging (no
   `log`: the logs are plain files, pruned by hand), Project structure, Adding a new module
