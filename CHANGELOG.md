@@ -39,8 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Homebrew out at its latest release tag, which can be older than the main-branch
     commit it was on. It also warns when Homebrew's repository has local changes:
     `brew update` stashes them and does not restore them.
-  - Developer mode set in your environment (`HOMEBREW_DEVELOPER`,
-    `HOMEBREW_DEV_CMD_RUN`) is only reported.
+  - Developer mode set in the environment of the run (`HOMEBREW_DEVELOPER`,
+    `HOMEBREW_DEV_CMD_RUN`) is only reported. A run started by launchd sees what
+    `~/.zshenv` exports, not `~/.zshrc` or `~/.zprofile`.
   - With developer mode off, the row turns yellow when Homebrew is not on a release,
     for example after a failed update.
   - A test keeps Homebrew developer commands out of brew-manager's code.
@@ -68,13 +69,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     the `v1.5.0` tag.** 2.0.0 cannot list or remove them. An agent left installed keeps
     running: one that selects a removed module fails at every run with status `2`, and
     one that runs `go --yes` — the weekly and daily presets — still runs every module:
-    `brew update`, module 5's cleanup and, where a developer command left Homebrew's
-    developer mode on (1.x's module 1 did, at every run), module 1's restore. If you have
+    `brew update`, module 5's cleanup and, where a developer command or `brew developer
+    on` left Homebrew's developer mode on (1.x's module 1 did, at every run), module 1's
+    restore. If you have
     already updated, the README's *Upgrading from 1.x* gives the way back to 1.5.0 for
     that step, and the commands that find and remove the agents.
   - `agents/` and `backups/` are no longer read or written, and brew-manager never deletes
-    them for you. A Brewfile in `backups/` still works with `brew bundle install`, which
-    runs it as Ruby code: read it first (README, *Upgrading from 1.x*). The session logs
+    them for you. A Brewfile in `backups/` still works with `brew bundle install
+    --file=backups/Brewfile`, which runs it as Ruby code: read it first (README,
+    *Upgrading from 1.x*). The session logs
     are pruned by hand now (README, *Session logging*).
 - **Module 10** (greedy upgrades of the casks that update themselves). Its detection did
   not match Homebrew's output — it looked for `auto_updates: true`, and Homebrew prints
