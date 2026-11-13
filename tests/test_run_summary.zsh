@@ -180,7 +180,10 @@ done
 # in a comment, and the summary would then attest "nothing changed" for a module
 # that writes. Declaring debt honestly must stay free; what must not happen is
 # the debt growing in silence, or a fixed module keeping its exemption.
-typeset -a _KNOWN_UNGATED=(bk las)   # mod_bk [4] bundle check · mod_las [c] rm
+# Each entry with its reason: mod_bk [4] runs `brew bundle check`; mod_las [c]
+# runs rm; mod_01 writes /tmp/brew_doctor.log and runs a plain `git status` in
+# Homebrew's repository (STATE #14, until task 4 of the 2.0.0 plan).
+typeset -a _KNOWN_UNGATED=(bk las 1)
 typeset -a _declared=()
 for _k in "${(k)MODULE_DESC[@]}"; do
     (( ${MODULE_DRYRUN[$_k]:-0} )) || _declared+=("$_k")

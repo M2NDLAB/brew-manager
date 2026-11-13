@@ -52,7 +52,7 @@ a grep proves their code gone.
   CLAUDE.md's answers).
 
 ## Tasks
-- [ ] 1. This plan. — commit: —
+- [x] 1. This plan. — commit: `13dde6d`
 - [ ] 2. Module 1 declared ungated under `--dry-run` (#14): `MODULE_DRYRUN[1]=0` with its
   reason; `_KNOWN_UNGATED=(bk las 1)`. The summary marks a `1 --dry-run` row "ran anyway",
   which is what it does. Verification: `make test`; a `1 --dry-run` smoke shows the row. —

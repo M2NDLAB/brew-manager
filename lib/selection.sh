@@ -95,7 +95,15 @@ typeset -gA MODULE_NAME=(
 #             `rm -f`, with no gate, and the module creates
 #             ~/Library/LaunchAgents on a Mac that had none. The install /
 #             modify / remove paths ARE gated.
-# Both were 1 before fix/dryrun-mod02-mas — declared, never verified. The gate
+#   [1]   0 — its developer-mode restore IS gated, but under --dry-run it still
+#             writes brew doctor's output to the fixed /tmp/brew_doctor.log and,
+#             before its dry-run check, runs a plain `git status` in Homebrew's
+#             repository, which may rewrite that repository's index file. It
+#             was 1 as a read-only module, and stayed 1 when the restore made it
+#             `write`: tests/test_run_summary.zsh found the restore's gate by
+#             grep. Task 4 of the 2.0.0 plan removes both writes and flips it
+#             back (STATE #3, #11, #14).
+# bk and las were 1 before fix/dryrun-mod02-mas — declared, never verified. The gate
 # on that branch checked the whole registry against the code and found them
 # wrong; they are declared honestly here instead of being fixed in the same
 # breath, because both are sensitive components (docs/03) and deserve their own
@@ -109,7 +117,7 @@ typeset -gA MODULE_NAME=(
 # tests/test_dryrun_gates.zsh, which runs the formerly-ungated modules against a
 # mock brew and proves the commands are never invoked.
 typeset -gA MODULE_DRYRUN=(
-    [0]=1   [1]=1   [2]=1   [3]=1   [4]=1
+    [0]=1   [1]=0   [2]=1   [3]=1   [4]=1
     [5]=1   [6]=1   [7]=1   [8]=1   [9]=1
     [10]=1  [11]=1  [12]=1  [13]=1
     [log]=1 [bk]=0  [las]=0 [mas]=1
